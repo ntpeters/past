@@ -2,7 +2,18 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+      <!--
+      Special target framework moniker to enable access to Windows Runtime APIs.
+      For more info:
+      https://docs.microsoft.com/en-us/windows/apps/desktop/modernize/desktop-to-uwp-enhance#net-5-and-later-use-the-target-framework-moniker-option
+      -->
+      <targetframework>net5.0-windows10.0.19041.0</targetframework>
+      <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
+    <PackageReference Include="System.CommandLine.Rendering" Version="0.3.0-alpha.21216.1" />
+  </ItemGroup>
 
 </Project>
