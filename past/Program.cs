@@ -173,7 +173,7 @@ namespace past
                 foreach (var item in items.Items)
                 {
                     var value = await GetClipboardItemValueAsync(item, all, ansi);
-                    WriteValueToConsole(console, value, index ? i : null, nul, ansi);
+                    WriteValueToConsole(console, value, index ? i : null, i < items.Items.Count - 1 && nul, ansi);
                     i++;
                 }
             }
