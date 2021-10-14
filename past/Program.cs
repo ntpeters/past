@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using WinRtClipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
+using Win32Clipboard = System.Windows.Clipboard;
 
 namespace past
 {
@@ -38,60 +39,83 @@ namespace past
             rootCommand.AddCommand(listCommand);
             rootCommand.AddCommand(getCommand);
 
+            rootCommand.AddOption(allOption);
+            rootCommand.Handler = CommandHandler.Create<IConsole, bool, CancellationToken>(GetCurrentClipboardValueAsync);
+
             return await rootCommand.InvokeAsync(args);
         }
 
-        private static void WriteValueToConsole(IConsole console, string? value, int? index = null, bool nul = false, bool ansi = false)
+        #region Commands
+        private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, bool all, CancellationToken cancellationToken)
         {
-            if (value == null)
+            // Using the Win32 clipboard API rather than the WinRt clipboard API as that
+            // one frequently throws "RPC_E_DISCONNECTED" when trying to access the current
+            // clipboard contents.
+            try
             {
-                return;
-            }
-
-            var outputValue = new StringBuilder();
-            if (index != null)
-            {
-                outputValue.Append($"{index}:");
-            }
-
-            outputValue.Append(value);
-
-            if (ansi)
-            {
-                outputValue.Append(Ansi.Text.AttributesOff.EscapeSequence);
-            }
-
-            if (nul)
-            {
-                outputValue.Append('\0');
-            }
-            else
-            {
-                outputValue.Append('\n');
-            }
-
-            console.Out.Write(outputValue.ToString());
-        }
-
-        private static async Task<string?> GetClipboardItemValueAsync(ClipboardHistoryItem item, bool all = false, bool ansi = false)
-        {
-            if (item.Content.Contains(StandardDataFormats.Text))
-            {
-                return await item.Content.GetTextAsync();
-            }
-            else if (all)
-            {
-                var message = new StringBuilder();
-                if (ansi)
+                // Accessing the current clipboard must be done on an STA thread
+                var tsc = new TaskCompletionSource<string?>();
+                var staThread = new Thread(() =>
                 {
-                    message.Append(Ansi.Color.Foreground.Red.EscapeSequence);
+                    try
+                    {
+                        string? value = null;
+                        if (Win32Clipboard.ContainsText(System.Windows.TextDataFormat.UnicodeText))
+                        {
+                            value = Win32Clipboard.GetText(System.Windows.TextDataFormat.UnicodeText);
+                        }
+                        else if (Win32Clipboard.ContainsText(System.Windows.TextDataFormat.Text))
+                        {
+                            value = Win32Clipboard.GetText(System.Windows.TextDataFormat.Text);
+                        }
+                        else if (all)
+                        {
+                            if (Win32Clipboard.ContainsImage())
+                            {
+                                value = "[Unsupported Format: Image]";
+                            }
+                            else if (Win32Clipboard.ContainsAudio())
+                            {
+                                value = "[Unsupported Format: Audio]";
+                            }
+                            else if (Win32Clipboard.ContainsFileDropList())
+                            {
+                                value = "[Unsupported Format: File Drop List]";
+                            }
+                            else
+                            {
+                                var data = Win32Clipboard.GetDataObject();
+                                value = $"[Unsupported Format: {string.Join(',', data.GetFormats())}]";
+                            }
+                        }
+
+                        tsc.SetResult(value);
+                    }
+                    catch (Exception e)
+                    {
+                        tsc.SetException(e);
+                    }
+                });
+
+                staThread.SetApartmentState(ApartmentState.STA);
+                staThread.Start();
+
+                if (!staThread.Join(millisecondsTimeout: 500))
+                {
+                    console.Error.WriteLine("Timeout while getting current clipboard contents.");
+                    return -1;
                 }
 
-                message.Append($"[Unsupported Format: {string.Join(',', item.Content.AvailableFormats)}]");
-                return message.ToString();
+                var value = await tsc.Task;
+                WriteValueToConsole(console, value);
+            }
+            catch (Exception e)
+            {
+                console.Error.WriteLine($"Failed to get current clipboard contents. Error: {e}");
+                return -1;
             }
 
-            return null;
+            return 0;
         }
 
         private static async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, CancellationToken cancellationToken)
@@ -161,5 +185,66 @@ namespace past
 
             return 0;
         }
+        #endregion Commands
+
+        #region Helpers
+        private static void WriteValueToConsole(IConsole console, string? value, int? index = null, bool nul = false, bool ansi = false)
+        {
+            if (value == null)
+            {
+                return;
+            }
+
+            var outputValue = new StringBuilder();
+            if (index != null)
+            {
+                outputValue.Append($"{index}:");
+            }
+
+            outputValue.Append(value);
+
+            if (ansi)
+            {
+                outputValue.Append(Ansi.Text.AttributesOff.EscapeSequence);
+            }
+
+            if (nul)
+            {
+                outputValue.Append('\0');
+            }
+            else
+            {
+                outputValue.Append('\n');
+            }
+
+            console.Out.Write(outputValue.ToString());
+        }
+
+        private static Task<string?> GetClipboardItemValueAsync(ClipboardHistoryItem item, bool all = false, bool ansi = false)
+        {
+            return GetClipboardItemValueAsync(item.Content, all, ansi);
+        }
+
+        private static async Task<string?> GetClipboardItemValueAsync(DataPackageView content, bool all = false, bool ansi = false)
+        {
+            if (content.Contains(StandardDataFormats.Text))
+            {
+                return await content.GetTextAsync();
+            }
+            else if (all)
+            {
+                var message = new StringBuilder();
+                if (ansi)
+                {
+                    message.Append(Ansi.Color.Foreground.Red.EscapeSequence);
+                }
+
+                message.Append($"[Unsupported Format: {string.Join(',', content.AvailableFormats)}]");
+                return message.ToString();
+            }
+
+            return null;
+        }
+        #endregion Helpers
     }
 }

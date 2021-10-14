@@ -8,6 +8,10 @@
       https://docs.microsoft.com/en-us/windows/apps/desktop/modernize/desktop-to-uwp-enhance#net-5-and-later-use-the-target-framework-moniker-option
       -->
       <targetframework>net5.0-windows10.0.19041.0</targetframework>
+      <!--Needed to access the current clipboard content without UI-->
+      <UseWPF>true</UseWPF>
+      <!--Needed to keep this as a console app when using WPF-->
+      <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
       <Nullable>enable</Nullable>
   </PropertyGroup>
 
