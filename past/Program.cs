@@ -32,8 +32,10 @@ namespace past
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
             getCommand.AddArgument(indexArgument);
+            var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
+            getCommand.AddOption(setCurrentOption);
             getCommand.AddOption(ansiOption);
-            getCommand.Handler = CommandHandler.Create<IConsole, int, bool, CancellationToken>(GetClipboardHistoryItemAsync);
+            getCommand.Handler = CommandHandler.Create<IConsole, int, bool, bool, CancellationToken>(GetClipboardHistoryItemAsync);
 
             var rootCommand = new RootCommand();
             rootCommand.AddCommand(listCommand);
@@ -118,7 +120,7 @@ namespace past
             return 0;
         }
 
-        private static async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, CancellationToken cancellationToken)
+        private static async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, bool setCurrent, CancellationToken cancellationToken)
         {
             try
             {
@@ -137,6 +139,15 @@ namespace past
                 var item = items.Items.ElementAt(index);
                 var value = await GetClipboardItemValueAsync(item, ansi: ansi);
                 WriteValueToConsole(console, value, ansi: ansi);
+
+                if (setCurrent)
+                {
+                    var setContentStatus = WinRtClipboard.SetHistoryItemAsContent(item);
+                    if (setContentStatus != SetHistoryItemAsContentStatus.Success)
+                    {
+                        console.Error.WriteLine($"Failed updating the current clipboard content with the selected history item. Error: {setContentStatus}");
+                    }
+                }
             }
             catch (Exception e)
             {
