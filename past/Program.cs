@@ -11,11 +11,20 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using WinRtClipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
 using Win32Clipboard = System.Windows.Clipboard;
+using System.IO;
 
 namespace past
 {
     public class Program
     {
+        public enum ContentType
+        {
+            All,
+            Text,
+            Image,
+            File
+        }
+
         public static async Task<int> Main(string[] args)
         {
             var listCommand = new Command("list", "Lists the clipboard history");
@@ -23,11 +32,9 @@ namespace past
             listCommand.AddOption(nullOption);
             var indexOption = new Option<bool>("--index", "Print indices with each item");
             listCommand.AddOption(indexOption);
-            var allOption = new Option<bool>("--all", "Print all entries, including unsupported types");
-            listCommand.AddOption(allOption);
             var ansiOption = new Option<bool>("--ansi", "Enable processing of ANSI control sequences");
             listCommand.AddOption(ansiOption);
-            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
+            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, CancellationToken>(ListClipboardHistoryAsync);
 
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
@@ -41,14 +48,47 @@ namespace past
             rootCommand.AddCommand(listCommand);
             rootCommand.AddCommand(getCommand);
 
-            rootCommand.AddOption(allOption);
-            rootCommand.Handler = CommandHandler.Create<IConsole, bool, CancellationToken>(GetCurrentClipboardValueAsync);
+            var typeOption = new Option<ContentType>(
+                aliases: new string[] { "--type", "-t" },
+                description: "The type of content to read from the clipboard.",
+                isDefault: true,
+                parseArgument: (ArgumentResult result) =>
+                {
+                    if (result.Tokens.Count == 0)
+                    {
+                        // Default value
+                        return ContentType.Text;
+                    }
+
+                    var typeValue = result.Tokens?.FirstOrDefault()?.Value;
+                    if (!Enum.TryParse<ContentType>(typeValue, ignoreCase: true, out var type))
+                    {
+                        // For some reason this version of System.CommandLine still executes the parse argument delegate
+                        // even when argument validation fails, so we'll just return the default type here since it won't
+                        // be used anyway...
+                        return ContentType.Text;
+                    }
+
+                    return type;
+                });
+            typeOption.AddSuggestions(Enum.GetNames<ContentType>());
+            typeOption.AddValidator((OptionResult result) =>
+            {
+                var typeValue = result.Tokens?.FirstOrDefault()?.Value;
+                if (result.Token != null && !Enum.TryParse<ContentType>(typeValue, ignoreCase: true, out var type))
+                {
+                    return $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<ContentType>())}";
+                }
+                return null;
+            });
+            rootCommand.AddGlobalOption(typeOption);
+            rootCommand.Handler = CommandHandler.Create<IConsole, ContentType, CancellationToken>(GetCurrentClipboardValueAsync);
 
             return await rootCommand.InvokeAsync(args);
         }
 
         #region Commands
-        private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, bool all, CancellationToken cancellationToken)
+        private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, CancellationToken cancellationToken)
         {
             // Using the Win32 clipboard API rather than the WinRt clipboard API as that
             // one frequently throws "RPC_E_DISCONNECTED" when trying to access the current
@@ -62,33 +102,29 @@ namespace past
                     try
                     {
                         string? value = null;
-                        if (Win32Clipboard.ContainsText(System.Windows.TextDataFormat.UnicodeText))
+                        if (type == ContentType.Text || type == ContentType.All)
                         {
-                            value = Win32Clipboard.GetText(System.Windows.TextDataFormat.UnicodeText);
+                            if (Win32Clipboard.ContainsText(System.Windows.TextDataFormat.UnicodeText))
+                            {
+                                value = Win32Clipboard.GetText(System.Windows.TextDataFormat.UnicodeText);
+                            }
+                            else if (Win32Clipboard.ContainsText(System.Windows.TextDataFormat.Text))
+                            {
+                                value = Win32Clipboard.GetText(System.Windows.TextDataFormat.Text);
+                            }
                         }
-                        else if (Win32Clipboard.ContainsText(System.Windows.TextDataFormat.Text))
+                        else if ((type == ContentType.Image || type == ContentType.All) && Win32Clipboard.ContainsImage())
                         {
-                            value = Win32Clipboard.GetText(System.Windows.TextDataFormat.Text);
+                            value = "[Unsupported Format: Image]";
                         }
-                        else if (all)
+                        else if ((type == ContentType.Image || type == ContentType.All) && Win32Clipboard.ContainsFileDropList())
                         {
-                            if (Win32Clipboard.ContainsImage())
-                            {
-                                value = "[Unsupported Format: Image]";
-                            }
-                            else if (Win32Clipboard.ContainsAudio())
-                            {
-                                value = "[Unsupported Format: Audio]";
-                            }
-                            else if (Win32Clipboard.ContainsFileDropList())
-                            {
-                                value = "[Unsupported Format: File Drop List]";
-                            }
-                            else
-                            {
-                                var data = Win32Clipboard.GetDataObject();
-                                value = $"[Unsupported Format: {string.Join(',', data.GetFormats())}]";
-                            }
+                            value = "[Unsupported Format: File Drop List]";
+                        }
+                        else if (type == ContentType.All)
+                        {
+                            var data = Win32Clipboard.GetDataObject();
+                            value = $"[Unsupported Format: {string.Join(',', data.GetFormats())}]";
                         }
 
                         tsc.SetResult(value);
@@ -158,7 +194,7 @@ namespace past
             return 0;
         }
 
-        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool nul, bool index, bool all, bool ansi, CancellationToken cancellationToken)
+        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool nul, bool index, ContentType type, bool ansi, CancellationToken cancellationToken)
         {
             try
             {
@@ -183,7 +219,7 @@ namespace past
                 int i = 0;
                 foreach (var item in items.Items)
                 {
-                    var value = await GetClipboardItemValueAsync(item, all, ansi);
+                    var value = await GetClipboardItemValueAsync(item, type, ansi);
                     WriteValueToConsole(console, value, index ? i : null, i < items.Items.Count - 1 && nul, ansi);
                     i++;
                 }
@@ -231,18 +267,18 @@ namespace past
             console.Out.Write(outputValue.ToString());
         }
 
-        private static Task<string?> GetClipboardItemValueAsync(ClipboardHistoryItem item, bool all = false, bool ansi = false)
+        private static Task<string?> GetClipboardItemValueAsync(ClipboardHistoryItem item, ContentType type = ContentType.Text, bool ansi = false)
         {
-            return GetClipboardItemValueAsync(item.Content, all, ansi);
+            return GetClipboardItemValueAsync(item.Content, type, ansi);
         }
 
-        private static async Task<string?> GetClipboardItemValueAsync(DataPackageView content, bool all = false, bool ansi = false)
+        private static async Task<string?> GetClipboardItemValueAsync(DataPackageView content, ContentType type = ContentType.Text, bool ansi = false)
         {
-            if (content.Contains(StandardDataFormats.Text))
+            if (type == ContentType.Text && content.Contains(StandardDataFormats.Text))
             {
                 return await content.GetTextAsync();
             }
-            else if (all)
+            else if (type != ContentType.Text)
             {
                 var message = new StringBuilder();
                 if (ansi)
