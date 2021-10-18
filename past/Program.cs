@@ -12,19 +12,12 @@ using Windows.ApplicationModel.DataTransfer;
 using WinRtClipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
 using Win32Clipboard = System.Windows.Clipboard;
 using System.IO;
+using past.Extensions;
 
 namespace past
 {
-    public class Program
+    public partial class Program
     {
-        public enum ContentType
-        {
-            All,
-            Text,
-            Image,
-            File
-        }
-
         public static async Task<int> Main(string[] args)
         {
             var listCommand = new Command("list", "Lists the clipboard history");
@@ -34,7 +27,7 @@ namespace past
             listCommand.AddOption(indexOption);
             var ansiOption = new Option<bool>("--ansi", "Enable processing of ANSI control sequences");
             listCommand.AddOption(ansiOption);
-            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, CancellationToken>(ListClipboardHistoryAsync);
+            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
 
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
@@ -42,7 +35,7 @@ namespace past
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             getCommand.AddOption(setCurrentOption);
             getCommand.AddOption(ansiOption);
-            getCommand.Handler = CommandHandler.Create<IConsole, int, bool, bool, CancellationToken>(GetClipboardHistoryItemAsync);
+            getCommand.Handler = CommandHandler.Create<IConsole, int, bool, bool, ContentType, bool, CancellationToken>(GetClipboardHistoryItemAsync);
 
             var rootCommand = new RootCommand();
             rootCommand.AddCommand(listCommand);
@@ -50,14 +43,14 @@ namespace past
 
             var typeOption = new Option<ContentType>(
                 aliases: new string[] { "--type", "-t" },
-                description: "The type of content to read from the clipboard.",
+                description: "The type of content to read from the clipboard. (default: Text)",
                 isDefault: true,
                 parseArgument: (ArgumentResult result) =>
                 {
                     if (result.Tokens.Count == 0)
                     {
                         // Default value
-                        return ContentType.Text;
+                        return ContentType.Default;
                     }
 
                     var typeValue = result.Tokens?.FirstOrDefault()?.Value;
@@ -82,19 +75,23 @@ namespace past
                 return null;
             });
             rootCommand.AddGlobalOption(typeOption);
-            rootCommand.Handler = CommandHandler.Create<IConsole, ContentType, CancellationToken>(GetCurrentClipboardValueAsync);
+            var allOption = new Option<bool>("--all", "Alias for `--type all`");
+            rootCommand.AddGlobalOption(allOption);
+            rootCommand.Handler = CommandHandler.Create<IConsole, ContentType, bool, CancellationToken>(GetCurrentClipboardValueAsync);
 
             return await rootCommand.InvokeAsync(args);
         }
 
         #region Commands
-        private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, CancellationToken cancellationToken)
+        private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool all, CancellationToken cancellationToken)
         {
             // Using the Win32 clipboard API rather than the WinRt clipboard API as that
             // one frequently throws "RPC_E_DISCONNECTED" when trying to access the current
             // clipboard contents.
             try
             {
+                type = ResolveContentType(console, type, all);
+
                 // Accessing the current clipboard must be done on an STA thread
                 var tsc = new TaskCompletionSource<string?>();
                 var staThread = new Thread(() =>
@@ -156,10 +153,12 @@ namespace past
             return 0;
         }
 
-        private static async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, bool setCurrent, CancellationToken cancellationToken)
+        private static async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, bool setCurrent, ContentType type, bool all, CancellationToken cancellationToken)
         {
             try
             {
+                type = ResolveContentType(console, type, all);
+
                 var items = await WinRtClipboard.GetHistoryItemsAsync();
                 if (items.Status != ClipboardHistoryItemsResultStatus.Success)
                 {
@@ -194,10 +193,12 @@ namespace past
             return 0;
         }
 
-        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool nul, bool index, ContentType type, bool ansi, CancellationToken cancellationToken)
+        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool nul, bool index, ContentType type, bool all, bool ansi, CancellationToken cancellationToken)
         {
             try
             {
+                type = ResolveContentType(console, type, all);
+
                 var items = await WinRtClipboard.GetHistoryItemsAsync();
                 if (items.Status != ClipboardHistoryItemsResultStatus.Success)
                 {
@@ -274,11 +275,11 @@ namespace past
 
         private static async Task<string?> GetClipboardItemValueAsync(DataPackageView content, ContentType type = ContentType.Text, bool ansi = false)
         {
-            if (type == ContentType.Text && content.Contains(StandardDataFormats.Text))
+            if ((type == ContentType.Text || type == ContentType.All) && content.Contains(StandardDataFormats.Text))
             {
                 return await content.GetTextAsync();
             }
-            else if (type != ContentType.Text)
+            else if (type == ContentType.All)
             {
                 var message = new StringBuilder();
                 if (ansi)
@@ -291,6 +292,16 @@ namespace past
             }
 
             return null;
+        }
+
+        private static ContentType ResolveContentType(IConsole console, ContentType typeOption, bool allOption)
+        {
+            if (typeOption.TryResolve(allOption, out var resolvedType))
+            {
+                console.Error.WriteLine($"All option provided, overriding type selection of '{typeOption}'");
+            }
+
+            return resolvedType;
         }
         #endregion Helpers
     }
