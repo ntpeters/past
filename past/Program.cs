@@ -27,7 +27,7 @@ namespace past
             listCommand.AddOption(indexOption);
             var ansiOption = new Option<bool>("--ansi", "Enable processing of ANSI control sequences");
             listCommand.AddOption(ansiOption);
-            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
+            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
 
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
@@ -35,7 +35,7 @@ namespace past
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             getCommand.AddOption(setCurrentOption);
             getCommand.AddOption(ansiOption);
-            getCommand.Handler = CommandHandler.Create<IConsole, int, bool, bool, ContentType, bool, CancellationToken>(GetClipboardHistoryItemAsync);
+            getCommand.Handler = CommandHandler.Create<IConsole, int, bool, bool, ContentType, bool, bool, bool, CancellationToken>(GetClipboardHistoryItemAsync);
 
             var rootCommand = new RootCommand();
             rootCommand.AddCommand(listCommand);
@@ -77,20 +77,26 @@ namespace past
             rootCommand.AddGlobalOption(typeOption);
             var allOption = new Option<bool>("--all", "Alias for `--type all`");
             rootCommand.AddGlobalOption(allOption);
-            rootCommand.Handler = CommandHandler.Create<IConsole, ContentType, bool, CancellationToken>(GetCurrentClipboardValueAsync);
+
+            var quietOption = new Option<bool>(new string[] { "--quiet", "-q" }, "Suppresses error output");
+            var silentOption = new Option<bool>(new string[] { "--silent", "-s" }, "Suppresses all output");
+            rootCommand.AddGlobalOption(quietOption);
+            rootCommand.AddGlobalOption(silentOption);
+
+            rootCommand.Handler = CommandHandler.Create<IConsole, ContentType, bool, bool, bool, CancellationToken>(GetCurrentClipboardValueAsync);
 
             return await rootCommand.InvokeAsync(args);
         }
 
         #region Commands
-        private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool all, CancellationToken cancellationToken)
+        private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool all, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             // Using the Win32 clipboard API rather than the WinRt clipboard API as that
             // one frequently throws "RPC_E_DISCONNECTED" when trying to access the current
             // clipboard contents.
             try
             {
-                type = ResolveContentType(console, type, all);
+                type = ResolveContentType(console, type, all, quiet, silent);
 
                 // Accessing the current clipboard must be done on an STA thread
                 var tsc = new TaskCompletionSource<string?>();
@@ -137,63 +143,63 @@ namespace past
 
                 if (!staThread.Join(millisecondsTimeout: 500))
                 {
-                    console.Error.WriteLine("Timeout while getting current clipboard contents.");
+                    console.WriteErrorLine("Timeout while getting current clipboard contents.", suppressOutput: quiet || silent);
                     return -1;
                 }
 
                 var value = await tsc.Task;
-                WriteValueToConsole(console, value);
+                WriteValueToConsole(console, value, silent: silent);
             }
             catch (Exception e)
             {
-                console.Error.WriteLine($"Failed to get current clipboard contents. Error: {e}");
+                console.WriteErrorLine($"Failed to get current clipboard contents. Error: {e}", suppressOutput: quiet || silent);
                 return -1;
             }
 
             return 0;
         }
 
-        private static async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, bool setCurrent, ContentType type, bool all, CancellationToken cancellationToken)
+        private static async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, bool setCurrent, ContentType type, bool all, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             try
             {
-                type = ResolveContentType(console, type, all);
+                type = ResolveContentType(console, type, all, quiet, silent);
 
                 var items = await WinRtClipboard.GetHistoryItemsAsync();
                 if (items.Status != ClipboardHistoryItemsResultStatus.Success)
                 {
-                    console.Error.WriteLine($"Failed to get clipboard history. Result: {items.Status}");
+                    console.WriteErrorLine($"Failed to get clipboard history. Result: {items.Status}", suppressOutput: quiet || silent);
                     return -1;
                 }
 
                 if (ansi && !console.IsOutputRedirected && !ConsoleHelpers.TryEnableVirtualTerminalProcessing(out var error))
                 {
-                    console.Error.WriteLine($"Failed to enable virtual terminal processing. [{error}]");
+                    console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet || silent);
                 }
 
                 var item = items.Items.ElementAt(index);
                 var value = await GetClipboardItemValueAsync(item, ansi: ansi);
-                WriteValueToConsole(console, value, ansi: ansi);
+                WriteValueToConsole(console, value, ansi: ansi, silent: silent);
 
                 if (setCurrent)
                 {
                     var setContentStatus = WinRtClipboard.SetHistoryItemAsContent(item);
                     if (setContentStatus != SetHistoryItemAsContentStatus.Success)
                     {
-                        console.Error.WriteLine($"Failed updating the current clipboard content with the selected history item. Error: {setContentStatus}");
+                        console.WriteErrorLine($"Failed updating the current clipboard content with the selected history item. Error: {setContentStatus}", suppressOutput: quiet || silent);
                     }
                 }
             }
             catch (Exception e)
             {
-                console.Error.WriteLine($"Failed to get clipboard history. Error: {e}");
+                console.WriteErrorLine($"Failed to get clipboard history. Error: {e}", suppressOutput: quiet || silent);
                 return -1;
             }
 
             return 0;
         }
 
-        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool nul, bool index, ContentType type, bool all, bool ansi, CancellationToken cancellationToken)
+        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool nul, bool index, ContentType type, bool all, bool ansi, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             try
             {
@@ -202,32 +208,32 @@ namespace past
                 var items = await WinRtClipboard.GetHistoryItemsAsync();
                 if (items.Status != ClipboardHistoryItemsResultStatus.Success)
                 {
-                    console.Error.WriteLine($"Failed to get clipboard history. Result: {items.Status}");
+                    console.WriteErrorLine($"Failed to get clipboard history. Result: {items.Status}", suppressOutput: quiet || silent);
                     return -1;
                 }
 
                 if (items.Items.Count == 0)
                 {
-                    console.Error.WriteLine("Clipboard history is empty");
+                    console.WriteErrorLine("Clipboard history is empty", suppressOutput: quiet || silent);
                     return 1;
                 }
 
                 if (ansi && !console.IsOutputRedirected && !ConsoleHelpers.TryEnableVirtualTerminalProcessing(out var error))
                 {
-                    console.Error.WriteLine($"Failed to enable virtual terminal processing. [{error}]");
+                    console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet || silent);
                 }
 
                 int i = 0;
                 foreach (var item in items.Items)
                 {
                     var value = await GetClipboardItemValueAsync(item, type, ansi);
-                    WriteValueToConsole(console, value, index ? i : null, i < items.Items.Count - 1 && nul, ansi);
+                    WriteValueToConsole(console, value, index ? i : null, i < items.Items.Count - 1 && nul, ansi, silent);
                     i++;
                 }
             }
             catch (Exception e)
             {
-                console.Error.WriteLine($"Failed to get clipboard history. Error: {e}");
+                console.WriteErrorLine($"Failed to get clipboard history. Error: {e}", suppressOutput: quiet || silent);
                 return -1;
             }
 
@@ -236,7 +242,7 @@ namespace past
         #endregion Commands
 
         #region Helpers
-        private static void WriteValueToConsole(IConsole console, string? value, int? index = null, bool nul = false, bool ansi = false)
+        private static void WriteValueToConsole(IConsole console, string? value, int? index = null, bool nul = false, bool ansi = false, bool silent = false)
         {
             if (value == null)
             {
@@ -265,7 +271,7 @@ namespace past
                 outputValue.Append('\n');
             }
 
-            console.Out.Write(outputValue.ToString());
+            console.Write(outputValue.ToString(), suppressOutput: silent);
         }
 
         private static Task<string?> GetClipboardItemValueAsync(ClipboardHistoryItem item, ContentType type = ContentType.Text, bool ansi = false)
@@ -294,11 +300,11 @@ namespace past
             return null;
         }
 
-        private static ContentType ResolveContentType(IConsole console, ContentType typeOption, bool allOption)
+        private static ContentType ResolveContentType(IConsole console, ContentType typeOption, bool allOption, bool quiet = false, bool silent = false)
         {
             if (typeOption.TryResolve(allOption, out var resolvedType))
             {
-                console.Error.WriteLine($"All option provided, overriding type selection of '{typeOption}'");
+                console.WriteErrorLine($"All option provided, overriding type selection of '{typeOption}'", suppressOutput: quiet || silent);
             }
 
             return resolvedType;
