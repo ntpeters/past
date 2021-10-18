@@ -72,7 +72,7 @@ namespace past
                 return null;
             });
             rootCommand.AddGlobalOption(typeOption);
-            var allOption = new Option<bool>("--all", "Alias for `--type all`");
+            var allOption = new Option<bool>("--all", "Alias for `--type all`. Overrides the `--type` option if present.");
             rootCommand.AddGlobalOption(allOption);
 
             var ansiOption = new Option<bool>("--ansi", "Enable processing of ANSI control sequences");
@@ -218,6 +218,13 @@ namespace past
                     return 1;
                 }
 
+                var filteredItemCount = items.Items.Count(item => type.Supports(item.Content.Contains));
+                if (filteredItemCount == 0)
+                {
+                    console.WriteErrorLine("No supported items in clipboard history", suppressOutput: quiet || silent);
+                    return 2;
+                }
+
                 if (ansi && !console.IsOutputRedirected && !ConsoleHelpers.TryEnableVirtualTerminalProcessing(out var error))
                 {
                     console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet || silent);
@@ -227,7 +234,9 @@ namespace past
                 foreach (var item in items.Items)
                 {
                     var value = await GetClipboardItemValueAsync(item, type, ansi);
-                    WriteValueToConsole(console, value, index ? i : null, i < items.Items.Count - 1 && nul, ansi, silent);
+                    int? printIndex = index ? i : null;
+                    bool printNull = i < filteredItemCount - 1 && nul;
+                    WriteValueToConsole(console, value, printIndex, printNull, ansi, silent);
                     i++;
                 }
             }
