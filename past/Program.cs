@@ -25,8 +25,6 @@ namespace past
             listCommand.AddOption(nullOption);
             var indexOption = new Option<bool>("--index", "Print indices with each item");
             listCommand.AddOption(indexOption);
-            var ansiOption = new Option<bool>("--ansi", "Enable processing of ANSI control sequences");
-            listCommand.AddOption(ansiOption);
             listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
 
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
@@ -34,7 +32,6 @@ namespace past
             getCommand.AddArgument(indexArgument);
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             getCommand.AddOption(setCurrentOption);
-            getCommand.AddOption(ansiOption);
             getCommand.Handler = CommandHandler.Create<IConsole, int, bool, bool, ContentType, bool, bool, bool, CancellationToken>(GetClipboardHistoryItemAsync);
 
             var rootCommand = new RootCommand();
@@ -78,18 +75,21 @@ namespace past
             var allOption = new Option<bool>("--all", "Alias for `--type all`");
             rootCommand.AddGlobalOption(allOption);
 
+            var ansiOption = new Option<bool>("--ansi", "Enable processing of ANSI control sequences");
+            rootCommand.AddGlobalOption(ansiOption);
+
             var quietOption = new Option<bool>(new string[] { "--quiet", "-q" }, "Suppresses error output");
             var silentOption = new Option<bool>(new string[] { "--silent", "-s" }, "Suppresses all output");
             rootCommand.AddGlobalOption(quietOption);
             rootCommand.AddGlobalOption(silentOption);
 
-            rootCommand.Handler = CommandHandler.Create<IConsole, ContentType, bool, bool, bool, CancellationToken>(GetCurrentClipboardValueAsync);
+            rootCommand.Handler = CommandHandler.Create<IConsole, ContentType, bool, bool, bool, bool, CancellationToken>(GetCurrentClipboardValueAsync);
 
             return await rootCommand.InvokeAsync(args);
         }
 
         #region Commands
-        private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool all, bool quiet, bool silent, CancellationToken cancellationToken)
+        private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool all, bool ansi, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             // Using the Win32 clipboard API rather than the WinRt clipboard API as that
             // one frequently throws "RPC_E_DISCONNECTED" when trying to access the current
@@ -148,7 +148,7 @@ namespace past
                 }
 
                 var value = await tsc.Task;
-                WriteValueToConsole(console, value, silent: silent);
+                WriteValueToConsole(console, value, ansi: ansi, silent: silent);
             }
             catch (Exception e)
             {
