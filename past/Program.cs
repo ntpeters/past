@@ -13,11 +13,19 @@ using WinRtClipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
 using Win32Clipboard = System.Windows.Clipboard;
 using System.IO;
 using past.Extensions;
+using System.Text.RegularExpressions;
 
 namespace past
 {
     public partial class Program
     {
+        private enum AnsiResetType
+        {
+            Auto,
+            On,
+            Off
+        }
+
         public static async Task<int> Main(string[] args)
         {
             var listCommand = new Command("list", "Lists the clipboard history");
@@ -25,14 +33,14 @@ namespace past
             listCommand.AddOption(nullOption);
             var indexOption = new Option<bool>("--index", "Print indices with each item");
             listCommand.AddOption(indexOption);
-            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
+            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
 
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
             getCommand.AddArgument(indexArgument);
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             getCommand.AddOption(setCurrentOption);
-            getCommand.Handler = CommandHandler.Create<IConsole, int, bool, bool, ContentType, bool, bool, bool, CancellationToken>(GetClipboardHistoryItemAsync);
+            getCommand.Handler = CommandHandler.Create<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, bool, CancellationToken>(GetClipboardHistoryItemAsync);
 
             var rootCommand = new RootCommand();
             rootCommand.AddCommand(listCommand);
@@ -78,18 +86,53 @@ namespace past
             var ansiOption = new Option<bool>("--ansi", "Enable processing of ANSI control sequences");
             rootCommand.AddGlobalOption(ansiOption);
 
+            var ansiResetOption = new Option<AnsiResetType>(
+                alias: "--ansi-reset",
+                description: "Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item.",
+                isDefault: true,
+                parseArgument: (ArgumentResult result) =>
+                {
+                    if (result.Tokens.Count == 0)
+                    {
+                        // Default value
+                        return AnsiResetType.Auto;
+                    }
+
+                    var typeValue = result.Tokens?.FirstOrDefault()?.Value;
+                    if (!Enum.TryParse<AnsiResetType>(typeValue, ignoreCase: true, out var type))
+                    {
+                        // For some reason this version of System.CommandLine still executes the parse argument delegate
+                        // even when argument validation fails, so we'll just return the default type here since it won't
+                        // be used anyway...
+                        return AnsiResetType.Auto;
+                    }
+
+                    return type;
+                });
+            ansiResetOption.AddSuggestions(Enum.GetNames<AnsiResetType>());
+            ansiResetOption.AddValidator((OptionResult result) =>
+            {
+                var typeValue = result.Tokens?.FirstOrDefault()?.Value;
+                if (result.Token != null && !Enum.TryParse<AnsiResetType>(typeValue, ignoreCase: true, out var type))
+                {
+                    return $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<AnsiResetType>())}";
+                }
+                return null;
+            });
+            rootCommand.AddGlobalOption(ansiResetOption);
+
             var quietOption = new Option<bool>(new string[] { "--quiet", "-q" }, "Suppresses error output");
             var silentOption = new Option<bool>(new string[] { "--silent", "-s" }, "Suppresses all output");
             rootCommand.AddGlobalOption(quietOption);
             rootCommand.AddGlobalOption(silentOption);
 
-            rootCommand.Handler = CommandHandler.Create<IConsole, ContentType, bool, bool, bool, bool, CancellationToken>(GetCurrentClipboardValueAsync);
+            rootCommand.Handler = CommandHandler.Create<IConsole, ContentType, bool, bool, AnsiResetType, bool, bool, CancellationToken>(GetCurrentClipboardValueAsync);
 
             return await rootCommand.InvokeAsync(args);
         }
 
         #region Commands
-        private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool all, bool ansi, bool quiet, bool silent, CancellationToken cancellationToken)
+        private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             // Using the Win32 clipboard API rather than the WinRt clipboard API as that
             // one frequently throws "RPC_E_DISCONNECTED" when trying to access the current
@@ -148,7 +191,7 @@ namespace past
                 }
 
                 var value = await tsc.Task;
-                WriteValueToConsole(console, value, ansi: ansi, silent: silent);
+                WriteValueToConsole(console, value, ansi: ansi, ansiResetType: ansiResetType, silent: silent);
             }
             catch (Exception e)
             {
@@ -159,7 +202,7 @@ namespace past
             return 0;
         }
 
-        private static async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, bool setCurrent, ContentType type, bool all, bool quiet, bool silent, CancellationToken cancellationToken)
+        private static async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, AnsiResetType ansiResetType, bool setCurrent, ContentType type, bool all, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             try
             {
@@ -179,7 +222,7 @@ namespace past
 
                 var item = items.Items.ElementAt(index);
                 var value = await GetClipboardItemValueAsync(item, ansi: ansi);
-                WriteValueToConsole(console, value, ansi: ansi, silent: silent);
+                WriteValueToConsole(console, value, ansi: ansi, ansiResetType: ansiResetType, silent: silent);
 
                 if (setCurrent)
                 {
@@ -199,7 +242,7 @@ namespace past
             return 0;
         }
 
-        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool nul, bool index, ContentType type, bool all, bool ansi, bool quiet, bool silent, CancellationToken cancellationToken)
+        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool nul, bool index, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             try
             {
@@ -236,7 +279,7 @@ namespace past
                     var value = await GetClipboardItemValueAsync(item, type, ansi);
                     int? printIndex = index ? i : null;
                     bool printNull = i < filteredItemCount - 1 && nul;
-                    WriteValueToConsole(console, value, printIndex, printNull, ansi, silent);
+                    WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent);
                     i++;
                 }
             }
@@ -251,7 +294,7 @@ namespace past
         #endregion Commands
 
         #region Helpers
-        private static void WriteValueToConsole(IConsole console, string? value, int? index = null, bool nul = false, bool ansi = false, bool silent = false)
+        private static void WriteValueToConsole(IConsole console, string? value, int? index = null, bool nul = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, bool silent = false)
         {
             if (value == null)
             {
@@ -266,9 +309,37 @@ namespace past
 
             outputValue.Append(value);
 
-            if (ansi)
+            switch (ansiResetType)
             {
-                outputValue.Append(Ansi.Text.AttributesOff.EscapeSequence);
+                case AnsiResetType.Auto:
+                    bool shouldEmitAnsiReset = ansi;
+                    if (!ansi)
+                    {
+                        if (console.IsOutputRedirected)
+                        {
+                            // Don't emit ANSI reset if output was redirected and ANSI processing was not enabled
+                            shouldEmitAnsiReset = false;
+                        }
+                        else
+                        {
+                            // Emit ANSI reset if the current terminal probably supports ANSI sequences based on TERM and COLORTERM, even if ANSI processing was not enabled
+                            var termValue = Environment.GetEnvironmentVariable("TERM");
+                            var colorTermValue = Environment.GetEnvironmentVariable("COLORTERM");
+                            shouldEmitAnsiReset = termValue == "xterm-256color" || colorTermValue == "24bit" || colorTermValue == "truecolor";
+                        }
+                    }
+
+                    if (shouldEmitAnsiReset && Regex.IsMatch(value, "\\e\\[[0-9;]*m"))
+                    {
+                        // Emit ANSI reset if the value contains ANSI escape sequences and either ANSI processing was enabled or the current terminal probably supports them based on TERM and COLORTERM
+                        outputValue.Append(Ansi.Text.AttributesOff.EscapeSequence);
+                    }
+                    break;
+                case AnsiResetType.On:
+                    outputValue.Append(Ansi.Text.AttributesOff.EscapeSequence);
+                    break;
+                case AnsiResetType.Off: // Fallthrough
+                default: break;
             }
 
             if (nul)
