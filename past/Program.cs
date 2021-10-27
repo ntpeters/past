@@ -29,7 +29,7 @@ namespace past
         public static async Task<int> Main(string[] args)
         {
             var listCommand = new Command("list", "Lists the clipboard history");
-            var nullOption = new Option<bool>("--nul", "Use the null byte to separate entries");
+            var nullOption = new Option<bool>("--null", "Use the null byte to separate entries");
             listCommand.AddOption(nullOption);
             var indexOption = new Option<bool>("--index", "Print indices with each item");
             listCommand.AddOption(indexOption);
@@ -242,7 +242,7 @@ namespace past
             return 0;
         }
 
-        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool nul, bool index, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, CancellationToken cancellationToken)
+        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             try
             {
@@ -278,7 +278,7 @@ namespace past
                 {
                     var value = await GetClipboardItemValueAsync(item, type, ansi);
                     int? printIndex = index ? i : null;
-                    bool printNull = i < filteredItemCount - 1 && nul;
+                    bool printNull = i < filteredItemCount - 1 && @null;
                     WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent);
                     i++;
                 }
@@ -294,7 +294,7 @@ namespace past
         #endregion Commands
 
         #region Helpers
-        private static void WriteValueToConsole(IConsole console, string? value, int? index = null, bool nul = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, bool silent = false)
+        private static void WriteValueToConsole(IConsole console, string? value, int? index = null, bool @null = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, bool silent = false)
         {
             if (value == null)
             {
@@ -342,7 +342,7 @@ namespace past
                 default: break;
             }
 
-            if (nul)
+            if (@null)
             {
                 outputValue.Append('\0');
             }
