@@ -29,6 +29,19 @@ namespace past
 
         public static async Task<int> Main(string[] args)
         {
+#if DEBUG
+            // In debug builds halt execution until a key is pressed if the debug flag was provided to allow attaching a debugger.
+            // Check for presence of the debug flag even before any argument parsing is done so that code can be debugged if needed as well.
+            if (args.Contains("--debug"))
+            {
+                var originalForeground = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("DEBUG: Ready to attach debugger. Press any key to continue execution...");
+                Console.ForegroundColor = originalForeground;
+                Console.ReadKey(intercept: true); // Suppress printing the pressed key
+            }
+#endif
+
             var listCommand = new Command("list", "Lists the clipboard history");
             var nullOption = new Option<bool>("--null", "Use the null byte to separate entries");
             listCommand.AddOption(nullOption);
@@ -130,6 +143,12 @@ namespace past
             var silentOption = new Option<bool>(new string[] { "--silent", "-s" }, "Suppresses all output");
             rootCommand.AddGlobalOption(quietOption);
             rootCommand.AddGlobalOption(silentOption);
+
+            // Include a hidden debug option to use if it's ever needed, and to allow the args to still be parsed successfully
+            // when providing the debug flag for attaching a debugger to debug builds.
+            var debugOption = new Option<bool>("--debug");
+            debugOption.IsHidden = true;
+            rootCommand.AddGlobalOption(debugOption);
 
             rootCommand.Handler = CommandHandler.Create<IConsole, ContentType, bool, bool, AnsiResetType, bool, bool, CancellationToken>(GetCurrentClipboardValueAsync);
 
