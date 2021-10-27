@@ -14,6 +14,7 @@ using Win32Clipboard = System.Windows.Clipboard;
 using System.IO;
 using past.Extensions;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 
 namespace past
 {
@@ -35,7 +36,9 @@ namespace past
             listCommand.AddOption(indexOption);
             var idOption = new Option<bool>("--id", "Print the ID (GUID) with each item");
             listCommand.AddOption(idOption);
-            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
+            var pinnedOption = new Option<bool>("--pinned", "Print only pinned items");
+            listCommand.AddOption(pinnedOption);
+            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
 
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
@@ -244,7 +247,7 @@ namespace past
             return 0;
         }
 
-        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, bool id, CancellationToken cancellationToken)
+        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, bool id, bool pinned, CancellationToken cancellationToken)
         {
             try
             {
@@ -273,6 +276,15 @@ namespace past
                 if (ansi && !console.IsOutputRedirected && !ConsoleHelpers.TryEnableVirtualTerminalProcessing(out var error))
                 {
                     console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet || silent);
+                }
+
+                if (pinned)
+                {
+                    // TODO: Get pinned clipboard history items
+                    // Pinned item IDs can be read from:
+                    // "C:/Users/nathpete/AppData/Local/Microsoft/Windows/Clipboard/Pinned/{B4A94277-E0ED-4617-8152-9A862BC2E5F0}/metadata.json"
+                    console.WriteErrorLine("Listing pinned clipboard history items is not yet supported", suppressOutput: quiet || silent);
+                    return -1;
                 }
 
                 int i = 0;
