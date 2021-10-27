@@ -15,6 +15,7 @@ using System.IO;
 using past.Extensions;
 using System.Text.RegularExpressions;
 using System.Text.Json;
+using System.Collections.Generic;
 
 namespace past
 {
@@ -285,7 +286,46 @@ namespace past
                     return 1;
                 }
 
-                var filteredItemCount = items.Items.Count(item => type.Supports(item.Content.Contains));
+                IEnumerable<ClipboardHistoryItem> clipboardItems;
+                if (pinned)
+                {
+                    // TODO: Get pinned clipboard history items
+                    // Pinned item IDs can be read from: %LOCALAPPDATA%/Microsoft/Windows/Clipboard/Pinned/{GUID}/metadata.json
+                    var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    var pinnedClipboardPath = Path.Combine(localAppDataPath, "Microsoft/Windows/Clipboard/Pinned");
+                    var pinnedClipboardItemMetadataDirectory = Directory.EnumerateDirectories(pinnedClipboardPath).First(directoryPath => File.Exists(Path.Combine(directoryPath, "metadata.json")));
+                    string? pinnedClipboardItemMetadataPath = null;
+                    foreach (var directoryPath in Directory.EnumerateDirectories(pinnedClipboardPath))
+                    {
+                        var metadataPath = Path.Combine(directoryPath, "metadata.json");
+                        if (File.Exists(metadataPath))
+                        {
+                            pinnedClipboardItemMetadataPath = metadataPath;
+                            break;
+                        }
+                    }
+                    if (string.IsNullOrWhiteSpace(pinnedClipboardItemMetadataPath))
+                    {
+                        console.WriteErrorLine("Failed to retrieve pinned clipboard history items", suppressOutput: quiet || silent);
+                        return -1;
+                    }
+
+                    var pinnedClipboardItemMetadataJson = File.ReadAllText(pinnedClipboardItemMetadataPath);
+                    var pinnedClipboardItemMetadata = JsonDocument.Parse(pinnedClipboardItemMetadataJson);
+                    var pinnedClipboardItemIds = pinnedClipboardItemMetadata.RootElement.GetProperty("items").EnumerateObject().Select(property => property.Name);
+                    clipboardItems = items.Items.Where(item => pinnedClipboardItemIds.Contains(item.Id));
+                    if (clipboardItems.Count() == 0)
+                    {
+                        console.WriteErrorLine("No pinned items in clipboard history", suppressOutput: quiet || silent);
+                        return 2;
+                    }
+                }
+                else
+                {
+                    clipboardItems = items.Items;
+                }
+
+                var filteredItemCount = clipboardItems.Count(item => type.Supports(item.Content.Contains));
                 if (filteredItemCount == 0)
                 {
                     console.WriteErrorLine("No supported items in clipboard history", suppressOutput: quiet || silent);
@@ -297,17 +337,8 @@ namespace past
                     console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet || silent);
                 }
 
-                if (pinned)
-                {
-                    // TODO: Get pinned clipboard history items
-                    // Pinned item IDs can be read from:
-                    // "C:/Users/nathpete/AppData/Local/Microsoft/Windows/Clipboard/Pinned/{B4A94277-E0ED-4617-8152-9A862BC2E5F0}/metadata.json"
-                    console.WriteErrorLine("Listing pinned clipboard history items is not yet supported", suppressOutput: quiet || silent);
-                    return -1;
-                }
-
                 int i = 0;
-                foreach (var item in items.Items)
+                foreach (var item in clipboardItems)
                 {
                     var value = await GetClipboardItemValueAsync(item, type, ansi);
                     int? printIndex = index ? i : null;
