@@ -33,7 +33,9 @@ namespace past
             listCommand.AddOption(nullOption);
             var indexOption = new Option<bool>("--index", "Print indices with each item");
             listCommand.AddOption(indexOption);
-            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
+            var idOption = new Option<bool>("--id", "Print the ID (GUID) with each item");
+            listCommand.AddOption(idOption);
+            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
 
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
@@ -242,7 +244,7 @@ namespace past
             return 0;
         }
 
-        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, CancellationToken cancellationToken)
+        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, bool id, CancellationToken cancellationToken)
         {
             try
             {
@@ -278,8 +280,9 @@ namespace past
                 {
                     var value = await GetClipboardItemValueAsync(item, type, ansi);
                     int? printIndex = index ? i : null;
+                    string? printId = id ? item.Id : null;
                     bool printNull = i < filteredItemCount - 1 && @null;
-                    WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent);
+                    WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent, printId);
                     i++;
                 }
             }
@@ -294,7 +297,7 @@ namespace past
         #endregion Commands
 
         #region Helpers
-        private static void WriteValueToConsole(IConsole console, string? value, int? index = null, bool @null = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, bool silent = false)
+        private static void WriteValueToConsole(IConsole console, string? value, int? index = null, bool @null = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, bool silent = false, string? id = null)
         {
             if (value == null)
             {
@@ -305,6 +308,11 @@ namespace past
             if (index != null)
             {
                 outputValue.Append($"{index}:");
+            }
+
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                outputValue.Append($"{id}:");
             }
 
             outputValue.Append(value);
