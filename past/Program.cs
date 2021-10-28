@@ -343,7 +343,7 @@ namespace past
                     var value = await GetClipboardItemValueAsync(item, type, ansi);
                     int? printIndex = index ? i : null;
                     string? printId = id ? item.Id : null;
-                    bool printNull = i < filteredItemCount - 1 && @null;
+                    bool printNull = i < filteredItemCount && @null;
                     WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent, printId);
                     i++;
                 }
