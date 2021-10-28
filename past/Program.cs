@@ -37,7 +37,7 @@ namespace past
             {
                 var originalForeground = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("DEBUG: Ready to attach debugger. Press any key to continue execution...");
+                Console.Error.WriteLine("DEBUG: Ready to attach debugger. Press any key to continue execution...");
                 Console.ForegroundColor = originalForeground;
                 Console.ReadKey(intercept: true); // Suppress printing the pressed key
             }
@@ -338,13 +338,17 @@ namespace past
                 }
 
                 int i = 0;
+                int outputItemCount = 0;
                 foreach (var item in clipboardItems)
                 {
                     var value = await GetClipboardItemValueAsync(item, type, ansi);
                     int? printIndex = index ? i : null;
                     string? printId = id ? item.Id : null;
-                    bool printNull = i < filteredItemCount && @null;
-                    WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent, printId);
+                    bool printNull = outputItemCount < filteredItemCount && @null;
+                    if (WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent, printId))
+                    {
+                        outputItemCount++;
+                    }
                     i++;
                 }
             }
@@ -359,11 +363,11 @@ namespace past
         #endregion Commands
 
         #region Helpers
-        private static void WriteValueToConsole(IConsole console, string? value, int? index = null, bool @null = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, bool silent = false, string? id = null)
+        private static bool WriteValueToConsole(IConsole console, string? value, int? index = null, bool @null = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, bool silent = false, string? id = null)
         {
             if (value == null)
             {
-                return;
+                return false;
             }
 
             var outputValue = new StringBuilder();
@@ -421,7 +425,7 @@ namespace past
                 outputValue.Append('\n');
             }
 
-            console.Write(outputValue.ToString(), suppressOutput: silent);
+            return console.Write(outputValue.ToString(), suppressOutput: silent);
         }
 
         private static Task<string?> GetClipboardItemValueAsync(ClipboardHistoryItem item, ContentType type = ContentType.Text, bool ansi = false)
