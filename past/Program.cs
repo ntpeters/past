@@ -50,9 +50,11 @@ namespace past
             listCommand.AddOption(indexOption);
             var idOption = new Option<bool>("--id", "Print the ID (GUID) with each item");
             listCommand.AddOption(idOption);
+            var timeOption = new Option<bool>("--time", "Print the date and time that each item was copied");
+            listCommand.AddOption(timeOption);
             var pinnedOption = new Option<bool>("--pinned", "Print only pinned items");
             listCommand.AddOption(pinnedOption);
-            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
+            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
 
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
@@ -61,9 +63,30 @@ namespace past
             getCommand.AddOption(setCurrentOption);
             getCommand.Handler = CommandHandler.Create<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, bool, CancellationToken>(GetClipboardHistoryItemAsync);
 
+            var statusCommand = new Command("status", "Gets the status of the clipboard history settings on this device.");
+            statusCommand.Handler = CommandHandler.Create<IConsole, bool, bool, CancellationToken>(GetClipboardHistoryStatus);
+
+            var helpCommand = new Command("help");
+            var commandArgument = new Argument<string>("command");
+            commandArgument.SetDefaultValue(string.Empty);
+            helpCommand.AddArgument(commandArgument);
+            helpCommand.Handler = CommandHandler.Create<string>(async (string command) =>
+                {
+                    if (string.IsNullOrWhiteSpace(command))
+                    {
+                        await Main(new string[] { "--help" });
+                    }
+                    else
+                    {
+                        await Main(new string[] { "--help", command });
+                    }
+                });
+
             var rootCommand = new RootCommand();
             rootCommand.AddCommand(listCommand);
             rootCommand.AddCommand(getCommand);
+            rootCommand.AddCommand(statusCommand);
+            rootCommand.AddCommand(helpCommand);
 
             var typeOption = new Option<ContentType>(
                 aliases: new string[] { "--type", "-t" },
@@ -157,6 +180,22 @@ namespace past
         }
 
         #region Commands
+        private static int GetClipboardHistoryStatus(IConsole console, bool quiet, bool silent, CancellationToken cancellationToken)
+        {
+            try
+            {
+                console.WriteLine($"Clipboard History Enabled: {WinRtClipboard.IsHistoryEnabled()}", suppressOutput: silent);
+                console.WriteLine($"Clipboard Roaming Enabled: {WinRtClipboard.IsRoamingEnabled()}", suppressOutput: silent);
+            }
+            catch (Exception e)
+            {
+                console.WriteErrorLine($"Failed to get current clipboard history status. Error: {e}", suppressOutput: quiet || silent);
+                return -1;
+            }
+
+            return 0;
+        }
+
         private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             // Using the Win32 clipboard API rather than the WinRt clipboard API as that
@@ -267,7 +306,7 @@ namespace past
             return 0;
         }
 
-        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, bool id, bool pinned, CancellationToken cancellationToken)
+        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, bool id, bool pinned, bool time, CancellationToken cancellationToken)
         {
             try
             {
@@ -344,8 +383,9 @@ namespace past
                     var value = await GetClipboardItemValueAsync(item, type, ansi);
                     int? printIndex = index ? i : null;
                     string? printId = id ? item.Id : null;
+                    string? printTimestamp = time ? item.Timestamp.ToString() : null;
                     bool printNull = outputItemCount < filteredItemCount && @null;
-                    if (WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent, printId))
+                    if (WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent, printId, printTimestamp))
                     {
                         outputItemCount++;
                     }
@@ -363,7 +403,7 @@ namespace past
         #endregion Commands
 
         #region Helpers
-        private static bool WriteValueToConsole(IConsole console, string? value, int? index = null, bool @null = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, bool silent = false, string? id = null)
+        private static bool WriteValueToConsole(IConsole console, string? value, int? index = null, bool @null = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, bool silent = false, string? id = null, string? timestamp = null)
         {
             if (value == null)
             {
@@ -379,6 +419,11 @@ namespace past
             if (!string.IsNullOrWhiteSpace(id))
             {
                 outputValue.Append($"{id}:");
+            }
+
+            if (!string.IsNullOrWhiteSpace(timestamp))
+            {
+                outputValue.Append($"{timestamp}:");
             }
 
             outputValue.Append(value);
