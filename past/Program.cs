@@ -41,7 +41,7 @@ namespace past
                 Console.ForegroundColor = originalForeground;
                 Console.ReadKey(intercept: true); // Suppress printing the pressed key
             }
-#endif
+#endif // DEBUG
 
             var listCommand = new Command("list", "Lists the clipboard history");
             var nullOption = new Option<bool>("--null", "Use the null byte to separate entries");
@@ -170,8 +170,13 @@ namespace past
 
             // Include a hidden debug option to use if it's ever needed, and to allow the args to still be parsed successfully
             // when providing the debug flag for attaching a debugger to debug builds.
-            var debugOption = new Option<bool>("--debug");
+            var debugOption = new Option<bool>("--debug",
+                "Prints additional diagnostic output." +
+                "\n[Debug Builds Only] Halts execution on startup to allow attaching a debugger.");
+#if !DEBUG
+            // Don't show the debug flag in release builds
             debugOption.IsHidden = true;
+#endif // DEBUG
             rootCommand.AddGlobalOption(debugOption);
 
             rootCommand.Handler = CommandHandler.Create<IConsole, ContentType, bool, bool, AnsiResetType, bool, bool, CancellationToken>(GetCurrentClipboardValueAsync);
