@@ -54,23 +54,23 @@ namespace past
             listCommand.AddOption(timeOption);
             var pinnedOption = new Option<bool>("--pinned", "Print only pinned items");
             listCommand.AddOption(pinnedOption);
-            listCommand.Handler = CommandHandler.Create<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
+            listCommand.SetHandler<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
 
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
             getCommand.AddArgument(indexArgument);
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             getCommand.AddOption(setCurrentOption);
-            getCommand.Handler = CommandHandler.Create<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, bool, CancellationToken>(GetClipboardHistoryItemAsync);
+            getCommand.SetHandler<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, bool, CancellationToken>(GetClipboardHistoryItemAsync);
 
             var statusCommand = new Command("status", "Gets the status of the clipboard history settings on this device.");
-            statusCommand.Handler = CommandHandler.Create<IConsole, bool, bool, CancellationToken>(GetClipboardHistoryStatus);
+            statusCommand.SetHandler<InvocationContext, IConsole, bool, bool, CancellationToken>(GetClipboardHistoryStatus);
 
             var helpCommand = new Command("help");
             var commandArgument = new Argument<string>("command");
             commandArgument.SetDefaultValue(string.Empty);
             helpCommand.AddArgument(commandArgument);
-            helpCommand.Handler = CommandHandler.Create<string>(async (string command) =>
+            helpCommand.SetHandler<string>(async (string command) =>
                 {
                     if (string.IsNullOrWhiteSpace(command))
                     {
@@ -100,7 +100,11 @@ namespace past
                         return ContentType.Default;
                     }
 
-                    var typeValue = result.Tokens?.FirstOrDefault()?.Value;
+                    string? typeValue = null;
+                    if (result.Tokens?.Count > 0)
+                    {
+                        typeValue = result.Tokens[0].Value;
+                    }
                     if (!Enum.TryParse<ContentType>(typeValue, ignoreCase: true, out var type))
                     {
                         // For some reason this version of System.CommandLine still executes the parse argument delegate
@@ -111,15 +115,19 @@ namespace past
 
                     return type;
                 });
-            typeOption.AddSuggestions(Enum.GetNames<ContentType>());
+            typeOption.AddCompletions(Enum.GetNames<ContentType>());
             typeOption.AddValidator((OptionResult result) =>
             {
-                var typeValue = result.Tokens?.FirstOrDefault()?.Value;
-                if (result.Token != null && !Enum.TryParse<ContentType>(typeValue, ignoreCase: true, out var type))
+                string? typeValue = null;
+                if (result.Tokens?.Count > 0)
                 {
-                    return $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<ContentType>())}";
+                    typeValue = result.Tokens[0].Value;
                 }
-                return null;
+
+                if (!string.IsNullOrWhiteSpace(result.Token.Value) && !Enum.TryParse<ContentType>(typeValue, ignoreCase: true, out var type))
+                {
+                    result.ErrorMessage = $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<ContentType>())}";
+                }
             });
             rootCommand.AddGlobalOption(typeOption);
             var allOption = new Option<bool>("--all", "Alias for `--type all`. Overrides the `--type` option if present.");
@@ -129,7 +137,7 @@ namespace past
             rootCommand.AddGlobalOption(ansiOption);
 
             var ansiResetOption = new Option<AnsiResetType>(
-                alias: "--ansi-reset",
+                "--ansi-reset",
                 description: "Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item.",
                 isDefault: true,
                 parseArgument: (ArgumentResult result) =>
@@ -140,7 +148,11 @@ namespace past
                         return AnsiResetType.Auto;
                     }
 
-                    var typeValue = result.Tokens?.FirstOrDefault()?.Value;
+                    string? typeValue = null;
+                    if (result.Tokens?.Count > 0)
+                    {
+                        typeValue = result.Tokens[0].Value;
+                    }
                     if (!Enum.TryParse<AnsiResetType>(typeValue, ignoreCase: true, out var type))
                     {
                         // For some reason this version of System.CommandLine still executes the parse argument delegate
@@ -151,15 +163,19 @@ namespace past
 
                     return type;
                 });
-            ansiResetOption.AddSuggestions(Enum.GetNames<AnsiResetType>());
+            ansiResetOption.AddCompletions(Enum.GetNames<AnsiResetType>());
             ansiResetOption.AddValidator((OptionResult result) =>
             {
-                var typeValue = result.Tokens?.FirstOrDefault()?.Value;
-                if (result.Token != null && !Enum.TryParse<AnsiResetType>(typeValue, ignoreCase: true, out var type))
+                string? typeValue = null;
+                if (result.Tokens?.Count > 0)
                 {
-                    return $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<AnsiResetType>())}";
+                    typeValue = result.Tokens[0].Value;
                 }
-                return null;
+
+                if (!string.IsNullOrWhiteSpace(result.Token.Value) && !Enum.TryParse<AnsiResetType>(typeValue, ignoreCase: true, out var type))
+                {
+                    result.ErrorMessage = $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<AnsiResetType>())}";
+                }
             });
             rootCommand.AddGlobalOption(ansiResetOption);
 
@@ -179,13 +195,13 @@ namespace past
 #endif // DEBUG
             rootCommand.AddGlobalOption(debugOption);
 
-            rootCommand.Handler = CommandHandler.Create<IConsole, ContentType, bool, bool, AnsiResetType, bool, bool, CancellationToken>(GetCurrentClipboardValueAsync);
+            rootCommand.SetHandler<IConsole, ContentType, bool, bool, AnsiResetType, bool, bool, CancellationToken>(GetCurrentClipboardValueAsync);
 
             return await rootCommand.InvokeAsync(args);
         }
 
         #region Commands
-        private static int GetClipboardHistoryStatus(IConsole console, bool quiet, bool silent, CancellationToken cancellationToken)
+        private static void GetClipboardHistoryStatus(InvocationContext context, IConsole console, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             try
             {
@@ -195,10 +211,10 @@ namespace past
             catch (Exception e)
             {
                 console.WriteErrorLine($"Failed to get current clipboard history status. Error: {e}", suppressOutput: quiet || silent);
-                return -1;
+                context.ExitCode = -1;
             }
 
-            return 0;
+            context.ExitCode = 0;
         }
 
         private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, CancellationToken cancellationToken)
