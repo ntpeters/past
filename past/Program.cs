@@ -16,6 +16,7 @@ using past.Extensions;
 using System.Text.RegularExpressions;
 using System.Text.Json;
 using System.Collections.Generic;
+using System.CommandLine.Binding;
 
 namespace past
 {
@@ -43,51 +44,9 @@ namespace past
             }
 #endif // DEBUG
 
-            var listCommand = new Command("list", "Lists the clipboard history");
-            var nullOption = new Option<bool>("--null", "Use the null byte to separate entries");
-            listCommand.AddOption(nullOption);
-            var indexOption = new Option<bool>("--index", "Print indices with each item");
-            listCommand.AddOption(indexOption);
-            var idOption = new Option<bool>("--id", "Print the ID (GUID) with each item");
-            listCommand.AddOption(idOption);
-            var timeOption = new Option<bool>("--time", "Print the date and time that each item was copied");
-            listCommand.AddOption(timeOption);
-            var pinnedOption = new Option<bool>("--pinned", "Print only pinned items");
-            listCommand.AddOption(pinnedOption);
-            listCommand.SetHandler<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken>(ListClipboardHistoryAsync);
-
-            var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
-            var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
-            getCommand.AddArgument(indexArgument);
-            var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
-            getCommand.AddOption(setCurrentOption);
-            getCommand.SetHandler<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, bool, CancellationToken>(GetClipboardHistoryItemAsync);
-
-            var statusCommand = new Command("status", "Gets the status of the clipboard history settings on this device.");
-            statusCommand.SetHandler<InvocationContext, IConsole, bool, bool, CancellationToken>(GetClipboardHistoryStatus);
-
-            var helpCommand = new Command("help");
-            var commandArgument = new Argument<string>("command");
-            commandArgument.SetDefaultValue(string.Empty);
-            helpCommand.AddArgument(commandArgument);
-            helpCommand.SetHandler<string>(async (string command) =>
-                {
-                    if (string.IsNullOrWhiteSpace(command))
-                    {
-                        await Main(new string[] { "--help" });
-                    }
-                    else
-                    {
-                        await Main(new string[] { "--help", command });
-                    }
-                });
-
+            // TODO: Refactor this
+            // All global options must be defined first so they can be passed when setting handlers for subcommands
             var rootCommand = new RootCommand();
-            rootCommand.AddCommand(listCommand);
-            rootCommand.AddCommand(getCommand);
-            rootCommand.AddCommand(statusCommand);
-            rootCommand.AddCommand(helpCommand);
-
             var typeOption = new Option<ContentType>(
                 aliases: new string[] { "--type", "-t" },
                 description: "The type of content to read from the clipboard. (default: Text)",
@@ -195,7 +154,60 @@ namespace past
 #endif // DEBUG
             rootCommand.AddGlobalOption(debugOption);
 
-            rootCommand.SetHandler<IConsole, ContentType, bool, bool, AnsiResetType, bool, bool, CancellationToken>(GetCurrentClipboardValueAsync);
+            var listCommand = new Command("list", "Lists the clipboard history");
+            var nullOption = new Option<bool>("--null", "Use the null byte to separate entries");
+            listCommand.AddOption(nullOption);
+            var indexOption = new Option<bool>("--index", "Print indices with each item");
+            listCommand.AddOption(indexOption);
+            var idOption = new Option<bool>("--id", "Print the ID (GUID) with each item");
+            listCommand.AddOption(idOption);
+            var timeOption = new Option<bool>("--time", "Print the date and time that each item was copied");
+            listCommand.AddOption(timeOption);
+            var pinnedOption = new Option<bool>("--pinned", "Print only pinned items");
+            listCommand.AddOption(pinnedOption);
+            listCommand.SetHandler<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken>(
+                ListClipboardHistoryAsync,
+                nullOption, indexOption, typeOption, allOption, ansiOption, ansiResetOption, quietOption, silentOption, idOption, pinnedOption, timeOption);
+
+            var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
+            var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
+            getCommand.AddArgument(indexArgument);
+            var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
+            getCommand.AddOption(setCurrentOption);
+            getCommand.SetHandler<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, bool, CancellationToken>(
+                GetClipboardHistoryItemAsync,
+                indexArgument, ansiOption, ansiResetOption, setCurrentOption, typeOption, allOption, quietOption, silentOption);
+
+            var statusCommand = new Command("status", "Gets the status of the clipboard history settings on this device.");
+            statusCommand.SetHandler<InvocationContext, IConsole, bool, bool, CancellationToken>(
+                GetClipboardHistoryStatus,
+                quietOption, silentOption);
+
+            var helpCommand = new Command("help");
+            var commandArgument = new Argument<string>("command");
+            commandArgument.SetDefaultValue(string.Empty);
+            helpCommand.AddArgument(commandArgument);
+            helpCommand.SetHandler<string>(async (string command) =>
+                {
+                    if (string.IsNullOrWhiteSpace(command))
+                    {
+                        await Main(new string[] { "--help" });
+                    }
+                    else
+                    {
+                        await Main(new string[] { "--help", command });
+                    }
+                },
+                commandArgument);
+
+            rootCommand.AddCommand(listCommand);
+            rootCommand.AddCommand(getCommand);
+            rootCommand.AddCommand(statusCommand);
+            rootCommand.AddCommand(helpCommand);
+
+            rootCommand.SetHandler<IConsole, ContentType, bool, bool, AnsiResetType, bool, bool, CancellationToken>(
+                GetCurrentClipboardValueAsync,
+                typeOption, allOption, ansiOption, ansiResetOption, quietOption, silentOption);
 
             return await rootCommand.InvokeAsync(args);
         }
