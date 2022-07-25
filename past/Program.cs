@@ -17,6 +17,12 @@ using System.Text.RegularExpressions;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.CommandLine.Binding;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
+using Newtonsoft.Json;
+using System.Collections.Immutable;
+using System.Windows.Controls;
 
 namespace past
 {
@@ -34,19 +40,34 @@ namespace past
 #if DEBUG
             // In debug builds halt execution until a key is pressed if the debug flag was provided to allow attaching a debugger.
             // Check for presence of the debug flag even before any argument parsing is done so that code can be debugged if needed as well.
-            if (args.Contains("--debug"))
+            var debugArgIndex = Array.IndexOf(args, "--debug");
+            if (debugArgIndex >= 0)
             {
                 var originalForeground = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Error.WriteLine("DEBUG: Ready to attach debugger. Press any key to continue execution...");
+                Console.Error.Write("DEBUG: Ready to attach debugger.");
+
+                var debugWaitTimeArg = args.ElementAtOrDefault(debugArgIndex + 1);
+                var debugWaitTime = int.TryParse(debugWaitTimeArg, out var parsedDebugWaitTime) ? parsedDebugWaitTime : 2;
+                if (debugWaitTime >= 0)
+                {
+                    Console.Error.Write($" Waiting for {debugWaitTime} seconds...\n");
+                    Thread.Sleep(debugWaitTime * 1000);
+                }
+                else
+                {
+                    Console.Error.Write(" Press any key to continue execution...\n");
+                    Console.ReadKey(intercept: true); // Suppress printing the pressed key
+                }
+                
                 Console.ForegroundColor = originalForeground;
-                Console.ReadKey(intercept: true); // Suppress printing the pressed key
             }
 #endif // DEBUG
 
             // TODO: Refactor this
             // All global options must be defined first so they can be passed when setting handlers for subcommands
             var rootCommand = new RootCommand();
+            rootCommand.Description = "A CLI for interating with Windows Clipboard History.";
             var typeOption = new Option<ContentType>(
                 aliases: new string[] { "--type", "-t" },
                 description: "The type of content to read from the clipboard. (default: Text)",
@@ -145,14 +166,59 @@ namespace past
 
             // Include a hidden debug option to use if it's ever needed, and to allow the args to still be parsed successfully
             // when providing the debug flag for attaching a debugger to debug builds.
-            var debugOption = new Option<bool>("--debug",
-                "Prints additional diagnostic output." +
-                "\n[Debug Builds Only] Halts execution on startup to allow attaching a debugger.");
+            int defaultTimeout = 2;
+            var debugOption = new Option<int>("--debug",
+                description: "Prints additional diagnostic output." +
+                "\n[Debug Builds Only] Halts execution on startup to allow attaching a debugger.",
+                parseArgument: (ArgumentResult result) =>
+                {
+                    if (result.Tokens.Count == 0)
+                    {
+                        // Default value
+                        return defaultTimeout;
+                    }
+
+                    string? timeoutValue = null;
+                    if (result.Tokens?.Count > 0)
+                    {
+                        timeoutValue = result.Tokens[0].Value;
+                    }
+                    if (!int.TryParse(timeoutValue, out int timeout))
+                    {
+                        // For some reason this version of System.CommandLine still executes the parse argument delegate
+                        // even when argument validation fails, so we'll just return the default value here since it won't
+                        // be used anyway...
+                        return defaultTimeout;
+                    }
+
+                    return timeout;
+                });
+            debugOption.ArgumentHelpName = "timeoutSeconds";
+            debugOption.SetDefaultValue(defaultTimeout);
+            debugOption.IsRequired = false;
+            debugOption.AddValidator((OptionResult result) =>
+            {
+                string? timeoutValue = null;
+                if (result.Tokens?.Count > 0)
+                {
+                    timeoutValue = result.Tokens[0].Value;
+                }
+                else
+                {
+                    return;
+                }
+
+                if (!int.TryParse(timeoutValue, out _))
+                {
+                    result.ErrorMessage = $"Invalid timeout specified. Value must be an integer.";
+                }
+            });
+
 #if !DEBUG
             // Don't show the debug flag in release builds
             debugOption.IsHidden = true;
 #endif // DEBUG
-            rootCommand.AddGlobalOption(debugOption);
+                rootCommand.AddGlobalOption(debugOption);
 
             var listCommand = new Command("list", "Lists the clipboard history");
             var nullOption = new Option<bool>("--null", "Use the null byte to separate entries");
@@ -165,26 +231,68 @@ namespace past
             listCommand.AddOption(timeOption);
             var pinnedOption = new Option<bool>("--pinned", "Print only pinned items");
             listCommand.AddOption(pinnedOption);
-            listCommand.SetHandler<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken>(
+            var pinSignOption = new Option<string>("--pin-sign", "Value to print next to pinned items");
+            listCommand.AddOption(pinSignOption);
+            var delimiterOption = new Option<string>("--delimiter", "Value to use as a delimiter between metadata values");
+            delimiterOption.SetDefaultValue(":");
+            listCommand.AddOption(delimiterOption);
+            var topOption = new Option<int>("--top", "Print only the number of specified items.");
+            topOption.ArgumentHelpName = "count";
+            topOption.AddValidator((OptionResult result) =>
+            {
+                string? countValue = null;
+                if (result.Tokens?.Count > 0)
+                {
+                    countValue = result.Tokens[0].Value;
+                }
+
+                if (!string.IsNullOrWhiteSpace(result.Token.Value) && (!int.TryParse(countValue, out var count) || count <= 0))
+                {
+                    result.ErrorMessage = "Invalid count specified. Count must be a positive integer value.";
+                }
+            });
+            listCommand.AddOption(topOption);
+            listCommand.SetHandler<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, bool, bool, string, string, int, CancellationToken>(
                 ListClipboardHistoryAsync,
-                nullOption, indexOption, typeOption, allOption, ansiOption, ansiResetOption, quietOption, silentOption, idOption, pinnedOption, timeOption);
+                nullOption, indexOption, typeOption, allOption, ansiOption, ansiResetOption, quietOption, silentOption, idOption, pinnedOption, timeOption, pinSignOption, delimiterOption, topOption);
 
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
-            var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
+            var indexArgument = new Argument<string>("index|id", "Either the index or the ID of the item to get from clipboard history");
+            //indexArgument.HelpName = "index|id";
+            indexArgument.AddValidator((ArgumentResult result) =>
+            {
+                string? identifierValue = null;
+                if (result.Tokens?.Count > 0)
+                {
+                    identifierValue = result.Tokens[0].Value;
+                }
+
+                if (!int.TryParse(identifierValue, out _) && !Guid.TryParse(identifierValue, out _))
+                {
+                    result.ErrorMessage = "Value must be either an index (integer) or an ID (GUID).";
+                }
+            });
             getCommand.AddArgument(indexArgument);
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             getCommand.AddOption(setCurrentOption);
-            getCommand.SetHandler<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, bool, CancellationToken>(
+            var forceOption = new Option<bool>("--force", "Forces getting the specified clipboard history item even if it is an unsupported type");
+            getCommand.AddOption(forceOption);
+            var fileOption = new Option<FileInfo>("--file", "Outputs the content to a new file at the specified path. Only effects binary data types.");
+            getCommand.AddOption(fileOption);
+            // TODO: Refactor into separate metadata command
+            var jsonOption = new Option<bool>("--json", "Outputs the clipboard history item and associated metadata as JSON.");
+            getCommand.AddOption(jsonOption);
+            getCommand.SetHandler<IConsole, ClipboardItemIdentifier, bool, AnsiResetType, bool, ContentType, bool, bool, FileInfo, bool, bool, bool, CancellationToken>(
                 GetClipboardHistoryItemAsync,
-                indexArgument, ansiOption, ansiResetOption, setCurrentOption, typeOption, allOption, quietOption, silentOption);
+                new IdentifierBinder(indexArgument), ansiOption, ansiResetOption, setCurrentOption, typeOption, allOption, forceOption, fileOption, jsonOption, quietOption, silentOption);
 
             var statusCommand = new Command("status", "Gets the status of the clipboard history settings on this device.");
             statusCommand.SetHandler<InvocationContext, IConsole, bool, bool, CancellationToken>(
                 GetClipboardHistoryStatus,
                 quietOption, silentOption);
 
-            var helpCommand = new Command("help");
-            var commandArgument = new Argument<string>("command");
+            var helpCommand = new Command("help", "Show help and usage information for the given command.");
+            var commandArgument = new Argument<string>("command", "The command to display the usage information for.");
             commandArgument.SetDefaultValue(string.Empty);
             helpCommand.AddArgument(commandArgument);
             helpCommand.SetHandler<string>(async (string command) =>
@@ -200,10 +308,18 @@ namespace past
                 },
                 commandArgument);
 
+            var pinCommand = new Command("pin",
+                "[EXPERIMENTAL] Pins the specified clipboard history item." +
+                "\nItems pinned this way will not show as pinned in the clipboard history UI until the clipboard service is restarted (which will clear non-pinned items from the clipboard history)." +
+                "\nWARNING: This does NOT encrypt the content of the item when storing it to disk, unlike pinning via the clipboard history UI.");
+            pinCommand.AddArgument(indexArgument);
+            pinCommand.SetHandler<IConsole, ClipboardItemIdentifier, bool, bool, CancellationToken>(PinClipboardItemAsync, new IdentifierBinder(indexArgument), quietOption, silentOption);
+
             rootCommand.AddCommand(listCommand);
             rootCommand.AddCommand(getCommand);
             rootCommand.AddCommand(statusCommand);
             rootCommand.AddCommand(helpCommand);
+            rootCommand.AddCommand(pinCommand);
 
             rootCommand.SetHandler<IConsole, ContentType, bool, bool, AnsiResetType, bool, bool, CancellationToken>(
                 GetCurrentClipboardValueAsync,
@@ -299,7 +415,7 @@ namespace past
             return 0;
         }
 
-        private static async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, AnsiResetType ansiResetType, bool setCurrent, ContentType type, bool all, bool quiet, bool silent, CancellationToken cancellationToken)
+        private static async Task<int> GetClipboardHistoryItemAsync(IConsole console, ClipboardItemIdentifier identifier, bool ansi, AnsiResetType ansiResetType, bool setCurrent, ContentType type, bool all, bool force, FileInfo file, bool asJson, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             try
             {
@@ -317,8 +433,24 @@ namespace past
                     console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet || silent);
                 }
 
-                var item = items.Items.ElementAt(index);
-                var value = await GetClipboardItemValueAsync(item, ansi: ansi);
+                if (!items.TryGetItem(identifier, out var item))
+                {
+                    console.WriteErrorLine("Failed to get clipboard history item", suppressOutput: quiet || silent);
+                    return -1;
+                }
+
+                // TODO: Refactor into separate metadata command
+                string? value;
+                if (asJson)
+                {
+                    var itemMetadata = new ClipboardHistoryItemMetadata(item, items.IndexOf(item));
+                    value = JsonConvert.SerializeObject(itemMetadata, Formatting.Indented);
+                }
+                else
+                {
+                    value = await GetClipboardItemValueAsync(item, type, ansi: ansi, force: force, file: file, asJson: asJson);
+                }
+
                 WriteValueToConsole(console, value, ansi: ansi, ansiResetType: ansiResetType, silent: silent);
 
                 if (setCurrent)
@@ -339,12 +471,11 @@ namespace past
             return 0;
         }
 
-        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, bool id, bool pinned, bool time, CancellationToken cancellationToken)
+        private static async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, bool id, bool pinned, bool time, string pinSign, string delimiter, int count, CancellationToken cancellationToken)
         {
             try
             {
                 type = ResolveContentType(console, type, all);
-
                 var items = await WinRtClipboard.GetHistoryItemsAsync();
                 if (items.Status != ClipboardHistoryItemsResultStatus.Success)
                 {
@@ -358,46 +489,30 @@ namespace past
                     return 1;
                 }
 
-                IEnumerable<ClipboardHistoryItem> clipboardItems;
+                // TODO: Cleanup getting pinned history items
+                HashSet<string> pinnedItems = null;
+                if ((pinned || !string.IsNullOrWhiteSpace(pinSign)) && !TryGetPinnedClipboardHistoryItemIds(out pinnedItems, out var errorInfo))
+                {
+                    console.WriteErrorLine(errorInfo.Value.Message, suppressOutput: quiet || silent);
+                    return errorInfo.Value.Code;
+                } else if (pinnedItems == null)
+                {
+                    // TODO: Remove this...
+                    pinnedItems = new HashSet<string>();
+                }
+
+                IEnumerable<ClipboardHistoryItem?> clipboardItems;
                 if (pinned)
                 {
-                    // TODO: Get pinned clipboard history items
-                    // Pinned item IDs can be read from: %LOCALAPPDATA%/Microsoft/Windows/Clipboard/Pinned/{GUID}/metadata.json
-                    var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                    var pinnedClipboardPath = Path.Combine(localAppDataPath, "Microsoft/Windows/Clipboard/Pinned");
-                    var pinnedClipboardItemMetadataDirectory = Directory.EnumerateDirectories(pinnedClipboardPath).First(directoryPath => File.Exists(Path.Combine(directoryPath, "metadata.json")));
-                    string? pinnedClipboardItemMetadataPath = null;
-                    foreach (var directoryPath in Directory.EnumerateDirectories(pinnedClipboardPath))
-                    {
-                        var metadataPath = Path.Combine(directoryPath, "metadata.json");
-                        if (File.Exists(metadataPath))
-                        {
-                            pinnedClipboardItemMetadataPath = metadataPath;
-                            break;
-                        }
-                    }
-                    if (string.IsNullOrWhiteSpace(pinnedClipboardItemMetadataPath))
-                    {
-                        console.WriteErrorLine("Failed to retrieve pinned clipboard history items", suppressOutput: quiet || silent);
-                        return -1;
-                    }
-
-                    var pinnedClipboardItemMetadataJson = File.ReadAllText(pinnedClipboardItemMetadataPath);
-                    var pinnedClipboardItemMetadata = JsonDocument.Parse(pinnedClipboardItemMetadataJson);
-                    var pinnedClipboardItemIds = pinnedClipboardItemMetadata.RootElement.GetProperty("items").EnumerateObject().Select(property => property.Name);
-                    clipboardItems = items.Items.Where(item => pinnedClipboardItemIds.Contains(item.Id));
-                    if (clipboardItems.Count() == 0)
-                    {
-                        console.WriteErrorLine("No pinned items in clipboard history", suppressOutput: quiet || silent);
-                        return 2;
-                    }
+                   // NOTE: Do not replace this `Select` with `Where`, currently the null items are placeholders to ensure correct indexing
+                   clipboardItems = items.Items.Select((item) => pinnedItems.Contains(item.Id) ? item : null);
                 }
                 else
                 {
                     clipboardItems = items.Items;
                 }
 
-                var filteredItemCount = clipboardItems.Count(item => type.Supports(item.Content.Contains));
+                var filteredItemCount = clipboardItems.Count(item => item != null ? type.Supports(item.Content.Contains) : false);
                 if (filteredItemCount == 0)
                 {
                     console.WriteErrorLine("No supported items in clipboard history", suppressOutput: quiet || silent);
@@ -409,16 +524,30 @@ namespace past
                     console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet || silent);
                 }
 
+                if (count > 0)
+                {
+                    if (filteredItemCount < count)
+                    {
+                        console.WriteErrorLine("Specified count is larger than the current number of clipboard history items. All items will be returned.", suppressOutput: quiet || silent);
+                    }
+                    else if (filteredItemCount > count)
+                    {
+                        clipboardItems = clipboardItems.Take(count);
+                    }
+                }
+
                 int i = 0;
                 int outputItemCount = 0;
                 foreach (var item in clipboardItems)
                 {
+                    // TODO: Switch this to an ICustomFormatter and IFormatProvider
                     var value = await GetClipboardItemValueAsync(item, type, ansi);
                     int? printIndex = index ? i : null;
-                    string? printId = id ? item.Id : null;
-                    string? printTimestamp = time ? item.Timestamp.ToString() : null;
-                    bool printNull = outputItemCount < filteredItemCount && @null;
-                    if (WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent, printId, printTimestamp))
+                    string? printId = id ? item?.Id : null;
+                    string? printTimestamp = time ? item?.Timestamp.ToString() : null;
+                    bool printNull = outputItemCount < (filteredItemCount - 1) && @null;
+                    string? printPinSign = pinnedItems.Contains(item?.Id!) ? pinSign : null;
+                    if (WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent, printId, printTimestamp, printPinSign, delimiter))
                     {
                         outputItemCount++;
                     }
@@ -433,30 +562,113 @@ namespace past
 
             return 0;
         }
+
+        private static async Task<int> PinClipboardItemAsync(IConsole console, ClipboardItemIdentifier identifier, bool quiet, bool silent, CancellationToken cancellationToken)
+        {
+            var items = await WinRtClipboard.GetHistoryItemsAsync();
+            if (items.Status != ClipboardHistoryItemsResultStatus.Success)
+            {
+                console.WriteErrorLine($"Failed to get clipboard history. Result: {items.Status}", suppressOutput: quiet || silent);
+                return -1;
+            }
+
+            if (!items.TryGetItem(identifier, out var item))
+            {
+                console.WriteErrorLine("Specified clipboard history item not found", suppressOutput: quiet || silent);
+                return -1;
+            }
+
+            // Pinned item IDs can be read from: %LOCALAPPDATA%/Microsoft/Windows/Clipboard/Pinned/{GUID}/metadata.json
+            var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var pinnedClipboardPath = Path.Combine(localAppDataPath, "Microsoft/Windows/Clipboard/Pinned");
+            if (!Directory.Exists(pinnedClipboardPath))
+            {
+                console.WriteErrorLine($"Failed to retrieve pinned clipboard history items: clipboard app data directory not found ({pinnedClipboardPath})", suppressOutput: quiet || silent);
+                return -1;
+            }
+            //var pinnedClipboardItemMetadataDirectory = Directory.EnumerateDirectories(pinnedClipboardPath).First(directoryPath => File.Exists(Path.Combine(directoryPath, "metadata.json")));
+            string? pinnedClipboardItemMetadataPath = null;
+            foreach (var directoryPath in Directory.EnumerateDirectories(pinnedClipboardPath))
+            {
+                var metadataPath = Path.Combine(directoryPath, "metadata.json");
+                if (File.Exists(metadataPath))
+                {
+                    pinnedClipboardItemMetadataPath = metadataPath;
+                    break;
+                }
+            }
+            if (string.IsNullOrWhiteSpace(pinnedClipboardItemMetadataPath))
+            {
+                console.WriteErrorLine("Failed to retrieve pinned clipboard history items: metadata file not found", suppressOutput: quiet || silent);
+                return -1;
+            }
+
+            var pinnedClipboardItemMetadataJson = File.ReadAllText(pinnedClipboardItemMetadataPath, Encoding.Unicode);
+            var pinnedItemsMetadata = JsonConvert.DeserializeObject<ClipboardHistoryPinnedMetadata>(pinnedClipboardItemMetadataJson);
+            //var pinnedItemsMetadata = Newtonsoft.Json.JsonSerializer.Deserialize<ClipboardHistoryPinnedMetadata>(pinnedClipboardItemMetadataJson);
+            if (pinnedItemsMetadata == null)
+            {
+                // TODO: handle failure
+                console.WriteErrorLine($"Failed to read pinned clipboard history items", suppressOutput: quiet || silent);
+                return -2;
+            }
+
+            if (pinnedItemsMetadata.Items.ContainsKey(item.Id))
+            {
+                console.WriteErrorLine($"Clipboard history item with ID {item.Id} is already pinned.", suppressOutput: quiet || silent);
+                return 1;
+            }
+
+            pinnedItemsMetadata.Items[item.Id] = new ClipboardHistoryPinnedMetadata.ClipboardHistoryPinnedMetadataItem
+            {
+                Timestamp = item.Timestamp,
+                Source = "Local"
+            };
+
+            var newPinnedClipboardItemMetadataJson = JsonConvert.SerializeObject(pinnedItemsMetadata, new JsonSerializerSettings
+            {
+                //2022-05-10T17:09:41Z
+                DateFormatString = "yyyy-MM-ddTHH:mm:ssZ"
+            });
+            // TODO: write back to disk
+
+            // TODO: create directory for item (name is the item GUID)
+            // TODO: create metadata file for item
+            // TODO: create content file for item (file name is the base64 encoded name of item data type)
+
+            console.WriteErrorLine("Pinning item support coming soon!", suppressOutput: quiet || silent);
+            return -1;
+        }
         #endregion Commands
 
         #region Helpers
-        private static bool WriteValueToConsole(IConsole console, string? value, int? index = null, bool @null = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, bool silent = false, string? id = null, string? timestamp = null)
+        private static bool WriteValueToConsole(IConsole console, string? value, int? index = null, bool @null = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, bool silent = false, string? id = null, string? timestamp = null, string? pinSign = null, string? delimiter = ":")
         {
             if (value == null)
             {
                 return false;
             }
 
+            // TODO: Switch this to an ICustomFormatter and IFormatProvider
             var outputValue = new StringBuilder();
             if (index != null)
             {
-                outputValue.Append($"{index}:");
+                outputValue.Append($"{index}{delimiter}");
             }
 
             if (!string.IsNullOrWhiteSpace(id))
             {
-                outputValue.Append($"{id}:");
+                outputValue.Append($"{id}{delimiter}");
             }
 
             if (!string.IsNullOrWhiteSpace(timestamp))
             {
-                outputValue.Append($"{timestamp}:");
+                outputValue.Append($"{timestamp}{delimiter}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(pinSign))
+            {
+                outputValue.Append($"{pinSign}{delimiter}");
             }
 
             outputValue.Append(value);
@@ -506,16 +718,54 @@ namespace past
             return console.Write(outputValue.ToString(), suppressOutput: silent);
         }
 
-        private static Task<string?> GetClipboardItemValueAsync(ClipboardHistoryItem item, ContentType type = ContentType.Text, bool ansi = false)
+        private static Task<string?> GetClipboardItemValueAsync(ClipboardHistoryItem? item, ContentType type = ContentType.Text, bool ansi = false, bool force = false, FileInfo? file = null, bool asJson = false)
         {
-            return GetClipboardItemValueAsync(item.Content, type, ansi);
+            return GetClipboardItemValueAsync(item?.Content, type, ansi, force, file, asJson);
         }
 
-        private static async Task<string?> GetClipboardItemValueAsync(DataPackageView content, ContentType type = ContentType.Text, bool ansi = false)
+        private static async Task<string?> GetClipboardItemValueAsync(DataPackageView? content, ContentType type = ContentType.Text, bool ansi = false, bool force = false, FileInfo? file = null, bool asJson = false)
         {
+            if (content == null)
+            {
+                return null;
+            }
+
             if ((type == ContentType.Text || type == ContentType.All) && content.Contains(StandardDataFormats.Text))
             {
                 return await content.GetTextAsync();
+            }
+            else if ((type == ContentType.Image || type == ContentType.All) && force && content.Contains(StandardDataFormats.Bitmap))
+            {
+                var isUri = content.Contains(StandardDataFormats.Uri);
+                var isWebLink = content.Contains(StandardDataFormats.WebLink);
+                var isHtml = content.Contains(StandardDataFormats.Html);
+
+                //var uri = await content.GetUriAsync();
+                //var webLink = await content.GetWebLinkAsync();
+                //var html = await content.GetHtmlFormatAsync();
+                //var resourceMap = await content.GetResourceMapAsync();
+
+                var randomAccessImageStreamRef = await content.GetBitmapAsync();
+                using var randomAccessImageStream = await randomAccessImageStreamRef.OpenReadAsync();
+                using var imageStream = randomAccessImageStream.AsStreamForRead();
+                byte[] imageBytes = new byte[imageStream.Length + 1];
+                var imageLength = await imageStream.ReadAsync(imageBytes);
+
+                if (file == null)
+                {
+                    using var outputStream = Console.OpenStandardOutput();
+                    await outputStream.WriteAsync(imageBytes, 0, imageLength);
+                }
+                else
+                {
+                    if (file.Exists)
+                    {
+                        throw new Exception($"File already exists at specified path: {file.FullName}");
+                    }
+
+                    using var fileStream = file.Create();
+                    await fileStream.WriteAsync(imageBytes, 0, imageLength);
+                }
             }
             else if (type == ContentType.All)
             {
@@ -540,6 +790,70 @@ namespace past
             }
 
             return resolvedType;
+        }
+
+        private static bool TryGetPinnedClipboardHistoryItems(ClipboardHistoryItemsResult items, [NotNullWhen(true)] out IList<ClipboardHistoryItem>? pinnedItems, [NotNullWhen(false)] out (int Code, string Message)? errorInfo)
+        {
+            pinnedItems = null;
+            errorInfo = null;
+
+            if (!TryGetPinnedClipboardHistoryItemIds(out var pinnedClipboardItemIds, out errorInfo))
+            {
+                return false;
+            }
+
+            var pinnedClipboardItems = items.Items.Where(item => pinnedClipboardItemIds.Contains(item.Id));
+            if (pinnedClipboardItems == null || pinnedClipboardItems.Count() == 0)
+            {
+                errorInfo = (2, "No pinned items in clipboard history");
+                return false;
+            }
+
+            pinnedItems = pinnedClipboardItems.ToList();
+            return true;
+        }
+
+        private static bool TryGetPinnedClipboardHistoryItemIds([NotNullWhen(true)] out HashSet<string>? pinnedItemIds, [NotNullWhen(false)] out (int Code, string Message)? errorInfo)
+        {
+            pinnedItemIds = null;
+            errorInfo = null;
+
+            // Pinned item IDs can be read from: %LOCALAPPDATA%/Microsoft/Windows/Clipboard/Pinned/{GUID}/metadata.json
+            var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var pinnedClipboardPath = Path.Combine(localAppDataPath, "Microsoft/Windows/Clipboard/Pinned");
+            if (!Directory.Exists(pinnedClipboardPath))
+            {
+                errorInfo = (-1, $"Failed to retrieve pinned clipboard history items: clipboard app data directory not found ({pinnedClipboardPath})");
+                return false;
+            }
+            //var pinnedClipboardItemMetadataDirectory = Directory.EnumerateDirectories(pinnedClipboardPath).First(directoryPath => File.Exists(Path.Combine(directoryPath, "metadata.json")));
+            string? pinnedClipboardItemMetadataPath = null;
+            foreach (var directoryPath in Directory.EnumerateDirectories(pinnedClipboardPath))
+            {
+                var metadataPath = Path.Combine(directoryPath, "metadata.json");
+                if (File.Exists(metadataPath))
+                {
+                    pinnedClipboardItemMetadataPath = metadataPath;
+                    break;
+                }
+            }
+            if (string.IsNullOrWhiteSpace(pinnedClipboardItemMetadataPath))
+            {
+                errorInfo = (-1, "Failed to retrieve pinned clipboard history items: metadata file not found");
+                return false;
+            }
+
+            var pinnedClipboardItemMetadataJson = File.ReadAllText(pinnedClipboardItemMetadataPath);
+            var pinnedClipboardItemMetadata = JsonDocument.Parse(pinnedClipboardItemMetadataJson);
+            var pinnedClipboardItemIds = pinnedClipboardItemMetadata.RootElement.GetProperty("items").EnumerateObject().Select(property => property.Name);
+            if (pinnedClipboardItemIds == null || pinnedClipboardItemIds.Count() == 0)
+            {
+                errorInfo = (2, "No pinned items in clipboard history");
+                return false;
+            }
+
+            pinnedItemIds = pinnedClipboardItemIds.ToHashSet();
+            return true;
         }
         #endregion Helpers
     }

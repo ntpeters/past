@@ -6,6 +6,7 @@
       Special target framework moniker to enable access to Windows Runtime APIs.
       For more info:
       https://docs.microsoft.com/en-us/windows/apps/desktop/modernize/desktop-to-uwp-enhance#net-5-and-later-use-the-target-framework-moniker-option
+      TODO: Update to .NET 6: https://docs.microsoft.com/en-us/dotnet/standard/frameworks#net-5-os-specific-tfms
       -->
       <targetframework>net5.0-windows10.0.19041.0</targetframework>
       <!--Needed to access the current clipboard content without UI-->
@@ -13,9 +14,12 @@
       <!--Needed to keep this as a console app when using WPF-->
       <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
       <Nullable>enable</Nullable>
+      <PlatformTarget>AnyCPU</PlatformTarget>
+      <Platforms>AnyCPU;x86;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
     <PackageReference Include="System.CommandLine.Rendering" Version="0.4.0-alpha.22114.1" />
   </ItemGroup>

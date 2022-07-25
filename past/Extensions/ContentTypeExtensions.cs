@@ -60,7 +60,7 @@ namespace past.Extensions
             }
         }
 
-        public static bool Supports(this ContentType type, Func<string, bool> predicate)
+        public static bool Supports(this ContentType type, Func<string, bool>? predicate)
         {
             if (type == ContentType.All)
             {
