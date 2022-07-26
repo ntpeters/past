@@ -17,8 +17,9 @@ namespace past
 {
     public partial class Program
     {
-        // TODO: Remove this. Temporary static instance to help break apart larger refactor.
+        // TODO: Remove these. Temporary static instances to help break apart larger refactor.
         private static readonly Lazy<ClipboardManager> _clipboard = new(() => new ClipboardManager());
+        private static readonly CommandFactory _commandFactory = new CommandFactory();
 
         public static async Task<int> Main(string[] args)
         {
@@ -38,147 +39,22 @@ namespace past
             // TODO: Refactor this
             // All global options must be defined first so they can be passed when setting handlers for subcommands
             var rootCommand = new RootCommand();
-            var typeOption = new Option<ContentType>(
-                aliases: new string[] { "--type", "-t" },
-                description: "The type of content to read from the clipboard. (default: Text)",
-                isDefault: true,
-                parseArgument: (ArgumentResult result) =>
-                {
-                    if (result.Tokens.Count == 0)
-                    {
-                        // Default value
-                        return ContentType.Default;
-                    }
+            
+            rootCommand.AddGlobalOption(_commandFactory.TypeOption);
+            rootCommand.AddGlobalOption(_commandFactory.AllOption);
+            rootCommand.AddGlobalOption(_commandFactory.AnsiOption);
+            rootCommand.AddGlobalOption(_commandFactory.AnsiResetOption);
+            rootCommand.AddGlobalOption(_commandFactory.QuietOption);
+            rootCommand.AddGlobalOption(_commandFactory.SilentOption);
+            rootCommand.AddGlobalOption(_commandFactory.DebugOption);
 
-                    string? typeValue = null;
-                    if (result.Tokens?.Count > 0)
-                    {
-                        typeValue = result.Tokens[0].Value;
-                    }
-                    if (!Enum.TryParse<ContentType>(typeValue, ignoreCase: true, out var type))
-                    {
-                        // For some reason this version of System.CommandLine still executes the parse argument delegate
-                        // even when argument validation fails, so we'll just return the default type here since it won't
-                        // be used anyway...
-                        return ContentType.Text;
-                    }
+            var listCommand = _commandFactory.CreateListCommand(ListClipboardHistoryAsync);
 
-                    return type;
-                });
-            typeOption.AddCompletions(Enum.GetNames<ContentType>());
-            typeOption.AddValidator((OptionResult result) =>
-            {
-                string? typeValue = null;
-                if (result.Tokens?.Count > 0)
-                {
-                    typeValue = result.Tokens[0].Value;
-                }
+            var getCommand = _commandFactory.CreateGetCommand(GetClipboardHistoryItemAsync);
 
-                if (!string.IsNullOrWhiteSpace(result.Token.Value) && !Enum.TryParse<ContentType>(typeValue, ignoreCase: true, out var type))
-                {
-                    result.ErrorMessage = $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<ContentType>())}";
-                }
-            });
-            rootCommand.AddGlobalOption(typeOption);
-            var allOption = new Option<bool>("--all", "Alias for `--type all`. Overrides the `--type` option if present.");
-            rootCommand.AddGlobalOption(allOption);
+            var statusCommand = _commandFactory.CreateStatusCommand(GetClipboardHistoryStatus);
 
-            var ansiOption = new Option<bool>("--ansi", "Enable processing of ANSI control sequences");
-            rootCommand.AddGlobalOption(ansiOption);
-
-            var ansiResetOption = new Option<AnsiResetType>(
-                "--ansi-reset",
-                description: "Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item.",
-                isDefault: true,
-                parseArgument: (ArgumentResult result) =>
-                {
-                    if (result.Tokens.Count == 0)
-                    {
-                        // Default value
-                        return AnsiResetType.Auto;
-                    }
-
-                    string? typeValue = null;
-                    if (result.Tokens?.Count > 0)
-                    {
-                        typeValue = result.Tokens[0].Value;
-                    }
-                    if (!Enum.TryParse<AnsiResetType>(typeValue, ignoreCase: true, out var type))
-                    {
-                        // For some reason this version of System.CommandLine still executes the parse argument delegate
-                        // even when argument validation fails, so we'll just return the default type here since it won't
-                        // be used anyway...
-                        return AnsiResetType.Auto;
-                    }
-
-                    return type;
-                });
-            ansiResetOption.AddCompletions(Enum.GetNames<AnsiResetType>());
-            ansiResetOption.AddValidator((OptionResult result) =>
-            {
-                string? typeValue = null;
-                if (result.Tokens?.Count > 0)
-                {
-                    typeValue = result.Tokens[0].Value;
-                }
-
-                if (!string.IsNullOrWhiteSpace(result.Token.Value) && !Enum.TryParse<AnsiResetType>(typeValue, ignoreCase: true, out var type))
-                {
-                    result.ErrorMessage = $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<AnsiResetType>())}";
-                }
-            });
-            rootCommand.AddGlobalOption(ansiResetOption);
-
-            var quietOption = new Option<bool>(new string[] { "--quiet", "-q" }, "Suppresses error output");
-            var silentOption = new Option<bool>(new string[] { "--silent", "-s" }, "Suppresses all output");
-            rootCommand.AddGlobalOption(quietOption);
-            rootCommand.AddGlobalOption(silentOption);
-
-            // Include a hidden debug option to use if it's ever needed, and to allow the args to still be parsed successfully
-            // when providing the debug flag for attaching a debugger to debug builds.
-            var debugOption = new Option<bool>("--debug",
-                "Prints additional diagnostic output." +
-                "\n[Debug Builds Only] Halts execution on startup to allow attaching a debugger.");
-#if !DEBUG
-            // Don't show the debug flag in release builds
-            debugOption.IsHidden = true;
-#endif // DEBUG
-            rootCommand.AddGlobalOption(debugOption);
-
-            var listCommand = new Command("list", "Lists the clipboard history");
-            var nullOption = new Option<bool>("--null", "Use the null byte to separate entries");
-            listCommand.AddOption(nullOption);
-            var indexOption = new Option<bool>("--index", "Print indices with each item");
-            listCommand.AddOption(indexOption);
-            var idOption = new Option<bool>("--id", "Print the ID (GUID) with each item");
-            listCommand.AddOption(idOption);
-            var timeOption = new Option<bool>("--time", "Print the date and time that each item was copied");
-            listCommand.AddOption(timeOption);
-            var pinnedOption = new Option<bool>("--pinned", "Print only pinned items");
-            listCommand.AddOption(pinnedOption);
-            listCommand.SetHandler<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken>(
-                ListClipboardHistoryAsync,
-                nullOption, indexOption, typeOption, allOption, ansiOption, ansiResetOption, quietOption, silentOption, idOption, pinnedOption, timeOption);
-
-            var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
-            var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
-            getCommand.AddArgument(indexArgument);
-            var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
-            getCommand.AddOption(setCurrentOption);
-            getCommand.SetHandler<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, bool, CancellationToken>(
-                GetClipboardHistoryItemAsync,
-                indexArgument, ansiOption, ansiResetOption, setCurrentOption, typeOption, allOption, quietOption, silentOption);
-
-            var statusCommand = new Command("status", "Gets the status of the clipboard history settings on this device.");
-            statusCommand.SetHandler<InvocationContext, IConsole, bool, bool, CancellationToken>(
-                GetClipboardHistoryStatus,
-                quietOption, silentOption);
-
-            var helpCommand = new Command("help");
-            var commandArgument = new Argument<string>("command");
-            commandArgument.SetDefaultValue(string.Empty);
-            helpCommand.AddArgument(commandArgument);
-            helpCommand.SetHandler<string>(async (string command) =>
+            var helpCommand = _commandFactory.CreateHelpCommand(async (string command) =>
                 {
                     if (string.IsNullOrWhiteSpace(command))
                     {
@@ -188,8 +64,7 @@ namespace past
                     {
                         await Main(new string[] { "--help", command });
                     }
-                },
-                commandArgument);
+                });
 
             rootCommand.AddCommand(listCommand);
             rootCommand.AddCommand(getCommand);
@@ -198,7 +73,7 @@ namespace past
 
             rootCommand.SetHandler<IConsole, ContentType, bool, bool, AnsiResetType, bool, bool, CancellationToken>(
                 GetCurrentClipboardValueAsync,
-                typeOption, allOption, ansiOption, ansiResetOption, quietOption, silentOption);
+                _commandFactory.TypeOption, _commandFactory.AllOption, _commandFactory.AnsiOption, _commandFactory.AnsiResetOption, _commandFactory.QuietOption, _commandFactory.SilentOption);
 
             return await rootCommand.InvokeAsync(args);
         }
