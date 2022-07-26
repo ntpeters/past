@@ -1,34 +1,26 @@
+using past.Extensions;
 using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.CommandLine.Rendering;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
-using WinRtClipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
 using Win32Clipboard = System.Windows.Clipboard;
-using System.IO;
-using past.Extensions;
-using System.Text.RegularExpressions;
-using System.Text.Json;
-using System.Collections.Generic;
-using System.CommandLine.Binding;
+using WinRtClipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
 
 namespace past
 {
     public partial class Program
     {
-        private enum AnsiResetType
-        {
-            Auto,
-            On,
-            Off
-        }
-
         public static async Task<int> Main(string[] args)
         {
 #if DEBUG
