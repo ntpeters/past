@@ -1,26 +1,25 @@
 using past.Extensions;
+using past.Wrappers;
 using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.CommandLine.Rendering;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
-using Win32Clipboard = System.Windows.Clipboard;
-using WinRtClipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
 
 namespace past
 {
     public partial class Program
     {
+        // TODO: Remove this. Temporary static instance to help break apart larger refactor.
+        private static readonly Lazy<ClipboardManager> _clipboard = new(() => new ClipboardManager());
+
         public static async Task<int> Main(string[] args)
         {
 #if DEBUG
@@ -209,8 +208,8 @@ namespace past
         {
             try
             {
-                console.WriteLine($"Clipboard History Enabled: {WinRtClipboard.IsHistoryEnabled()}", suppressOutput: silent);
-                console.WriteLine($"Clipboard Roaming Enabled: {WinRtClipboard.IsRoamingEnabled()}", suppressOutput: silent);
+                console.WriteLine($"Clipboard History Enabled: {_clipboard.Value.IsHistoryEnabled()}", suppressOutput: silent);
+                console.WriteLine($"Clipboard Roaming Enabled: {_clipboard.Value.IsRoamingEnabled()}", suppressOutput: silent);
             }
             catch (Exception e)
             {
@@ -223,63 +222,10 @@ namespace past
 
         private static async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, CancellationToken cancellationToken)
         {
-            // Using the Win32 clipboard API rather than the WinRt clipboard API as that
-            // one frequently throws "RPC_E_DISCONNECTED" when trying to access the current
-            // clipboard contents.
             try
             {
                 type = ResolveContentType(console, type, all, quiet, silent);
-
-                // Accessing the current clipboard must be done on an STA thread
-                var tsc = new TaskCompletionSource<string?>();
-                var staThread = new Thread(() =>
-                {
-                    try
-                    {
-                        string? value = null;
-                        if (type == ContentType.Text || type == ContentType.All)
-                        {
-                            if (Win32Clipboard.ContainsText(System.Windows.TextDataFormat.UnicodeText))
-                            {
-                                value = Win32Clipboard.GetText(System.Windows.TextDataFormat.UnicodeText);
-                            }
-                            else if (Win32Clipboard.ContainsText(System.Windows.TextDataFormat.Text))
-                            {
-                                value = Win32Clipboard.GetText(System.Windows.TextDataFormat.Text);
-                            }
-                        }
-                        else if ((type == ContentType.Image || type == ContentType.All) && Win32Clipboard.ContainsImage())
-                        {
-                            value = "[Unsupported Format: Image]";
-                        }
-                        else if ((type == ContentType.Image || type == ContentType.All) && Win32Clipboard.ContainsFileDropList())
-                        {
-                            value = "[Unsupported Format: File Drop List]";
-                        }
-                        else if (type == ContentType.All)
-                        {
-                            var data = Win32Clipboard.GetDataObject();
-                            value = $"[Unsupported Format: {string.Join(',', data.GetFormats())}]";
-                        }
-
-                        tsc.SetResult(value);
-                    }
-                    catch (Exception e)
-                    {
-                        tsc.SetException(e);
-                    }
-                });
-
-                staThread.SetApartmentState(ApartmentState.STA);
-                staThread.Start();
-
-                if (!staThread.Join(millisecondsTimeout: 500))
-                {
-                    console.WriteErrorLine("Timeout while getting current clipboard contents.", suppressOutput: quiet || silent);
-                    return -1;
-                }
-
-                var value = await tsc.Task;
+                string? value = await _clipboard.Value.GetCurrentClipboardValueAsync(type, cancellationToken);
                 WriteValueToConsole(console, value, ansi: ansi, ansiResetType: ansiResetType, silent: silent);
             }
             catch (Exception e)
@@ -296,30 +242,18 @@ namespace past
             try
             {
                 type = ResolveContentType(console, type, all, quiet, silent);
-
-                var items = await WinRtClipboard.GetHistoryItemsAsync();
-                if (items.Status != ClipboardHistoryItemsResultStatus.Success)
-                {
-                    console.WriteErrorLine($"Failed to get clipboard history. Result: {items.Status}", suppressOutput: quiet || silent);
-                    return -1;
-                }
-
                 if (ansi && !console.IsOutputRedirected && !ConsoleHelpers.TryEnableVirtualTerminalProcessing(out var error))
                 {
                     console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet || silent);
                 }
 
-                var item = items.Items.ElementAt(index);
+                var (item, setContentStatus) = await _clipboard.Value.GetClipboardHistoryItemAsync(index, setCurrent, type, cancellationToken);
                 var value = await GetClipboardItemValueAsync(item, ansi: ansi);
                 WriteValueToConsole(console, value, ansi: ansi, ansiResetType: ansiResetType, silent: silent);
 
-                if (setCurrent)
+                if (setCurrent && setContentStatus != SetHistoryItemAsContentStatus.Success)
                 {
-                    var setContentStatus = WinRtClipboard.SetHistoryItemAsContent(item);
-                    if (setContentStatus != SetHistoryItemAsContentStatus.Success)
-                    {
-                        console.WriteErrorLine($"Failed updating the current clipboard content with the selected history item. Error: {setContentStatus}", suppressOutput: quiet || silent);
-                    }
+                    console.WriteErrorLine($"Failed updating the current clipboard content with the selected history item. Error: {setContentStatus}", suppressOutput: quiet || silent);
                 }
             }
             catch (Exception e)
@@ -337,64 +271,7 @@ namespace past
             {
                 type = ResolveContentType(console, type, all);
 
-                var items = await WinRtClipboard.GetHistoryItemsAsync();
-                if (items.Status != ClipboardHistoryItemsResultStatus.Success)
-                {
-                    console.WriteErrorLine($"Failed to get clipboard history. Result: {items.Status}", suppressOutput: quiet || silent);
-                    return -1;
-                }
-
-                if (items.Items.Count == 0)
-                {
-                    console.WriteErrorLine("Clipboard history is empty", suppressOutput: quiet || silent);
-                    return 1;
-                }
-
-                IEnumerable<ClipboardHistoryItem> clipboardItems;
-                if (pinned)
-                {
-                    // TODO: Get pinned clipboard history items
-                    // Pinned item IDs can be read from: %LOCALAPPDATA%/Microsoft/Windows/Clipboard/Pinned/{GUID}/metadata.json
-                    var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                    var pinnedClipboardPath = Path.Combine(localAppDataPath, "Microsoft/Windows/Clipboard/Pinned");
-                    var pinnedClipboardItemMetadataDirectory = Directory.EnumerateDirectories(pinnedClipboardPath).First(directoryPath => File.Exists(Path.Combine(directoryPath, "metadata.json")));
-                    string? pinnedClipboardItemMetadataPath = null;
-                    foreach (var directoryPath in Directory.EnumerateDirectories(pinnedClipboardPath))
-                    {
-                        var metadataPath = Path.Combine(directoryPath, "metadata.json");
-                        if (File.Exists(metadataPath))
-                        {
-                            pinnedClipboardItemMetadataPath = metadataPath;
-                            break;
-                        }
-                    }
-                    if (string.IsNullOrWhiteSpace(pinnedClipboardItemMetadataPath))
-                    {
-                        console.WriteErrorLine("Failed to retrieve pinned clipboard history items", suppressOutput: quiet || silent);
-                        return -1;
-                    }
-
-                    var pinnedClipboardItemMetadataJson = File.ReadAllText(pinnedClipboardItemMetadataPath);
-                    var pinnedClipboardItemMetadata = JsonDocument.Parse(pinnedClipboardItemMetadataJson);
-                    var pinnedClipboardItemIds = pinnedClipboardItemMetadata.RootElement.GetProperty("items").EnumerateObject().Select(property => property.Name);
-                    clipboardItems = items.Items.Where(item => pinnedClipboardItemIds.Contains(item.Id));
-                    if (clipboardItems.Count() == 0)
-                    {
-                        console.WriteErrorLine("No pinned items in clipboard history", suppressOutput: quiet || silent);
-                        return 2;
-                    }
-                }
-                else
-                {
-                    clipboardItems = items.Items;
-                }
-
-                var filteredItemCount = clipboardItems.Count(item => type.Supports(item.Content.Contains));
-                if (filteredItemCount == 0)
-                {
-                    console.WriteErrorLine("No supported items in clipboard history", suppressOutput: quiet || silent);
-                    return 2;
-                }
+                var clipboardItems = await _clipboard.Value.ListClipboardHistoryAsync(type, pinned, cancellationToken);
 
                 if (ansi && !console.IsOutputRedirected && !ConsoleHelpers.TryEnableVirtualTerminalProcessing(out var error))
                 {
@@ -409,7 +286,7 @@ namespace past
                     int? printIndex = index ? i : null;
                     string? printId = id ? item.Id : null;
                     string? printTimestamp = time ? item.Timestamp.ToString() : null;
-                    bool printNull = outputItemCount < filteredItemCount && @null;
+                    bool printNull = outputItemCount < clipboardItems.Count() && @null;
                     if (WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent, printId, printTimestamp))
                     {
                         outputItemCount++;
@@ -498,7 +375,7 @@ namespace past
             return console.Write(outputValue.ToString(), suppressOutput: silent);
         }
 
-        private static Task<string?> GetClipboardItemValueAsync(ClipboardHistoryItem item, ContentType type = ContentType.Text, bool ansi = false)
+        private static Task<string?> GetClipboardItemValueAsync(IClipboardHistoryItemWrapper item, ContentType type = ContentType.Text, bool ansi = false)
         {
             return GetClipboardItemValueAsync(item.Content, type, ansi);
         }

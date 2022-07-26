@@ -345,5 +345,47 @@ namespace past.Test
             Assert.That(actualItems, Is.EqualTo(expectedItems));
         }
         #endregion ListClipboardHistoryAsync
+
+        #region IsHistoryEnabled
+        [Test]
+        [TestCase(true)]
+        [TestCase(false)]
+        public void IsHistoryEnabled_ReturnsExpectedValue(bool expectedIsHistoryEnabled)
+        {
+            // Arrange
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.IsHistoryEnabled()).Returns(expectedIsHistoryEnabled);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+
+            // Act
+            var actualIsHistoryEnabled = clipboardManager.IsHistoryEnabled();
+
+            // Assert
+            Assert.That(actualIsHistoryEnabled, Is.EqualTo(expectedIsHistoryEnabled));
+        }
+        #endregion IsHistoryEnabled
+
+        #region IsRoamingEnabled
+        [Test]
+        [TestCase(true)]
+        [TestCase(false)]
+        public void IsRoamingEnabled_ReturnsExpectedValue(bool expectedIsRoamingEnabled)
+        {
+            // Arrange
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.IsRoamingEnabled()).Returns(expectedIsRoamingEnabled);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+
+            // Act
+            var actualIsRoamingEnabled = clipboardManager.IsRoamingEnabled();
+
+            // Assert
+            Assert.That(actualIsRoamingEnabled, Is.EqualTo(expectedIsRoamingEnabled));
+        }
+        #endregion IsRoamingEnabled
     }
 }

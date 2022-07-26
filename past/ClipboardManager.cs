@@ -168,5 +168,9 @@ namespace past
 
             return filteredItems;
         }
+
+        public bool IsHistoryEnabled() => _winRtClipboard.IsHistoryEnabled();
+
+        public bool IsRoamingEnabled() => _winRtClipboard.IsRoamingEnabled();
     }
 }
