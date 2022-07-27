@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace past.Wrappers
+namespace past.Core.Wrappers
 {
     /// <inheritdoc cref="ClipboardHistoryItemsResult"/>
     /// <remarks>

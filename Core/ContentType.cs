@@ -1,4 +1,4 @@
-namespace past
+namespace past.Core
 {
     public enum ContentType
     {

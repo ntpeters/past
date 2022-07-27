@@ -1,7 +1,6 @@
-using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace past.Wrappers
+namespace past.Core.Wrappers
 {
     /// <inheritdoc cref="Clipboard"/>
     /// <remarks>

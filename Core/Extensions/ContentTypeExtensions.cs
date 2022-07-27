@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Windows.ApplicationModel.DataTransfer;
-using static past.Program;
 
-namespace past.Extensions
+namespace past.Core.Extensions
 {
     public static class ContentTypeExtensions
     {

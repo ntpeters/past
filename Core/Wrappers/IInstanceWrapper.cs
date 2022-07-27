@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace past.Wrappers
+namespace past.Core.Wrappers
 {
     /// <summary>
     /// Represents a wrapper holding an instance of type <typeparamref name="T"/>.

@@ -1,7 +1,7 @@
 using System.Windows;
 using Win32Clipboard = System.Windows.Clipboard;
 
-namespace past.Wrappers
+namespace past.Core.Wrappers
 {
     /// <inheritdoc cref="IWin32ClipboardWrapper"/>
     public class Win32ClipboardWrapper : IWin32ClipboardWrapper

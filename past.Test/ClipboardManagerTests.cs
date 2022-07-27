@@ -1,10 +1,6 @@
 using Moq;
-using past.Wrappers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using past.Core;
+using past.Core.Wrappers;
 using System.Windows;
 using Windows.ApplicationModel.DataTransfer;
 

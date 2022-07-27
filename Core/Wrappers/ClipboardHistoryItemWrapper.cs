@@ -1,7 +1,6 @@
-using System;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace past.Wrappers
+namespace past.Core.Wrappers
 {
     /// <inheritdoc cref="IClipboardHistoryItemWrapper"/>
     public class ClipboardHistoryItemWrapper : IClipboardHistoryItemWrapper

@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace past.Wrappers
+namespace past.Core.Wrappers
 {
     /// <inheritdoc cref="Clipboard"/>
     /// <remarks>

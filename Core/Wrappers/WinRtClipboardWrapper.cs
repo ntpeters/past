@@ -1,9 +1,7 @@
-using System;
-using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using WinRtClipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
 
-namespace past.Wrappers
+namespace past.Core.Wrappers
 {
     /// <inheritdoc cref="IWinRtClipboardWrapper"/>
     public class WinRtClipboardWrapper : IWinRtClipboardWrapper

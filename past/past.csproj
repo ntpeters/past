@@ -21,4 +21,8 @@
     <PackageReference Include="System.CommandLine.Rendering" Version="0.4.0-alpha.22114.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+
 </Project>

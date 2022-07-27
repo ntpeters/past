@@ -1,18 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using past.Extensions;
-using Windows.ApplicationModel.DataTransfer;
-using System.CommandLine.Rendering;
+using past.Core.Extensions;
+using past.Core.Wrappers;
 using System.IO;
 using System.Text.Json;
-using past.Wrappers;
 using System.Windows;
+using Windows.ApplicationModel.DataTransfer;
 
-namespace past
+namespace past.Core
 {
     public class ClipboardManager
     {
