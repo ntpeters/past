@@ -34,7 +34,6 @@ namespace past.Console
             rootCommand.AddGlobalOption(commandFactory.AnsiOption);
             rootCommand.AddGlobalOption(commandFactory.AnsiResetOption);
             rootCommand.AddGlobalOption(commandFactory.QuietOption);
-            rootCommand.AddGlobalOption(commandFactory.SilentOption);
             rootCommand.AddGlobalOption(commandFactory.DebugOption);
 
             var listCommand = commandFactory.CreateListCommand(consoleClipboard.ListClipboardHistoryAsync);
@@ -57,9 +56,9 @@ namespace past.Console
             rootCommand.AddCommand(statusCommand);
             rootCommand.AddCommand(helpCommand);
 
-            rootCommand.SetHandler<IConsole, ContentType, bool, AnsiResetType, bool, bool, CancellationToken>(
+            rootCommand.SetHandler<IConsole, ContentType, bool, AnsiResetType, bool, CancellationToken>(
                 consoleClipboard.GetCurrentClipboardValueAsync,
-                new ContentTypeBinder(commandFactory.TypeOption, commandFactory.AllOption), commandFactory.AnsiOption, commandFactory.AnsiResetOption, commandFactory.QuietOption, commandFactory.SilentOption);
+                new ContentTypeBinder(commandFactory.TypeOption, commandFactory.AllOption), commandFactory.AnsiOption, commandFactory.AnsiResetOption, commandFactory.QuietOption);
 
             return await rootCommand.InvokeAsync(args);
         }

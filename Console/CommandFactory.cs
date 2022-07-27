@@ -15,7 +15,6 @@ namespace past.Console
         private readonly Lazy<Option<bool>> _ansiOptionLazy;
         private readonly Lazy<Option<AnsiResetType>> _ansiResetOptionLazy;
         private readonly Lazy<Option<bool>> _quietOptionLazy;
-        private readonly Lazy<Option<bool>> _silentOptionLazy;
         private readonly Lazy<Option<bool>> _debugOptionLazy;
 
         public Option<ContentType> TypeOption => _typeOptionLazy.Value;
@@ -23,7 +22,6 @@ namespace past.Console
         public Option<bool> AnsiOption => _ansiOptionLazy.Value;
         public Option<AnsiResetType> AnsiResetOption => _ansiResetOptionLazy.Value;
         public Option<bool> QuietOption => _quietOptionLazy.Value;
-        public Option<bool> SilentOption => _silentOptionLazy.Value;
         public Option<bool> DebugOption => _debugOptionLazy.Value;
 
         public CommandFactory()
@@ -33,11 +31,10 @@ namespace past.Console
             _ansiOptionLazy = new(() => CreateAnsiOption());
             _ansiResetOptionLazy = new(() => CreateAnsiResetOption());
             _quietOptionLazy = new(() => CreateQuietOption());
-            _silentOptionLazy = new(() => CreateSilentOption());
             _debugOptionLazy = new(() => CreateDebugOption());
         }
 
-        public Command CreateListCommand(Func<IConsole, bool, bool, ContentType, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken, Task> handle)
+        public Command CreateListCommand(Func<IConsole, bool, bool, ContentType, bool, AnsiResetType, bool, bool, bool, bool, CancellationToken, Task> handle)
         {
             var listCommand = new Command("list", "Lists the clipboard history");
             var nullOption = new Option<bool>("--null", "Use the null byte to separate entries");
@@ -50,31 +47,31 @@ namespace past.Console
             listCommand.AddOption(timeOption);
             var pinnedOption = new Option<bool>("--pinned", "Print only pinned items");
             listCommand.AddOption(pinnedOption);
-            listCommand.SetHandler<IConsole, bool, bool, ContentType, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken>(
+            listCommand.SetHandler<IConsole, bool, bool, ContentType, bool, AnsiResetType, bool, bool, bool, bool, CancellationToken>(
                 handle,
-                nullOption, indexOption, new ContentTypeBinder(TypeOption, AllOption), AnsiOption, AnsiResetOption, QuietOption, SilentOption, idOption, pinnedOption, timeOption);
+                nullOption, indexOption, new ContentTypeBinder(TypeOption, AllOption), AnsiOption, AnsiResetOption, QuietOption, idOption, pinnedOption, timeOption);
             return listCommand;
         }
 
-        public Command CreateGetCommand(Func<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, CancellationToken, Task> handle)
+        public Command CreateGetCommand(Func<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, CancellationToken, Task> handle)
         {
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
             getCommand.AddArgument(indexArgument);
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             getCommand.AddOption(setCurrentOption);
-            getCommand.SetHandler<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, CancellationToken>(
+            getCommand.SetHandler<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, CancellationToken>(
                 handle,
-                indexArgument, AnsiOption, AnsiResetOption, setCurrentOption, new ContentTypeBinder(TypeOption, AllOption), QuietOption, SilentOption);
+                indexArgument, AnsiOption, AnsiResetOption, setCurrentOption, new ContentTypeBinder(TypeOption, AllOption), QuietOption);
             return getCommand;
         }
 
-        public Command CreateStatusCommand(Action<InvocationContext, IConsole, bool, bool, CancellationToken> handle)
+        public Command CreateStatusCommand(Action<InvocationContext, IConsole, bool, CancellationToken> handle)
         {
             var statusCommand = new Command("status", "Gets the status of the clipboard history settings on this device.");
-            statusCommand.SetHandler<InvocationContext, IConsole, bool, bool, CancellationToken>(
+            statusCommand.SetHandler<InvocationContext, IConsole, bool, CancellationToken>(
                 handle,
-                QuietOption, SilentOption);
+                QuietOption);
             return statusCommand;
         }
 
@@ -205,12 +202,6 @@ namespace past.Console
         {
             var quietOption = new Option<bool>(new string[] { "--quiet", "-q" }, "Suppresses error output");
             return quietOption;
-        }
-
-        private Option<bool> CreateSilentOption()
-        {
-            var silentOption = new Option<bool>(new string[] { "--silent", "-s" }, "Suppresses all output");
-            return silentOption;
         }
 
         private Option<bool> CreateDebugOption()

@@ -1,6 +1,5 @@
 using past.Console.Extensions;
 using past.Core;
-using past.Core.Extensions;
 using past.Core.Wrappers;
 using System;
 using System.CommandLine;
@@ -29,66 +28,66 @@ namespace past.Console
             _clipboard = clipboardManager ?? throw new ArgumentNullException(nameof(clipboardManager));
         }
 
-        public void GetClipboardHistoryStatus(InvocationContext context, IConsole console, bool quiet, bool silent, CancellationToken cancellationToken)
+        public void GetClipboardHistoryStatus(InvocationContext context, IConsole console, bool quiet, CancellationToken cancellationToken)
         {
             try
             {
-                console.WriteLine($"Clipboard History Enabled: {_clipboard.IsHistoryEnabled()}", suppressOutput: silent);
-                console.WriteLine($"Clipboard Roaming Enabled: {_clipboard.IsRoamingEnabled()}", suppressOutput: silent);
+                console.WriteLine($"Clipboard History Enabled: {_clipboard.IsHistoryEnabled()}");
+                console.WriteLine($"Clipboard Roaming Enabled: {_clipboard.IsRoamingEnabled()}");
             }
             catch (Exception e)
             {
-                console.WriteErrorLine($"Failed to get current clipboard history status. Error: {e}", suppressOutput: quiet || silent);
+                console.WriteErrorLine($"Failed to get current clipboard history status. Error: {e}", suppressOutput: quiet);
                 context.ExitCode = -1;
             }
 
             context.ExitCode = 0;
         }
 
-        public async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, CancellationToken cancellationToken)
+        public async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool ansi, AnsiResetType ansiResetType, bool quiet, CancellationToken cancellationToken)
         {
             try
             {
                 string? value = await _clipboard.GetCurrentClipboardValueAsync(type, cancellationToken);
-                WriteValueToConsole(console, value, ansi: ansi, ansiResetType: ansiResetType, silent: silent);
+                WriteValueToConsole(console, value, ansi: ansi, ansiResetType: ansiResetType);
             }
             catch (Exception e)
             {
-                console.WriteErrorLine($"Failed to get current clipboard contents. Error: {e}", suppressOutput: quiet || silent);
+                console.WriteErrorLine($"Failed to get current clipboard contents. Error: {e}", suppressOutput: quiet);
                 return -1;
             }
 
             return 0;
         }
 
-        public async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, AnsiResetType ansiResetType, bool setCurrent, ContentType type, bool quiet, bool silent, CancellationToken cancellationToken)
+        public async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, AnsiResetType ansiResetType, bool setCurrent, ContentType type, bool quiet, CancellationToken cancellationToken)
         {
             try
             {
                 if (ansi && !console.IsOutputRedirected && !ConsoleHelpers.TryEnableVirtualTerminalProcessing(out var error))
                 {
-                    console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet || silent);
+                    console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet);
                 }
 
                 var (item, setContentStatus) = await _clipboard.GetClipboardHistoryItemAsync(index, setCurrent, type, cancellationToken);
                 var value = await GetClipboardItemValueAsync(item, ansi: ansi);
-                WriteValueToConsole(console, value, ansi: ansi, ansiResetType: ansiResetType, silent: silent);
+                WriteValueToConsole(console, value, ansi: ansi, ansiResetType: ansiResetType);
 
                 if (setCurrent && setContentStatus != SetHistoryItemAsContentStatus.Success)
                 {
-                    console.WriteErrorLine($"Failed updating the current clipboard content with the selected history item. Error: {setContentStatus}", suppressOutput: quiet || silent);
+                    console.WriteErrorLine($"Failed updating the current clipboard content with the selected history item. Error: {setContentStatus}", suppressOutput: quiet);
                 }
             }
             catch (Exception e)
             {
-                console.WriteErrorLine($"Failed to get clipboard history. Error: {e}", suppressOutput: quiet || silent);
+                console.WriteErrorLine($"Failed to get clipboard history. Error: {e}", suppressOutput: quiet);
                 return -1;
             }
 
             return 0;
         }
 
-        public async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, bool id, bool pinned, bool time, CancellationToken cancellationToken)
+        public async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool ansi, AnsiResetType ansiResetType, bool quiet, bool id, bool pinned, bool time, CancellationToken cancellationToken)
         {
             try
             {
@@ -96,7 +95,7 @@ namespace past.Console
 
                 if (ansi && !console.IsOutputRedirected && !ConsoleHelpers.TryEnableVirtualTerminalProcessing(out var error))
                 {
-                    console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet || silent);
+                    console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet);
                 }
 
                 int i = 0;
@@ -108,7 +107,7 @@ namespace past.Console
                     string? printId = id ? item.Id : null;
                     string? printTimestamp = time ? item.Timestamp.ToString() : null;
                     bool printNull = outputItemCount < clipboardItems.Count() && @null;
-                    if (WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, silent, printId, printTimestamp))
+                    if (WriteValueToConsole(console, value, printIndex, printNull, ansi, ansiResetType, printId, printTimestamp))
                     {
                         outputItemCount++;
                     }
@@ -117,7 +116,7 @@ namespace past.Console
             }
             catch (Exception e)
             {
-                console.WriteErrorLine($"Failed to get clipboard history. Error: {e}", suppressOutput: quiet || silent);
+                console.WriteErrorLine($"Failed to get clipboard history. Error: {e}", suppressOutput: quiet);
                 return -1;
             }
 
@@ -125,7 +124,7 @@ namespace past.Console
         }
 
         #region Helpers
-        private static bool WriteValueToConsole(IConsole console, string? value, int? index = null, bool @null = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, bool silent = false, string? id = null, string? timestamp = null)
+        private static bool WriteValueToConsole(IConsole console, string? value, int? index = null, bool @null = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, string? id = null, string? timestamp = null)
         {
             if (value == null)
             {
@@ -192,7 +191,8 @@ namespace past.Console
                 outputValue.Append('\n');
             }
 
-            return console.Write(outputValue.ToString(), suppressOutput: silent);
+            console.Write(outputValue.ToString());
+            return true;
         }
 
         private static Task<string?> GetClipboardItemValueAsync(IClipboardHistoryItemWrapper item, ContentType type = ContentType.Text, bool ansi = false)
