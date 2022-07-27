@@ -37,7 +37,7 @@ namespace past.Console
             _debugOptionLazy = new(() => CreateDebugOption());
         }
 
-        public Command CreateListCommand(Func<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken, Task> handle)
+        public Command CreateListCommand(Func<IConsole, bool, bool, ContentType, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken, Task> handle)
         {
             var listCommand = new Command("list", "Lists the clipboard history");
             var nullOption = new Option<bool>("--null", "Use the null byte to separate entries");
@@ -50,22 +50,22 @@ namespace past.Console
             listCommand.AddOption(timeOption);
             var pinnedOption = new Option<bool>("--pinned", "Print only pinned items");
             listCommand.AddOption(pinnedOption);
-            listCommand.SetHandler<IConsole, bool, bool, ContentType, bool, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken>(
+            listCommand.SetHandler<IConsole, bool, bool, ContentType, bool, AnsiResetType, bool, bool, bool, bool, bool, CancellationToken>(
                 handle,
-                nullOption, indexOption, TypeOption, AllOption, AnsiOption, AnsiResetOption, QuietOption, SilentOption, idOption, pinnedOption, timeOption);
+                nullOption, indexOption, new ContentTypeBinder(TypeOption, AllOption), AnsiOption, AnsiResetOption, QuietOption, SilentOption, idOption, pinnedOption, timeOption);
             return listCommand;
         }
 
-        public Command CreateGetCommand(Func<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, bool, CancellationToken, Task> handle)
+        public Command CreateGetCommand(Func<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, CancellationToken, Task> handle)
         {
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
             getCommand.AddArgument(indexArgument);
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             getCommand.AddOption(setCurrentOption);
-            getCommand.SetHandler<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, bool, CancellationToken>(
+            getCommand.SetHandler<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, bool, CancellationToken>(
                 handle,
-                indexArgument, AnsiOption, AnsiResetOption, setCurrentOption, TypeOption, AllOption, QuietOption, SilentOption);
+                indexArgument, AnsiOption, AnsiResetOption, setCurrentOption, new ContentTypeBinder(TypeOption, AllOption), QuietOption, SilentOption);
             return getCommand;
         }
 
@@ -100,7 +100,7 @@ namespace past.Console
                     if (result.Tokens.Count == 0)
                     {
                         // Default value
-                        return ContentType.Default;
+                        return ContentType.Text;
                     }
 
                     string? typeValue = null;

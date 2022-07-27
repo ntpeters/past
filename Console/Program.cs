@@ -57,9 +57,9 @@ namespace past.Console
             rootCommand.AddCommand(statusCommand);
             rootCommand.AddCommand(helpCommand);
 
-            rootCommand.SetHandler<IConsole, ContentType, bool, bool, AnsiResetType, bool, bool, CancellationToken>(
+            rootCommand.SetHandler<IConsole, ContentType, bool, AnsiResetType, bool, bool, CancellationToken>(
                 consoleClipboard.GetCurrentClipboardValueAsync,
-                commandFactory.TypeOption, commandFactory.AllOption, commandFactory.AnsiOption, commandFactory.AnsiResetOption, commandFactory.QuietOption, commandFactory.SilentOption);
+                new ContentTypeBinder(commandFactory.TypeOption, commandFactory.AllOption), commandFactory.AnsiOption, commandFactory.AnsiResetOption, commandFactory.QuietOption, commandFactory.SilentOption);
 
             return await rootCommand.InvokeAsync(args);
         }

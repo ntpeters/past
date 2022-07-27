@@ -49,13 +49,13 @@ namespace past.Test
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             mockWin32Clipboard
                 .Setup(
-                mock => mock.ContainsText(It.Is<System.Windows.TextDataFormat>(
-                    format => format == System.Windows.TextDataFormat.Text || format == System.Windows.TextDataFormat.UnicodeText)))
+                mock => mock.ContainsText(It.Is<TextDataFormat>(
+                    format => format == TextDataFormat.Text || format == TextDataFormat.UnicodeText)))
                 .Returns(true)
                 .Verifiable();
             mockWin32Clipboard.Setup(
-                mock => mock.GetText(It.Is<System.Windows.TextDataFormat>(
-                    format => format == System.Windows.TextDataFormat.Text || format == System.Windows.TextDataFormat.UnicodeText)))
+                mock => mock.GetText(It.Is<TextDataFormat>(
+                    format => format == TextDataFormat.Text || format == TextDataFormat.UnicodeText)))
                 .Returns(expectedValue)
                 .Verifiable();
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
@@ -80,8 +80,8 @@ namespace past.Test
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             mockWin32Clipboard
                 .Setup(
-                mock => mock.ContainsText(It.Is<System.Windows.TextDataFormat>(
-                    format => format == System.Windows.TextDataFormat.Text || format == System.Windows.TextDataFormat.UnicodeText)))
+                mock => mock.ContainsText(It.Is<TextDataFormat>(
+                    format => format == TextDataFormat.Text || format == TextDataFormat.UnicodeText)))
                 .Returns(false)
                 .Verifiable();
             mockWin32Clipboard
@@ -96,12 +96,16 @@ namespace past.Test
 
             // Assert
             Assert.That(actualValue, Is.EqualTo(expectedValue));
-            mockWin32Clipboard.Verify();
+            mockWin32Clipboard.Verify(mock => mock.ContainsText(It.Is<TextDataFormat>(
+                format => format == TextDataFormat.Text)), Times.AtMostOnce);
+            mockWin32Clipboard.Verify(mock => mock.ContainsText(It.Is<TextDataFormat>(
+                format => format == TextDataFormat.UnicodeText)), Times.AtMostOnce);
+            mockWin32Clipboard.Verify(mock => mock.ContainsImage(), Times.Once);
             mockWinRtClipboard.Verify();
         }
 
         [Test]
-        [TestCase(ContentType.Text)]
+        [TestCase(ContentType.File)]
         [TestCase(ContentType.All)]
         public async Task GetCurrentClipboardValueAsync_ForFileDropListContent_Success(ContentType type)
         {
@@ -110,8 +114,8 @@ namespace past.Test
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             mockWin32Clipboard
                 .Setup(
-                mock => mock.ContainsText(It.Is<System.Windows.TextDataFormat>(
-                    format => format == System.Windows.TextDataFormat.Text || format == System.Windows.TextDataFormat.UnicodeText)))
+                mock => mock.ContainsText(It.Is<TextDataFormat>(
+                    format => format == TextDataFormat.Text || format == TextDataFormat.UnicodeText)))
                 .Returns(false)
                 .Verifiable();
             mockWin32Clipboard
@@ -130,8 +134,30 @@ namespace past.Test
 
             // Assert
             Assert.That(actualValue, Is.EqualTo(expectedValue));
-            mockWin32Clipboard.Verify();
+            mockWin32Clipboard.Verify(mock => mock.ContainsText(It.Is<TextDataFormat>(
+                format => format == TextDataFormat.Text)), Times.AtMostOnce);
+            mockWin32Clipboard.Verify(mock => mock.ContainsText(It.Is<TextDataFormat>(
+                format => format == TextDataFormat.UnicodeText)), Times.AtMostOnce);
+            mockWin32Clipboard.Verify(mock => mock.ContainsImage(), Times.AtMostOnce);
+            mockWin32Clipboard.Verify(mock => mock.ContainsFileDropList(), Times.Once);
             mockWinRtClipboard.Verify();
+        }
+
+        [Test]
+        public void GetCurrentClipboardValueAsync_ClipboardThrowsException_RethrowsException()
+        {
+            // Arrange
+            var expectedException = new InvalidOperationException("Uh-oh, spaghettio!");
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            mockWin32Clipboard
+                .Setup(mock => mock.ContainsText(It.IsAny<TextDataFormat>()))
+                .Throws(expectedException);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<InvalidOperationException>(() => clipboardManager.GetCurrentClipboardValueAsync(ContentType.Text));
+            Assert.That(actualException, Is.EqualTo(expectedException));
         }
 
         [Test]
@@ -144,8 +170,8 @@ namespace past.Test
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             mockWin32Clipboard
                 .Setup(
-                mock => mock.ContainsText(It.Is<System.Windows.TextDataFormat>(
-                    format => format == System.Windows.TextDataFormat.Text || format == System.Windows.TextDataFormat.UnicodeText)))
+                mock => mock.ContainsText(It.Is<TextDataFormat>(
+                    format => format == TextDataFormat.Text || format == TextDataFormat.UnicodeText)))
                 .Returns(false)
                 .Verifiable();
             mockWin32Clipboard

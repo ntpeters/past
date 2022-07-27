@@ -1,11 +1,11 @@
 namespace past.Core
 {
+    [Flags]
     public enum ContentType
     {
-        Default,
-        Text,
-        Image,
-        File,
-        All
+        Text = 1,
+        Image = 2,
+        File = 4,
+        All = Text | Image | File
     }
 }

@@ -36,22 +36,19 @@ namespace past.Core
                 try
                 {
                     string? value = null;
-                    if (type == ContentType.Text || type == ContentType.All)
+                    if (type.HasFlag(ContentType.Text) && _win32Clipboard.ContainsText(TextDataFormat.UnicodeText))
                     {
-                        if (_win32Clipboard.ContainsText(TextDataFormat.UnicodeText))
-                        {
-                            value = _win32Clipboard.GetText(TextDataFormat.UnicodeText);
-                        }
-                        else if (_win32Clipboard.ContainsText(TextDataFormat.Text))
-                        {
-                            value = _win32Clipboard.GetText(TextDataFormat.Text);
-                        }
+                        value = _win32Clipboard.GetText(TextDataFormat.UnicodeText);
                     }
-                    else if ((type == ContentType.Image || type == ContentType.All) && _win32Clipboard.ContainsImage())
+                    else if (type.HasFlag(ContentType.Text) && _win32Clipboard.ContainsText(TextDataFormat.Text))
+                    {
+                        value = _win32Clipboard.GetText(TextDataFormat.Text);
+                    }
+                    else if (type.HasFlag(ContentType.Image) && _win32Clipboard.ContainsImage())
                     {
                         value = "[Unsupported Format: Image]";
                     }
-                    else if ((type == ContentType.File || type == ContentType.All) && _win32Clipboard.ContainsFileDropList())
+                    else if (type.HasFlag(ContentType.File) && _win32Clipboard.ContainsFileDropList())
                     {
                         value = "[Unsupported Format: File Drop List]";
                     }

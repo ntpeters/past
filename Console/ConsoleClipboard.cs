@@ -45,11 +45,10 @@ namespace past.Console
             context.ExitCode = 0;
         }
 
-        public async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, CancellationToken cancellationToken)
+        public async Task<int> GetCurrentClipboardValueAsync(IConsole console, ContentType type, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             try
             {
-                type = ResolveContentType(console, type, all, quiet, silent);
                 string? value = await _clipboard.GetCurrentClipboardValueAsync(type, cancellationToken);
                 WriteValueToConsole(console, value, ansi: ansi, ansiResetType: ansiResetType, silent: silent);
             }
@@ -62,11 +61,10 @@ namespace past.Console
             return 0;
         }
 
-        public async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, AnsiResetType ansiResetType, bool setCurrent, ContentType type, bool all, bool quiet, bool silent, CancellationToken cancellationToken)
+        public async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, AnsiResetType ansiResetType, bool setCurrent, ContentType type, bool quiet, bool silent, CancellationToken cancellationToken)
         {
             try
             {
-                type = ResolveContentType(console, type, all, quiet, silent);
                 if (ansi && !console.IsOutputRedirected && !ConsoleHelpers.TryEnableVirtualTerminalProcessing(out var error))
                 {
                     console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet || silent);
@@ -90,12 +88,10 @@ namespace past.Console
             return 0;
         }
 
-        public async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool all, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, bool id, bool pinned, bool time, CancellationToken cancellationToken)
+        public async Task<int> ListClipboardHistoryAsync(IConsole console, bool @null, bool index, ContentType type, bool ansi, AnsiResetType ansiResetType, bool quiet, bool silent, bool id, bool pinned, bool time, CancellationToken cancellationToken)
         {
             try
             {
-                type = ResolveContentType(console, type, all);
-
                 var clipboardItems = await _clipboard.ListClipboardHistoryAsync(type, pinned, cancellationToken);
 
                 if (ansi && !console.IsOutputRedirected && !ConsoleHelpers.TryEnableVirtualTerminalProcessing(out var error))
@@ -206,7 +202,7 @@ namespace past.Console
 
         private static async Task<string?> GetClipboardItemValueAsync(DataPackageView content, ContentType type = ContentType.Text, bool ansi = false)
         {
-            if ((type == ContentType.Text || type == ContentType.All) && content.Contains(StandardDataFormats.Text))
+            if (type.HasFlag(ContentType.Text) && content.Contains(StandardDataFormats.Text))
             {
                 return await content.GetTextAsync();
             }
@@ -223,16 +219,6 @@ namespace past.Console
             }
 
             return null;
-        }
-
-        private static ContentType ResolveContentType(IConsole console, ContentType typeOption, bool allOption, bool quiet = false, bool silent = false)
-        {
-            if (typeOption.TryResolve(allOption, out var resolvedType))
-            {
-                console.WriteErrorLine($"All option provided, overriding type selection of '{typeOption}'", suppressOutput: quiet || silent);
-            }
-
-            return resolvedType;
         }
         #endregion Helpers
     }
