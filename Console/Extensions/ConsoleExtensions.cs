@@ -1,7 +1,7 @@
 using System.CommandLine;
 using System.CommandLine.IO;
 
-namespace past.Extensions
+namespace past.Console.Extensions
 {
     public static class ConsoleExtensions
     {

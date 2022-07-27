@@ -2,7 +2,7 @@ using System;
 using System.CommandLine.Rendering;
 using System.Runtime.InteropServices;
 
-namespace past
+namespace past.Console
 {
     public class ConsoleHelpers
     {

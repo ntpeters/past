@@ -14,6 +14,8 @@
       <!--Needed to keep this as a console app when using WPF-->
       <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
       <Nullable>enable</Nullable>
+      <AssemblyName>$(SolutionName)</AssemblyName>
+      <RootNamespace>$(SolutionName).$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

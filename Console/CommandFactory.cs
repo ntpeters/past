@@ -6,7 +6,7 @@ using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace past
+namespace past.Console
 {
     public class CommandFactory
     {

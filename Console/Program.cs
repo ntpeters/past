@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace past
+namespace past.Console
 {
     public class Program
     {
@@ -17,11 +17,11 @@ namespace past
             // Check for presence of the debug flag even before any argument parsing is done so that code can be debugged if needed as well.
             if (args.Contains("--debug"))
             {
-                var originalForeground = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Error.WriteLine("DEBUG: Ready to attach debugger. Press any key to continue execution...");
-                Console.ForegroundColor = originalForeground;
-                Console.ReadKey(intercept: true); // Suppress printing the pressed key
+                var originalForeground = System.Console.ForegroundColor;
+                System.Console.ForegroundColor = ConsoleColor.Yellow;
+                System.Console.Error.WriteLine("DEBUG: Ready to attach debugger. Press any key to continue execution...");
+                System.Console.ForegroundColor = originalForeground;
+                System.Console.ReadKey(intercept: true); // Suppress printing the pressed key
             }
 #endif // DEBUG
 

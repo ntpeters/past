@@ -1,7 +1,7 @@
+using past.Console.Extensions;
 using past.Core;
 using past.Core.Extensions;
 using past.Core.Wrappers;
-using past.Extensions;
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace past
+namespace past.Console
 {
     public class ConsoleClipboard
     {
