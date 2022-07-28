@@ -4,7 +4,7 @@ using past.Core.Wrappers;
 using System.Windows;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace past.Test
+namespace Core.Test
 {
     public class ClipboardManagerTests
     {
