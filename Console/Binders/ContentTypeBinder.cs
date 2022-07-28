@@ -3,7 +3,7 @@ using System;
 using System.CommandLine;
 using System.CommandLine.Binding;
 
-namespace past.Console
+namespace past.Console.Binders
 {
     public class ContentTypeBinder : BinderBase<ContentType>
     {
