@@ -16,10 +16,6 @@ namespace past.Core.Extensions
             {
                 supportedFormats.Add(StandardDataFormats.Bitmap);
             }
-            else if (type.HasFlag(ContentType.File))
-            {
-                supportedFormats.Add(StandardDataFormats.StorageItems);
-            }
             else
             {
                 formatIds = null;

@@ -48,10 +48,6 @@ namespace past.Core
                     {
                         value = "[Unsupported Format: Image]";
                     }
-                    else if (type.HasFlag(ContentType.File) && _win32Clipboard.ContainsFileDropList())
-                    {
-                        value = "[Unsupported Format: File Drop List]";
-                    }
                     else if (type == ContentType.All)
                     {
                         var data = _win32Clipboard.GetDataObject();

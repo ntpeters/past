@@ -5,7 +5,6 @@ namespace past.Core
     {
         Text = 1,
         Image = 2,
-        File = 4,
-        All = Text | Image | File
+        All = Text | Image
     }
 }

@@ -118,46 +118,6 @@ namespace Core.Test
         }
 
         [Test]
-        [TestCase(ContentType.File)]
-        [TestCase(ContentType.All)]
-        public async Task GetCurrentClipboardValueAsync_ForFileDropListContent_Success(ContentType type)
-        {
-            // Arrange
-            var expectedValue = "[Unsupported Format: File Drop List]";
-            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
-            mockWin32Clipboard
-                .Setup(
-                mock => mock.ContainsText(It.Is<TextDataFormat>(
-                    format => format == TextDataFormat.Text || format == TextDataFormat.UnicodeText)))
-                .Returns(false)
-                .Verifiable();
-            mockWin32Clipboard
-                .Setup(mock => mock.ContainsImage())
-                .Returns(false)
-                .Verifiable();
-            mockWin32Clipboard
-                .Setup(mock => mock.ContainsFileDropList())
-                .Returns(true)
-                .Verifiable();
-            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
-            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
-
-            // Act
-            var actualValue = await clipboardManager.GetCurrentClipboardValueAsync(type, null);
-
-            // Assert
-            Assert.That(actualValue, Is.EqualTo(expectedValue));
-            mockWin32Clipboard.Verify(mock => mock.ContainsText(It.Is<TextDataFormat>(
-                format => format == TextDataFormat.Text)), Times.AtMostOnce);
-            mockWin32Clipboard.Verify(mock => mock.ContainsText(It.Is<TextDataFormat>(
-                format => format == TextDataFormat.UnicodeText)), Times.AtMostOnce);
-            mockWin32Clipboard.Verify(mock => mock.ContainsImage(), Times.AtMostOnce);
-            mockWin32Clipboard.Verify(mock => mock.ContainsFileDropList(), Times.Once);
-            mockWinRtClipboard.Verify();
-        }
-
-        [Test]
         public void GetCurrentClipboardValueAsync_ClipboardThrowsException_RethrowsException()
         {
             // Arrange
