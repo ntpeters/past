@@ -16,25 +16,36 @@ namespace past.Test
         }
 
         [Test]
-        public void Constructor_CreateWithNonNullWinRtClipboard_ThrowsArgumentNullException()
+        public void Constructor_CreateWithNonNullParameters_ThrowsArgumentNullException()
         {
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
-            Assert.DoesNotThrow(() => new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object));
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            Assert.DoesNotThrow(() => new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object));
         }
 
         [Test]
         public void Constructor_CreateWithNullWinRtClipboard_ThrowsArgumentNullException()
         {
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
-            Assert.Throws<ArgumentNullException>(() => new ClipboardManager(null!, mockWin32Clipboard.Object));
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            Assert.Throws<ArgumentNullException>(() => new ClipboardManager(null!, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object));
         }
 
         [Test]
         public void Constructor_CreateWithNullWin32Clipboard_ThrowsArgumentNullException()
         {
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
-            Assert.Throws<ArgumentNullException>(() => new ClipboardManager(mockWinRtClipboard.Object, null!));
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            Assert.Throws<ArgumentNullException>(() => new ClipboardManager(mockWinRtClipboard.Object, null!, mockPinnedClipboardProvider.Object));
+        }
+
+        [Test]
+        public void Constructor_CreateWithNullPinnedClipboardItemProvider_ThrowsArgumentNullException()
+        {
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            Assert.Throws<ArgumentNullException>(() => new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, null!));
         }
         #endregion Constructor
 
@@ -59,7 +70,8 @@ namespace past.Test
                 .Returns(expectedValue)
                 .Verifiable();
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act
             var actualValue = await clipboardManager.GetCurrentClipboardValueAsync(type, null);
@@ -89,7 +101,8 @@ namespace past.Test
                 .Returns(true)
                 .Verifiable();
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act
             var actualValue = await clipboardManager.GetCurrentClipboardValueAsync(type, null);
@@ -127,7 +140,8 @@ namespace past.Test
                 .Returns(true)
                 .Verifiable();
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act
             var actualValue = await clipboardManager.GetCurrentClipboardValueAsync(type, null);
@@ -153,7 +167,8 @@ namespace past.Test
                 .Setup(mock => mock.ContainsText(It.IsAny<TextDataFormat>()))
                 .Throws(expectedException);
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act + Assert
             var actualException = Assert.ThrowsAsync<InvalidOperationException>(() => clipboardManager.GetCurrentClipboardValueAsync(ContentType.Text));
@@ -194,7 +209,8 @@ namespace past.Test
                 .Verifiable();
 
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act
             var actualValue = await clipboardManager.GetCurrentClipboardValueAsync(type, null);
@@ -228,9 +244,10 @@ namespace past.Test
 
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
             mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
 
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
 
             // Act
             var (actualItem, actualStatus) = await clipboardManager.GetClipboardHistoryItemAsync(index, false, ContentType.Text);
@@ -254,9 +271,10 @@ namespace past.Test
 
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
             mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
 
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act + Assert
             Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => clipboardManager.GetClipboardHistoryItemAsync(index, false, ContentType.Text));
@@ -284,7 +302,8 @@ namespace past.Test
                     It.Is<IClipboardHistoryItemWrapper>(actualClipboardItem => actualClipboardItem == mockClipboardItem.Object)))
                 .Returns(expectedStatus);
 
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act
             var (actualItem, actualStatus) = await clipboardManager.GetClipboardHistoryItemAsync(itemIndex, true, ContentType.Text);
@@ -316,9 +335,10 @@ namespace past.Test
 
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
             mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
 
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act
             var actualItems = await clipboardManager.ListClipboardHistoryAsync(ContentType.Text, false);
@@ -356,9 +376,10 @@ namespace past.Test
 
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
             mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
 
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act
             var actualItems = await clipboardManager.ListClipboardHistoryAsync(ContentType.Text, false);
@@ -377,9 +398,10 @@ namespace past.Test
             // Arrange
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
             mockWinRtClipboard.Setup(mock => mock.IsHistoryEnabled()).Returns(expectedIsHistoryEnabled);
 
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act
             var actualIsHistoryEnabled = clipboardManager.IsHistoryEnabled();
@@ -398,9 +420,10 @@ namespace past.Test
             // Arrange
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
             mockWinRtClipboard.Setup(mock => mock.IsRoamingEnabled()).Returns(expectedIsRoamingEnabled);
 
-            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act
             var actualIsRoamingEnabled = clipboardManager.IsRoamingEnabled();

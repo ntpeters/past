@@ -1,7 +1,5 @@
 using past.Core.Extensions;
 using past.Core.Wrappers;
-using System.IO;
-using System.Text.Json;
 using System.Windows;
 using Windows.ApplicationModel.DataTransfer;
 
@@ -11,16 +9,18 @@ namespace past.Core
     {
         private readonly IWinRtClipboardWrapper _winRtClipboard;
         private readonly IWin32ClipboardWrapper _win32Clipboard;
+        private readonly IPinnedClipboardItemProvider _pinnedClipboardItemProvider;
 
         public ClipboardManager()
-            : this(new WinRtClipboardWrapper(), new Win32ClipboardWrapper())
+            : this(new WinRtClipboardWrapper(), new Win32ClipboardWrapper(), new PinnedClipboardItemProvider())
         {
         }
 
-        public ClipboardManager(IWinRtClipboardWrapper winRtClipboard, IWin32ClipboardWrapper win32Clipboard)
+        public ClipboardManager(IWinRtClipboardWrapper winRtClipboard, IWin32ClipboardWrapper win32Clipboard, IPinnedClipboardItemProvider pinnedClipboardItemProvider)
         {
             _winRtClipboard = winRtClipboard ?? throw new ArgumentNullException(nameof(winRtClipboard));
             _win32Clipboard = win32Clipboard ?? throw new ArgumentNullException(nameof(win32Clipboard));
+            _pinnedClipboardItemProvider = pinnedClipboardItemProvider ?? throw new ArgumentNullException(nameof(pinnedClipboardItemProvider));
         }
 
         public async Task<string?> GetCurrentClipboardValueAsync(ContentType type, CancellationToken? cancellationToken = null)
@@ -115,34 +115,14 @@ namespace past.Core
             }
 
             IEnumerable<IClipboardHistoryItemWrapper> clipboardItems;
-
-            // TODO: Refactor out into separate method or provider
             if (pinned)
             {
-                // TODO: Get pinned clipboard history items
-                // Pinned item IDs can be read from: %LOCALAPPDATA%/Microsoft/Windows/Clipboard/Pinned/{GUID}/metadata.json
-                var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var pinnedClipboardPath = Path.Combine(localAppDataPath, "Microsoft/Windows/Clipboard/Pinned");
-                var pinnedClipboardItemMetadataDirectory = Directory.EnumerateDirectories(pinnedClipboardPath).First(directoryPath => File.Exists(Path.Combine(directoryPath, "metadata.json")));
-                string? pinnedClipboardItemMetadataPath = null;
-                foreach (var directoryPath in Directory.EnumerateDirectories(pinnedClipboardPath))
+                if (!_pinnedClipboardItemProvider.TryGetPinnedClipboardHistoryItemIds(out var pinnedItemIds, out var errorMessage))
                 {
-                    var metadataPath = Path.Combine(directoryPath, "metadata.json");
-                    if (File.Exists(metadataPath))
-                    {
-                        pinnedClipboardItemMetadataPath = metadataPath;
-                        break;
-                    }
-                }
-                if (string.IsNullOrWhiteSpace(pinnedClipboardItemMetadataPath))
-                {
-                    throw new Exception("Failed to retrieve pinned clipboard history items");
+                    throw new Exception(errorMessage);
                 }
 
-                var pinnedClipboardItemMetadataJson = File.ReadAllText(pinnedClipboardItemMetadataPath);
-                var pinnedClipboardItemMetadata = JsonDocument.Parse(pinnedClipboardItemMetadataJson);
-                var pinnedClipboardItemIds = pinnedClipboardItemMetadata.RootElement.GetProperty("items").EnumerateObject().Select(property => property.Name);
-                clipboardItems = items.Items.Where(item => pinnedClipboardItemIds.Contains(item.Id));
+                clipboardItems = items.Items.Where(item => pinnedItemIds.Contains(item.Id));
                 if (clipboardItems.Count() == 0)
                 {
                     throw new Exception("No pinned items in clipboard history");
