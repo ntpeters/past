@@ -60,7 +60,7 @@ namespace past.Console
             return 0;
         }
 
-        public async Task<int> GetClipboardHistoryItemAsync(IConsole console, int index, bool ansi, AnsiResetType ansiResetType, bool setCurrent, ContentType type, bool quiet, CancellationToken cancellationToken)
+        public async Task<int> GetClipboardHistoryItemAsync(IConsole console, ClipboardItemIdentifier identifier, bool ansi, AnsiResetType ansiResetType, bool setCurrent, ContentType type, bool quiet, CancellationToken cancellationToken)
         {
             try
             {
@@ -69,7 +69,7 @@ namespace past.Console
                     console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: quiet);
                 }
 
-                var (item, setContentStatus) = await _clipboard.GetClipboardHistoryItemAsync(index, setCurrent, type, cancellationToken);
+                var (item, setContentStatus) = await _clipboard.GetClipboardHistoryItemAsync(identifier, setCurrent, type, cancellationToken);
                 var value = await GetClipboardItemValueAsync(item, ansi: ansi);
                 WriteValueToConsole(console, value, ansi: ansi, ansiResetType: ansiResetType);
 

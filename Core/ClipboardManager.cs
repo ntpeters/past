@@ -78,7 +78,7 @@ namespace past.Core
         }
 
         // TODO: Encapsulate return values, or split out setting as the current item
-        public async Task<(IClipboardHistoryItemWrapper Item, SetHistoryItemAsContentStatus? SetCurrentStatus)> GetClipboardHistoryItemAsync(int index, bool setCurrent, ContentType type, CancellationToken? cancellationToken = null)
+        public async Task<(IClipboardHistoryItemWrapper Item, SetHistoryItemAsContentStatus? SetCurrentStatus)> GetClipboardHistoryItemAsync(ClipboardItemIdentifier identifier, bool setCurrent, ContentType type, CancellationToken? cancellationToken = null)
         {
             var items = await _winRtClipboard.GetHistoryItemsAsync();
             if (items.Status != ClipboardHistoryItemsResultStatus.Success)
@@ -87,7 +87,10 @@ namespace past.Core
             }
 
             // TODO: Filter on content type
-            var item = items.Items.ElementAt(index);
+            if (!items.TryGetItem(identifier, out var item))
+            {
+                throw new Exception("Failed to get specified clipboard history item");
+            }
 
             SetHistoryItemAsContentStatus? setContentStatus = null;
             if (setCurrent)

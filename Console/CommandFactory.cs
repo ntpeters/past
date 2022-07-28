@@ -53,16 +53,16 @@ namespace past.Console
             return listCommand;
         }
 
-        public Command CreateGetCommand(Func<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, CancellationToken, Task> handle)
+        public Command CreateGetCommand(Func<IConsole, ClipboardItemIdentifier, bool, AnsiResetType, bool, ContentType, bool, CancellationToken, Task> handle)
         {
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
-            var indexArgument = new Argument<int>("index", "The index of the item to get from clipboard history");
-            getCommand.AddArgument(indexArgument);
+            var identifierArgument = new Argument<string>("identifier", "The identifier of the item to get from clipboard history");
+            getCommand.AddArgument(identifierArgument);
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             getCommand.AddOption(setCurrentOption);
-            getCommand.SetHandler<IConsole, int, bool, AnsiResetType, bool, ContentType, bool, CancellationToken>(
+            getCommand.SetHandler<IConsole, ClipboardItemIdentifier, bool, AnsiResetType, bool, ContentType, bool, CancellationToken>(
                 handle,
-                indexArgument, AnsiOption, AnsiResetOption, setCurrentOption, new ContentTypeBinder(TypeOption, AllOption), QuietOption);
+                new ClipboardItemIdentifierBinder(identifierArgument), AnsiOption, AnsiResetOption, setCurrentOption, new ContentTypeBinder(TypeOption, AllOption), QuietOption);
             return getCommand;
         }
 
