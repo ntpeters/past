@@ -82,10 +82,14 @@ namespace past.Core
                 throw new Exception($"Failed to get clipboard history. Result: {items.Status}");
             }
 
-            // TODO: Filter on content type
             if (!items.TryGetItem(identifier, out var item))
             {
                 throw new Exception("Failed to get specified clipboard history item");
+            }
+
+            if (!type.Supports(item.Content.Contains))
+            {
+                throw new Exception("Item does not support the specified content type");
             }
 
             SetHistoryItemAsContentStatus? setContentStatus = null;
