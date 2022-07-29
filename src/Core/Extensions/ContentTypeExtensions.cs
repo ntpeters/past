@@ -12,11 +12,13 @@ namespace past.Core.Extensions
             {
                 supportedFormats.Add(StandardDataFormats.Text);
             }
-            else if (type.HasFlag(ContentType.Image))
+
+            if (type.HasFlag(ContentType.Image))
             {
                 supportedFormats.Add(StandardDataFormats.Bitmap);
             }
-            else
+
+            if (supportedFormats.Count == 0)
             {
                 formatIds = null;
                 return false;
@@ -28,6 +30,11 @@ namespace past.Core.Extensions
 
         public static bool Supports(this ContentType type, Func<string, bool> predicate)
         {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
             if (type == ContentType.All)
             {
                 return true;
