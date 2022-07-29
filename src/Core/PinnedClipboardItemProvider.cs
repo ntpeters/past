@@ -16,7 +16,7 @@ namespace past.Core
 
         public PinnedClipboardItemProvider(string pinnedClipboardPath)
         {
-            _pinnedClipboardPath = pinnedClipboardPath;
+            _pinnedClipboardPath = pinnedClipboardPath ?? throw new ArgumentNullException(nameof(pinnedClipboardPath));
         }
 
         public bool TryGetPinnedClipboardHistoryItemIds([NotNullWhen(true)] out HashSet<string>? pinnedItemIds, [NotNullWhen(false)] out string? errorMessage)
