@@ -262,9 +262,10 @@ namespace Core.Test
         [Test]
         [TestCase(-1)]
         [TestCase(1)]
-        public void GetClipboardHistoryItemAsync_InvalidIndex_ThrowsArgumentOutOfBoundsException(int index)
+        public void GetClipboardHistoryItemAsync_InvalidIndex_ThrowsException(int index)
         {
             // Arrange
+            var expectedExceptionMessage = "Failed to get specified clipboard history item";
             var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
             var expectedItems = new List<IClipboardHistoryItemWrapper> { mockClipboardItem.Object };
             var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
@@ -279,13 +280,15 @@ namespace Core.Test
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act + Assert
-            Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => clipboardManager.GetClipboardHistoryItemAsync(index, false, ContentType.Text));
+            var actualException = Assert.ThrowsAsync<Exception>(() => clipboardManager.GetClipboardHistoryItemAsync(index, false, ContentType.Text));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
         }
 
         [Test]
         public void GetClipboardHistoryItemAsync_EmptyClipboardHistory_ThrowsArgumentOutOfBoundsException()
         {
             // Arrange
+            var expectedExceptionMessage = "Failed to get specified clipboard history item";
             var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
             var items = new List<IClipboardHistoryItemWrapper>();
             var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
@@ -300,7 +303,8 @@ namespace Core.Test
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act + Assert
-            Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => clipboardManager.GetClipboardHistoryItemAsync(0, false, ContentType.Text));
+            var actualException = Assert.ThrowsAsync<Exception>(() => clipboardManager.GetClipboardHistoryItemAsync(0, false, ContentType.Text));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
         }
 
         [Test]
