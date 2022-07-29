@@ -8,7 +8,7 @@
     -->
     <targetframework>net6.0-windows10.0.17763.0</targetframework>
     <Nullable>enable</Nullable>
-    <AssemblyName>$(SolutionName)</AssemblyName>
+    <AssemblyName>past</AssemblyName>
     <RootNamespace>$(SolutionName).$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
   </PropertyGroup>
 
