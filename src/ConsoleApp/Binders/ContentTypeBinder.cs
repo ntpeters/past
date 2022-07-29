@@ -2,6 +2,7 @@ using past.Core;
 using System;
 using System.CommandLine;
 using System.CommandLine.Binding;
+using System.CommandLine.Parsing;
 
 namespace past.ConsoleApp.Binders
 {
@@ -16,14 +17,26 @@ namespace past.ConsoleApp.Binders
             _allOption = allOption ?? throw new ArgumentNullException(nameof(allOption));
         }
 
-        protected override ContentType GetBoundValue(BindingContext bindingContext)
+        /// <summary>
+        /// Gets a value from the parse result.
+        /// </summary>
+        /// <remarks>
+        /// This overload of <see cref="GetBoundValue(BindingContext)"/> is provided to support
+        /// unit testing this binder directly.
+        /// </remarks>
+        /// <param name="parseResult"><see cref="ParseResult"/> to get the value from.</param>
+        /// <returns><see cref="ContentType"/> based on the values from the parse result.</returns>
+        public ContentType GetBoundValue(ParseResult parseResult)
         {
-            if (bindingContext.ParseResult.GetValueForOption(_allOption))
+            if (parseResult.GetValueForOption(_allOption))
             {
                 return ContentType.All;
             }
 
-            return bindingContext.ParseResult.GetValueForOption(_typeOption);
+            return parseResult.GetValueForOption(_typeOption);
         }
+
+        protected override ContentType GetBoundValue(BindingContext bindingContext)
+            => GetBoundValue(bindingContext.ParseResult);
     }
 }
