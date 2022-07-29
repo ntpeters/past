@@ -2,20 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-      <!--
-      Special target framework moniker to enable access to Windows Runtime APIs.
-      This moniker targets Windows 10 version 1809, the version that added Windows Clipboard History APIs.
-      For more info:
-      https://docs.microsoft.com/en-us/windows/apps/desktop/modernize/desktop-to-uwp-enhance#net-5-and-later-use-the-target-framework-moniker-option
-      -->
-      <targetframework>net6.0-windows10.0.17763.0</targetframework>
-      <!--Needed to access the current clipboard content without UI-->
-      <UseWPF>true</UseWPF>
-      <!--Needed to keep this as a console app when using WPF-->
-      <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
-      <Nullable>enable</Nullable>
-      <AssemblyName>$(SolutionName)</AssemblyName>
-      <RootNamespace>$(SolutionName).$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+    <!--
+    Must use the same target framework moniker as Core.csproj, since project references must use compatible target frameworks.
+    See comments in Core.csproj for more info.
+    -->
+    <targetframework>net6.0-windows10.0.17763.0</targetframework>
+    <Nullable>enable</Nullable>
+    <AssemblyName>$(SolutionName)</AssemblyName>
+    <RootNamespace>$(SolutionName).$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

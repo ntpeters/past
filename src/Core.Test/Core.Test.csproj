@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <!--
-    Must use the same target framework moniker past.csproj, since project references must use compatible target frameworks.
-    See comments in past.csproj for more info.
+    Must use the same target framework moniker Core.csproj, since project references must use compatible target frameworks.
+    See comments in Core.csproj for more info.
     -->
     <TargetFramework>net6.0-windows10.0.17763.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

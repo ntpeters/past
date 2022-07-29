@@ -2,14 +2,19 @@
 
   <PropertyGroup>
     <!--
-    Must use the same target framework moniker as Console.csproj, since project references must use compatible target frameworks.
-    See comments in past.csproj for more info.
+    Special target framework moniker to enable access to Windows Runtime APIs.
+    This moniker targets Windows 10 version 1809, the version that added Windows Clipboard History APIs.
+    For more info:
+    https://docs.microsoft.com/en-us/windows/apps/desktop/modernize/desktop-to-uwp-enhance#net-5-and-later-use-the-target-framework-moniker-option
     -->
     <TargetFramework>net6.0-windows10.0.17763.0</TargetFramework>
+    <!--
+    Needed to access the current clipboard content without UI.
+    NOTE: If the UseWPF property is enabled in a project where the output is a console app, then the DisableWinExeOutputInference property must also be enabled.
+    -->
+    <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <!--Needed to access the current clipboard content without UI-->
-    <UseWPF>true</UseWPF>
     <AssemblyName>$(SolutionName).$(MSBuildProjectName.Replace(" ", "_"))</AssemblyName>
     <RootNamespace>$(AssemblyName)</RootNamespace>
   </PropertyGroup>
