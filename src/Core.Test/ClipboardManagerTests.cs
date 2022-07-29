@@ -8,7 +8,7 @@ namespace Core.Test
 {
     public class ClipboardManagerTests
     {
-        #region Constructor
+        #region Constructors
         [Test]
         public void Constructor_Parameterless_Success()
         {
@@ -47,7 +47,7 @@ namespace Core.Test
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             Assert.Throws<ArgumentNullException>(() => new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, null!));
         }
-        #endregion Constructor
+        #endregion Constructors
 
         #region GetCurrentClipboardValueAsync
         [Test]
