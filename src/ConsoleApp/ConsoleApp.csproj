@@ -2,11 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+
     <!--
     Must use the same target framework moniker as Core.csproj, since project references must use compatible target frameworks.
     See comments in Core.csproj for more info.
     -->
-    <targetframework>net6.0-windows10.0.17763.0</targetframework>
+    <Targetframework>net6.0-windows10.0.17763.0</Targetframework>
+
     <Nullable>enable</Nullable>
 
     <AssemblyName>past</AssemblyName>

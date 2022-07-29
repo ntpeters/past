@@ -6,6 +6,7 @@
     See comments in Core.csproj for more info.
     -->
     <Targetframework>net6.0-windows10.0.17763.0</Targetframework>
+
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
