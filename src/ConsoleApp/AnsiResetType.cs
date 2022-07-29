@@ -1,4 +1,4 @@
-namespace past.Console
+namespace past.ConsoleApp
 {
     public enum AnsiResetType
     {

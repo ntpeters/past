@@ -1,4 +1,4 @@
-using past.Console.Extensions;
+using past.ConsoleApp.Extensions;
 using past.Core;
 using past.Core.Wrappers;
 using System;
@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace past.Console
+namespace past.ConsoleApp
 {
     public class ConsoleClipboard
     {

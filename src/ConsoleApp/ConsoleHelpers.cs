@@ -2,7 +2,7 @@ using System;
 using System.CommandLine.Rendering;
 using System.Runtime.InteropServices;
 
-namespace past.Console
+namespace past.ConsoleApp
 {
     public class ConsoleHelpers
     {
@@ -36,7 +36,7 @@ namespace past.Console
         [DllImport("Kernel32.dll", SetLastError = true)]
         private static extern uint FormatMessage(uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr Arguments);
 
-        
+
 
         public static string GetSystemErrorMessage(uint errorCode)
         {

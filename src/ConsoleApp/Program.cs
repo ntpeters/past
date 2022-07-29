@@ -1,4 +1,5 @@
-using past.Console.Binders;
+using past.ConsoleApp;
+using past.ConsoleApp.Binders;
 using past.Core;
 using System;
 using System.CommandLine;
@@ -7,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace past.Console
+namespace past.ConsoleApp
 {
     public class Program
     {
@@ -18,11 +19,11 @@ namespace past.Console
             // Check for presence of the debug flag even before any argument parsing is done so that code can be debugged if needed as well.
             if (args.Contains("--debug"))
             {
-                var originalForeground = System.Console.ForegroundColor;
-                System.Console.ForegroundColor = ConsoleColor.Yellow;
-                System.Console.Error.WriteLine("DEBUG: Ready to attach debugger. Press any key to continue execution...");
-                System.Console.ForegroundColor = originalForeground;
-                System.Console.ReadKey(intercept: true); // Suppress printing the pressed key
+                var originalForeground = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Error.WriteLine("DEBUG: Ready to attach debugger. Press any key to continue execution...");
+                Console.ForegroundColor = originalForeground;
+                Console.ReadKey(intercept: true); // Suppress printing the pressed key
             }
 #endif // DEBUG
 
@@ -40,7 +41,7 @@ namespace past.Console
             var listCommand = commandFactory.CreateListCommand(consoleClipboard.ListClipboardHistoryAsync);
             var getCommand = commandFactory.CreateGetCommand(consoleClipboard.GetClipboardHistoryItemAsync);
             var statusCommand = commandFactory.CreateStatusCommand(consoleClipboard.GetClipboardHistoryStatus);
-            var helpCommand = commandFactory.CreateHelpCommand(async (string command) =>
+            var helpCommand = commandFactory.CreateHelpCommand(async (command) =>
                 {
                     if (string.IsNullOrWhiteSpace(command))
                     {

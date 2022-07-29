@@ -1,4 +1,4 @@
-using past.Console.Binders;
+using past.ConsoleApp.Binders;
 using past.Core;
 using System;
 using System.CommandLine;
@@ -7,7 +7,7 @@ using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace past.Console
+namespace past.ConsoleApp
 {
     public class CommandFactory
     {
@@ -70,7 +70,7 @@ namespace past.Console
         public Command CreateStatusCommand(Action<InvocationContext, IConsole, bool, CancellationToken> handle)
         {
             var statusCommand = new Command("status", "Gets the status of the clipboard history settings on this device.");
-            statusCommand.SetHandler<InvocationContext, IConsole, bool, CancellationToken>(
+            statusCommand.SetHandler(
                 handle,
                 QuietOption);
             return statusCommand;
@@ -82,7 +82,7 @@ namespace past.Console
             var commandArgument = new Argument<string>("command");
             commandArgument.SetDefaultValue(string.Empty);
             helpCommand.AddArgument(commandArgument);
-            helpCommand.SetHandler<string>(handle,
+            helpCommand.SetHandler(handle,
                 commandArgument);
             return helpCommand;
         }
@@ -93,7 +93,7 @@ namespace past.Console
                 aliases: new string[] { "--type", "-t" },
                 description: "The type of content to read from the clipboard. (default: Text)",
                 isDefault: true,
-                parseArgument: (ArgumentResult result) =>
+                parseArgument: (result) =>
                 {
                     if (result.Tokens.Count == 0)
                     {
@@ -120,7 +120,7 @@ namespace past.Console
 
             typeOption.AddCompletions(Enum.GetNames<ContentType>());
 
-            typeOption.AddValidator((OptionResult result) =>
+            typeOption.AddValidator((result) =>
             {
                 string? typeValue = null;
                 if (result.Tokens?.Count > 0)
@@ -155,7 +155,7 @@ namespace past.Console
                 "--ansi-reset",
                 description: "Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item.",
                 isDefault: true,
-                parseArgument: (ArgumentResult result) =>
+                parseArgument: (result) =>
                 {
                     if (result.Tokens.Count == 0)
                     {
@@ -182,7 +182,7 @@ namespace past.Console
 
             ansiResetOption.AddCompletions(Enum.GetNames<AnsiResetType>());
 
-            ansiResetOption.AddValidator((OptionResult result) =>
+            ansiResetOption.AddValidator((result) =>
             {
                 string? typeValue = null;
                 if (result.Tokens?.Count > 0)

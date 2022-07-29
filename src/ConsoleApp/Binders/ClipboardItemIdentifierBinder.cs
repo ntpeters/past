@@ -3,7 +3,7 @@ using System;
 using System.CommandLine;
 using System.CommandLine.Binding;
 
-namespace past.Console.Binders
+namespace past.ConsoleApp.Binders
 {
     public class ClipboardItemIdentifierBinder : BinderBase<ClipboardItemIdentifier>
     {
