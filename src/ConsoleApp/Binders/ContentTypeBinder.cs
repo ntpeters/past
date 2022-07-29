@@ -33,7 +33,13 @@ namespace past.ConsoleApp.Binders
                 return ContentType.All;
             }
 
-            return parseResult.GetValueForOption(_typeOption);
+            var type = parseResult.GetValueForOption(_typeOption);
+            if (Enum.IsDefined(type))
+            {
+                return type;
+            }
+
+            throw new ArgumentException("Failed to bind content type");
         }
 
         protected override ContentType GetBoundValue(BindingContext bindingContext)

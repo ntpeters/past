@@ -104,6 +104,24 @@ namespace past.ConsoleApp.Test
             // Assert
             Assert.That(actualContentType, Is.EqualTo(expectedContentType));
         }
+
+        [Test]
+        public void GetBoundValue_InvalidParseResult_ThrowsArgumentException()
+        {
+            // Arrange
+            var expectedExceptionMessage = "Failed to bind content type";
+            var commandFactory = new CommandFactory();
+
+            var testCommand = new Command("test");
+            var testCommandParser = new Parser(testCommand);
+            var parseResult = testCommandParser.Parse(string.Empty);
+
+            var binder = new ContentTypeBinder(commandFactory.TypeOption, commandFactory.AllOption);
+
+            // Act + Assert
+            var actualException = Assert.Throws<ArgumentException>(() => binder.GetBoundValue(parseResult));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+        }
         #endregion GetBoundValue
     }
 }

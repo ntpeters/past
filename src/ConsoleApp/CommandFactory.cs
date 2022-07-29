@@ -17,6 +17,7 @@ namespace past.ConsoleApp
         private readonly Lazy<Option<AnsiResetType>> _ansiResetOptionLazy;
         private readonly Lazy<Option<bool>> _quietOptionLazy;
         private readonly Lazy<Option<bool>> _debugOptionLazy;
+        private readonly Lazy<Argument<string>> _identifierArgumentLazy;
         #endregion Private Fields
 
         #region Public Properties
@@ -26,6 +27,7 @@ namespace past.ConsoleApp
         public Option<AnsiResetType> AnsiResetOption => _ansiResetOptionLazy.Value;
         public Option<bool> QuietOption => _quietOptionLazy.Value;
         public Option<bool> DebugOption => _debugOptionLazy.Value;
+        public Argument<string> IdentifierArgument => _identifierArgumentLazy.Value;
         #endregion Public Properties
 
         public CommandFactory()
@@ -36,6 +38,7 @@ namespace past.ConsoleApp
             _ansiResetOptionLazy = new(() => CreateAnsiResetOption());
             _quietOptionLazy = new(() => CreateQuietOption());
             _debugOptionLazy = new(() => CreateDebugOption());
+            _identifierArgumentLazy = new(() => CreateIdentifierArgument());
         }
 
         #region Commands
@@ -61,13 +64,12 @@ namespace past.ConsoleApp
         public Command CreateGetCommand(Func<IConsole, ClipboardItemIdentifier, bool, AnsiResetType, bool, ContentType, bool, CancellationToken, Task> handle)
         {
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
-            var identifierArgument = new Argument<string>("identifier", "The identifier of the item to get from clipboard history");
-            getCommand.AddArgument(identifierArgument);
+            getCommand.AddArgument(IdentifierArgument);
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             getCommand.AddOption(setCurrentOption);
             getCommand.SetHandler<IConsole, ClipboardItemIdentifier, bool, AnsiResetType, bool, ContentType, bool, CancellationToken>(
                 handle,
-                new ClipboardItemIdentifierBinder(identifierArgument), AnsiOption, AnsiResetOption, setCurrentOption, new ContentTypeBinder(TypeOption, AllOption), QuietOption);
+                new ClipboardItemIdentifierBinder(IdentifierArgument), AnsiOption, AnsiResetOption, setCurrentOption, new ContentTypeBinder(TypeOption, AllOption), QuietOption);
             return getCommand;
         }
 
@@ -225,5 +227,12 @@ namespace past.ConsoleApp
             return debugOption;
         }
         #endregion Options
+
+        #region Arguments
+        public Argument<string> CreateIdentifierArgument()
+        {
+            return new Argument<string>("identifier", "The identifier of the item to get from clipboard history");
+        }
+        #endregion Arguments
     }
 }
