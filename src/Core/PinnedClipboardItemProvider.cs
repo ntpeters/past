@@ -8,6 +8,7 @@ namespace past.Core
     {
         private readonly string _pinnedClipboardPath;
 
+        #region Constructors
         // Pinned item IDs can be read from: %LOCALAPPDATA%/Microsoft/Windows/Clipboard/Pinned/{GUID}/metadata.json
         public PinnedClipboardItemProvider()
             : this(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft/Windows/Clipboard/Pinned"))
@@ -18,7 +19,9 @@ namespace past.Core
         {
             _pinnedClipboardPath = pinnedClipboardPath ?? throw new ArgumentNullException(nameof(pinnedClipboardPath));
         }
+        #endregion Constructors
 
+        #region Public Methods
         public bool TryGetPinnedClipboardHistoryItemIds([NotNullWhen(true)] out HashSet<string>? pinnedItemIds, [NotNullWhen(false)] out string? errorMessage)
         {
             pinnedItemIds = null;
@@ -40,7 +43,9 @@ namespace past.Core
             pinnedItemIds = pinnedClipboardItemIds.ToHashSet();
             return true;
         }
+        #endregion Public Methods
 
+        #region Helpers
         private bool TryGetPinnedItemsMetadataPath([NotNullWhen(true)] out string? pinnedItemsMetadataPath, [NotNullWhen(false)] out string? errorMessage)
         {
             pinnedItemsMetadataPath = null;
@@ -64,5 +69,6 @@ namespace past.Core
             errorMessage = "Failed to retrieve pinned clipboard history items: Metadata file not found";
             return false;
         }
+        #endregion Helpers
     }
 }

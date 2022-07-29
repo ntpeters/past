@@ -7,6 +7,7 @@ namespace past.Core
 {
     public class ClipboardManager
     {
+        #region Private Fields
         private readonly IWinRtClipboardWrapper _winRtClipboard;
         private readonly IWin32ClipboardWrapper _win32Clipboard;
         private readonly IPinnedClipboardItemProvider _pinnedClipboardItemProvider;
@@ -22,7 +23,9 @@ namespace past.Core
             _win32Clipboard = win32Clipboard ?? throw new ArgumentNullException(nameof(win32Clipboard));
             _pinnedClipboardItemProvider = pinnedClipboardItemProvider ?? throw new ArgumentNullException(nameof(pinnedClipboardItemProvider));
         }
+        #endregion Private Fields
 
+        #region Public Methods
         public async Task<string?> GetCurrentClipboardValueAsync(ContentType type, CancellationToken? cancellationToken = null)
         {
             // Using the Win32 clipboard API rather than the WinRt clipboard API as that
@@ -145,5 +148,6 @@ namespace past.Core
         public bool IsHistoryEnabled() => _winRtClipboard.IsHistoryEnabled();
 
         public bool IsRoamingEnabled() => _winRtClipboard.IsRoamingEnabled();
+        #endregion Public Methods
     }
 }

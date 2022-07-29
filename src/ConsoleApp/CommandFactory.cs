@@ -3,7 +3,6 @@ using past.Core;
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,19 +10,23 @@ namespace past.ConsoleApp
 {
     public class CommandFactory
     {
+        #region Private Fields
         private readonly Lazy<Option<ContentType>> _typeOptionLazy;
         private readonly Lazy<Option<bool>> _allOptionLazy;
         private readonly Lazy<Option<bool>> _ansiOptionLazy;
         private readonly Lazy<Option<AnsiResetType>> _ansiResetOptionLazy;
         private readonly Lazy<Option<bool>> _quietOptionLazy;
         private readonly Lazy<Option<bool>> _debugOptionLazy;
+        #endregion Private Fields
 
+        #region Public Properties
         public Option<ContentType> TypeOption => _typeOptionLazy.Value;
         public Option<bool> AllOption => _allOptionLazy.Value;
         public Option<bool> AnsiOption => _ansiOptionLazy.Value;
         public Option<AnsiResetType> AnsiResetOption => _ansiResetOptionLazy.Value;
         public Option<bool> QuietOption => _quietOptionLazy.Value;
         public Option<bool> DebugOption => _debugOptionLazy.Value;
+        #endregion Public Properties
 
         public CommandFactory()
         {
@@ -35,6 +38,7 @@ namespace past.ConsoleApp
             _debugOptionLazy = new(() => CreateDebugOption());
         }
 
+        #region Commands
         public Command CreateListCommand(Func<IConsole, bool, bool, ContentType, bool, AnsiResetType, bool, bool, bool, bool, CancellationToken, Task> handle)
         {
             var listCommand = new Command("list", "Lists the clipboard history");
@@ -86,7 +90,9 @@ namespace past.ConsoleApp
                 commandArgument);
             return helpCommand;
         }
+        #endregion Commands
 
+        #region Options
         private Option<ContentType> CreateTypeOption()
         {
             var typeOption = new Option<ContentType>(
@@ -218,5 +224,6 @@ namespace past.ConsoleApp
 #endif // DEBUG
             return debugOption;
         }
+        #endregion Options
     }
 }

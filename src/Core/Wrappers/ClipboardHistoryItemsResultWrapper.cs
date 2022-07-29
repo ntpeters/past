@@ -5,14 +5,18 @@ namespace past.Core.Wrappers
     /// <inheritdoc cref="IClipboardHistoryItemsResultWrapper"/>
     public class ClipboardHistoryItemsResultWrapper : IClipboardHistoryItemsResultWrapper
     {
+        #region Private Fields
         private readonly ClipboardHistoryItemsResult _clipboardHistoryItemsResult;
         private readonly Lazy<IReadOnlyList<IClipboardHistoryItemWrapper>> _wrappedClipboardHistoryItemsLazy;
+        #endregion Private Fields
 
+        #region Public Properties
         public ClipboardHistoryItemsResult WrappedInstance => _clipboardHistoryItemsResult;
 
         public IReadOnlyList<IClipboardHistoryItemWrapper> Items => _wrappedClipboardHistoryItemsLazy.Value;
 
         public ClipboardHistoryItemsResultStatus Status => _clipboardHistoryItemsResult.Status;
+        #endregion Public Properties
 
         public ClipboardHistoryItemsResultWrapper(ClipboardHistoryItemsResult clipboardHistoryItemsResult)
         {

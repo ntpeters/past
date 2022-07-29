@@ -28,6 +28,7 @@ namespace past.ConsoleApp
             _clipboard = clipboardManager ?? throw new ArgumentNullException(nameof(clipboardManager));
         }
 
+        #region Public Methods
         public void GetClipboardHistoryStatus(InvocationContext context, IConsole console, bool quiet, CancellationToken cancellationToken)
         {
             try
@@ -122,6 +123,7 @@ namespace past.ConsoleApp
 
             return 0;
         }
+        #endregion Public Methods
 
         #region Helpers
         private static bool WriteValueToConsole(IConsole console, string? value, int? index = null, bool @null = false, bool ansi = false, AnsiResetType ansiResetType = AnsiResetType.Auto, string? id = null, string? timestamp = null)

@@ -7,6 +7,7 @@ namespace Core.Test
 {
     public class PinnedClipboardItemProviderTests
     {
+        #region Setup
         [TearDown]
         public void Teardown()
         {
@@ -17,6 +18,7 @@ namespace Core.Test
                 Directory.Delete(basePinDir, true);
             }
         }
+        #endregion Setup
 
         #region Constructors
         [Test]

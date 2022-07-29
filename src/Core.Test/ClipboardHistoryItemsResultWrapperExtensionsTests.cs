@@ -8,6 +8,7 @@ namespace Core.Test
 {
     public class ClipboardHistoryItemsResultWrapperExtensionsTests
     {
+        #region TryGetItem
         [Test]
         public void TryGetItem_ValidIndexIdentifier_ReturnsTrueAndExpectedItem()
         {
@@ -145,5 +146,6 @@ namespace Core.Test
             // Act + Assert
             Assert.Throws<ArgumentNullException>(() => mockClipboardItemsResult.Object.TryGetItem(identifier, out _));
         }
+        #endregion TryGetItem
     }
 }
