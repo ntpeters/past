@@ -1,9 +1,8 @@
 using Newtonsoft.Json;
-using past.Core;
 using past.Core.Models;
 using System.Text;
 
-namespace Core.Test
+namespace past.Core.Test
 {
     public class PinnedClipboardItemProviderTests
     {
@@ -48,7 +47,8 @@ namespace Core.Test
             var expectedItemIds = new HashSet<string>();
             var pinnedMetadataList = new PinnedClipboardMetadataList();
             pinnedMetadataList.Items = new Dictionary<string, PinnedClipboardMetadataListItem>();
-            for (int i = 0; i < 3; i++){
+            for (int i = 0; i < 3; i++)
+            {
                 var pinnedMetadataListItem = new PinnedClipboardMetadataListItem
                 {
                     Timestamp = DateTimeOffset.Now,

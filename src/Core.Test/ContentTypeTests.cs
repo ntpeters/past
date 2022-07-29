@@ -1,6 +1,4 @@
-using past.Core;
-
-namespace Core.Test
+namespace past.Core.Test
 {
     public class ContentTypeTests
     {

@@ -1,6 +1,4 @@
-using past.Core;
-
-namespace Core.Test
+namespace past.Core.Test
 {
     public class ClipboardItemIdentifierTests
     {
@@ -424,7 +422,7 @@ namespace Core.Test
         [Test]
         public void StaticEquals_BothObjectsNull_ReturnsTrue()
         {
-            Assert.That(Equals((ClipboardItemIdentifier?)null, (ClipboardItemIdentifier?)null), Is.True);
+            Assert.That(Equals(null, null), Is.True);
         }
         #endregion Static Equals
 
@@ -503,7 +501,7 @@ namespace Core.Test
         [Test]
         public void EqualsOperator_BothObjectsNull_ReturnsTrue()
         {
-            Assert.That((ClipboardItemIdentifier?)null == (ClipboardItemIdentifier?)null, Is.True);
+            Assert.That(null == (ClipboardItemIdentifier?)null, Is.True);
         }
         #endregion Equals Operator
 
@@ -582,7 +580,7 @@ namespace Core.Test
         [Test]
         public void NotEqualOperator_BothObjectsNull_ReturnsFalse()
         {
-            Assert.That((ClipboardItemIdentifier?)null != (ClipboardItemIdentifier?)null, Is.False);
+            Assert.That(null != (ClipboardItemIdentifier?)null, Is.False);
         }
         #endregion Not Equal Operator
 #pragma warning restore NUnit2010 // Use EqualConstraint for better assertion messages in case of failure

@@ -1,8 +1,7 @@
-using past.Core;
 using past.Core.Extensions;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace Core.Test
+namespace past.Core.Test
 {
     public class ContentTypeExtensionsTests
     {
@@ -12,7 +11,7 @@ namespace Core.Test
         {
             // Arrange
             var expectedFormatIds = new List<string> { StandardDataFormats.Text };
-            var type= ContentType.Text;
+            var type = ContentType.Text;
 
             // Act
             var result = type.TryToStandardDataFormat(out var actualFormatIds);
@@ -27,7 +26,7 @@ namespace Core.Test
         {
             // Arrange
             var expectedFormatIds = new List<string> { StandardDataFormats.Bitmap };
-            var type= ContentType.Image;
+            var type = ContentType.Image;
 
             // Act
             var result = type.TryToStandardDataFormat(out var actualFormatIds);
@@ -46,7 +45,7 @@ namespace Core.Test
                 StandardDataFormats.Text,
                 StandardDataFormats.Bitmap
             };
-            var type= ContentType.All;
+            var type = ContentType.All;
 
             // Act
             var result = type.TryToStandardDataFormat(out var actualFormatIds);
@@ -60,7 +59,7 @@ namespace Core.Test
         public void TryToStandardDataFormat_InvalidContentType_ReturnsFalseAndNullFormatIds()
         {
             // Arrange
-            ContentType type= 0;
+            ContentType type = 0;
 
             // Act
             var result = type.TryToStandardDataFormat(out var actualFormatIds);

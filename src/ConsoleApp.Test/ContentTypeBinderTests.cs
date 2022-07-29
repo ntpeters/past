@@ -1,10 +1,9 @@
-using past.ConsoleApp;
 using past.ConsoleApp.Binders;
 using past.Core;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 
-namespace ConsoleApp.Test
+namespace past.ConsoleApp.Test
 {
     public class ContentTypeBinderTests
     {

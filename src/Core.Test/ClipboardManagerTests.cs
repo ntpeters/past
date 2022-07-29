@@ -1,10 +1,9 @@
 using Moq;
-using past.Core;
 using past.Core.Wrappers;
 using System.Windows;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace Core.Test
+namespace past.Core.Test
 {
     public class ClipboardManagerTests
     {

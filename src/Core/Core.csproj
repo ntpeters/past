@@ -15,7 +15,8 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>$(SolutionName).$(MSBuildProjectName.Replace(" ", "_"))</AssemblyName>
+
+    <AssemblyName>past.$(MSBuildProjectName.Replace(" ", "_"))</AssemblyName>
     <RootNamespace>$(AssemblyName)</RootNamespace>
   </PropertyGroup>
 
