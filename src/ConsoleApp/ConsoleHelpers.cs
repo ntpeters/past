@@ -13,6 +13,8 @@ namespace past.ConsoleApp
         private const int STD_INPUT_HANDLE = -10;
         private const int STD_OUTPUT_HANDLE = -11;
 
+        private const int CLEAR_CONSOLE_MODE = 0;
+
         private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
         private const uint DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
         private const uint ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200;
@@ -35,8 +37,6 @@ namespace past.ConsoleApp
 
         [DllImport("Kernel32.dll", SetLastError = true)]
         private static extern uint FormatMessage(uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr Arguments);
-
-
 
         public static string GetSystemErrorMessage(uint errorCode)
         {
@@ -61,6 +61,34 @@ namespace past.ConsoleApp
             var errorCode = GetLastError();
             var errorMessage = GetSystemErrorMessage(errorCode);
             return $"Error {errorCode}: {errorMessage}";
+        }
+
+        public static bool TryClearConsoleMode(out uint? originalMode, out string error)
+        {
+            var iStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+            if (iStdOut == INVALID_HANDLE_VALUE)
+            {
+                error = GetLastErrorMessage();
+                originalMode = null;
+                return false;
+            }
+
+            if (!GetConsoleMode(iStdOut, out uint outConsoleMode))
+            {
+                error = GetLastErrorMessage();
+                originalMode = null;
+                return false;
+            }
+
+            originalMode = outConsoleMode;
+            if (!SetConsoleMode(iStdOut, CLEAR_CONSOLE_MODE))
+            {
+                error = GetLastErrorMessage();
+                return false;
+            }
+
+            error = string.Empty;
+            return true;
         }
 
         public static bool TryEnableVirtualTerminalInput(out string error)
