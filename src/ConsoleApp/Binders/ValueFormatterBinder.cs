@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Binding;
 using System.CommandLine.Parsing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace past.ConsoleApp.Binders
 {
