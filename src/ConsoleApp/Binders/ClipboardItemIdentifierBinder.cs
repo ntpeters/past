@@ -36,6 +36,6 @@ namespace past.ConsoleApp.Binders
         }
 
         protected override ClipboardItemIdentifier GetBoundValue(BindingContext bindingContext)
-            => GetBoundValue(bindingContext);
+            => GetBoundValue(bindingContext.ParseResult);
     }
 }
