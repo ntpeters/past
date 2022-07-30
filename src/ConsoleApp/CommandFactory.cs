@@ -42,7 +42,7 @@ namespace past.ConsoleApp
         }
 
         #region Commands
-        public Command CreateListCommand(Func<IConsole, bool, bool, ContentType, bool, AnsiResetType, bool, bool, bool, bool, CancellationToken, Task> handle)
+        public Command CreateListCommand(Func<IConsoleWriter, IValueFormatter, ContentType, bool, CancellationToken, Task> handle)
         {
             var listCommand = new Command("list", "Lists the clipboard history");
             var nullOption = new Option<bool>("--null", "Use the null byte to separate entries");
@@ -55,21 +55,27 @@ namespace past.ConsoleApp
             listCommand.AddOption(timeOption);
             var pinnedOption = new Option<bool>("--pinned", "Print only pinned items");
             listCommand.AddOption(pinnedOption);
-            listCommand.SetHandler<IConsole, bool, bool, ContentType, bool, AnsiResetType, bool, bool, bool, bool, CancellationToken>(
+            listCommand.SetHandler<IConsoleWriter, IValueFormatter, ContentType, bool, CancellationToken>(
                 handle,
-                nullOption, indexOption, new ContentTypeBinder(TypeOption, AllOption), AnsiOption, AnsiResetOption, QuietOption, idOption, pinnedOption, timeOption);
+                new ConsoleWriterBinder(AnsiOption, AnsiResetOption, QuietOption),
+                new ValueFormatterBinder(nullOption, indexOption, idOption, timeOption),
+                new ContentTypeBinder(TypeOption, AllOption),
+                pinnedOption);
             return listCommand;
         }
 
-        public Command CreateGetCommand(Func<IConsole, ClipboardItemIdentifier, bool, AnsiResetType, bool, ContentType, bool, CancellationToken, Task> handle)
+        public Command CreateGetCommand(Func<IConsoleWriter, ClipboardItemIdentifier, ContentType, bool, CancellationToken, Task> handle)
         {
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             getCommand.AddArgument(IdentifierArgument);
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             getCommand.AddOption(setCurrentOption);
-            getCommand.SetHandler<IConsole, ClipboardItemIdentifier, bool, AnsiResetType, bool, ContentType, bool, CancellationToken>(
+            getCommand.SetHandler<IConsoleWriter, ClipboardItemIdentifier, ContentType, bool, CancellationToken>(
                 handle,
-                new ClipboardItemIdentifierBinder(IdentifierArgument), AnsiOption, AnsiResetOption, setCurrentOption, new ContentTypeBinder(TypeOption, AllOption), QuietOption);
+                new ConsoleWriterBinder(AnsiOption, AnsiResetOption, QuietOption),
+                new ClipboardItemIdentifierBinder(IdentifierArgument),
+                new ContentTypeBinder(TypeOption, AllOption),
+                setCurrentOption);
             return getCommand;
         }
 
