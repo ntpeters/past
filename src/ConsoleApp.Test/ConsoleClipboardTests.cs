@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Moq;
+using past.Core;
 
 namespace past.ConsoleApp.Test
 {
@@ -73,26 +70,130 @@ namespace past.ConsoleApp.Test
         #endregion GetClipboardHistoryStatus
 
         #region GetCurrentClipboardValueAsync
-        // TODO: Add tests for ansi and ansiResetType
         [Test]
-        public void GetCurrentClipboardValueAsync_ValidParameters_WritesExpectedItemAndReturnsExitCode()
+        [TestCase(ContentType.Text)]
+        [TestCase(ContentType.Image)]
+        [TestCase(ContentType.All)]
+        public async Task GetCurrentClipboardValueAsync_ValidParameters_GetsAndWritesItemReturnsSuccess(ContentType expectedType)
         {
-            Assert.Fail("Implement Me!");
+            // Arrange
+            var expectedReturnValue = 0;
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+            var expectedValue = "Copyin' copyin', yeah!";
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            mockClipboardManager
+                .Setup(mock => mock.GetCurrentClipboardValueAsync(
+                    It.Is<ContentType>(actualType => actualType == expectedType),
+                    It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
+                .ReturnsAsync(expectedValue)
+                .Verifiable();
+
+            var mockConsoleWriter = new Mock<IConsoleWriter>(MockBehavior.Strict);
+            mockConsoleWriter
+                .Setup(mock => mock.WriteValue(It.Is<string>(actualValue => actualValue == expectedValue)))
+                .Verifiable();
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act
+            var actualReturnValue = await consoleClipboard.GetCurrentClipboardValueAsync(mockConsoleWriter.Object, expectedType, expectedCancellationTokenSource.Token);
+
+            // Assert
+            Assert.That(actualReturnValue, Is.EqualTo(expectedReturnValue));
+            mockClipboardManager.Verify();
+            mockConsoleWriter.Verify();
         }
 
-        public void GetCurrentClipboardValueAsync_EmptyClipboardValue_WritesEmptyValueAndReturnsExitCode()
+        [Test]
+        [TestCase(ContentType.Text)]
+        [TestCase(ContentType.Image)]
+        [TestCase(ContentType.All)]
+        public async Task GetCurrentClipboardValueAsync_GetValueThrows_WritesErrorAndReturnsErrorCode(ContentType expectedType)
         {
-            Assert.Fail("Implement Me!");
+            // Arrange
+            var expectedReturnValue = -1;
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+            var expectedException = new Exception("Oh no! :O");
+            var expectedErrorMessage = $"Failed to get current clipboard contents. Error: {expectedException.Message}";
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            mockClipboardManager
+                .Setup(mock => mock.GetCurrentClipboardValueAsync(
+                    It.Is<ContentType>(actualType => actualType == expectedType),
+                    It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
+                .ThrowsAsync(expectedException)
+                .Verifiable();
+
+            var mockConsoleWriter = new Mock<IConsoleWriter>(MockBehavior.Strict);
+            mockConsoleWriter
+                .Setup(mock => mock.WriteErrorLine(It.Is<string>(actualMessage => actualMessage == expectedErrorMessage)))
+                .Verifiable();
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act
+            var actualReturnValue = await consoleClipboard.GetCurrentClipboardValueAsync(mockConsoleWriter.Object, expectedType, expectedCancellationTokenSource.Token);
+
+            // Assert
+            Assert.That(actualReturnValue, Is.EqualTo(expectedReturnValue));
+            mockClipboardManager.Verify();
+            mockConsoleWriter.Verify();
         }
 
-        public void GetCurrentClipboardValueAsync_GetItemThrows_WritesErrorAndReturnsExitCode()
+        [Test]
+        [TestCase(ContentType.Text)]
+        [TestCase(ContentType.Image)]
+        [TestCase(ContentType.All)]
+        public async Task GetCurrentClipboardValueAsync_WriteValueThrows_WritesErrorAndReturnsErrorCode(ContentType expectedType)
         {
-            Assert.Fail("Implement Me!");
+            // Arrange
+            var expectedReturnValue = -1;
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+            var expectedException = new Exception("Oh no! :O");
+            var expectedErrorMessage = $"Failed to get current clipboard contents. Error: {expectedException.Message}";
+            var expectedValue = "Copyin' copyin', yeah!";
+
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            mockClipboardManager
+                .Setup(mock => mock.GetCurrentClipboardValueAsync(
+                    It.Is<ContentType>(actualType => actualType == expectedType),
+                    It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
+                .ReturnsAsync(expectedValue)
+                .Verifiable();
+
+            var mockConsoleWriter = new Mock<IConsoleWriter>(MockBehavior.Strict);
+            mockConsoleWriter
+                .Setup(mock => mock.WriteValue(It.Is<string>(actualValue => actualValue == expectedValue)))
+                .Throws(expectedException)
+                .Verifiable();
+
+            mockConsoleWriter
+                .Setup(mock => mock.WriteErrorLine(It.Is<string>(actualMessage => actualMessage == expectedErrorMessage)))
+                .Verifiable();
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act
+            var actualReturnValue = await consoleClipboard.GetCurrentClipboardValueAsync(mockConsoleWriter.Object, expectedType, expectedCancellationTokenSource.Token);
+
+            // Assert
+            Assert.That(actualReturnValue, Is.EqualTo(expectedReturnValue));
+            mockClipboardManager.Verify();
+            mockConsoleWriter.Verify();
         }
 
-        public void GetCurrentClipboardValueAsync_NullConsole_ThrowsArgumentNullException()
+        [Test]
+        public void GetCurrentClipboardValueAsync_NullConsoleWriter_ThrowsArgumentNullException()
         {
-            Assert.Fail("Implement Me!");
+            // Arrange
+            var cancellationTokenSource = new CancellationTokenSource();
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act + Assert
+            Assert.ThrowsAsync<ArgumentNullException>(() => consoleClipboard.GetCurrentClipboardValueAsync(null!, ContentType.Text, cancellationTokenSource.Token));
         }
         #endregion GetCurrentClipboardValueAsync
 
