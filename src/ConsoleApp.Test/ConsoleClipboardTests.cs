@@ -9,19 +9,20 @@ namespace past.ConsoleApp.Test
         [Test]
         public void Constructor_Parameterless_Success()
         {
-            Assert.Fail("Implement Me!");
+            Assert.DoesNotThrow(() => new ConsoleClipboard());
         }
 
         [Test]
         public void Constructor_NonNullClipboardManager_Success()
         {
-            Assert.Fail("Implement Me!");
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            Assert.DoesNotThrow( () => new ConsoleClipboard(mockClipboardManager.Object));
         }
 
         [Test]
         public void Constructor_NullClipboardManager_ThrowsArgumentNullException()
         {
-            Assert.Fail("Implement Me!");
+            Assert.Throws<ArgumentNullException>(() => new ConsoleClipboard(null!));
         }
         #endregion Constructors
 
