@@ -11,14 +11,14 @@ namespace past.ConsoleApp
 {
     public class ConsoleClipboard
     {
-        private readonly ClipboardManager _clipboard;
+        private readonly IClipboardManager _clipboard;
 
         public ConsoleClipboard()
             : this(new ClipboardManager())
         {
         }
 
-        public ConsoleClipboard(ClipboardManager clipboardManager)
+        public ConsoleClipboard(IClipboardManager clipboardManager)
         {
             _clipboard = clipboardManager ?? throw new ArgumentNullException(nameof(clipboardManager));
         }
@@ -42,6 +42,8 @@ namespace past.ConsoleApp
 
         public async Task<int> GetCurrentClipboardValueAsync(IConsoleWriter consoleWriter, ContentType type, CancellationToken cancellationToken)
         {
+            _ = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
+
             try
             {
                 string? value = await _clipboard.GetCurrentClipboardValueAsync(type, cancellationToken);
@@ -49,7 +51,7 @@ namespace past.ConsoleApp
             }
             catch (Exception e)
             {
-                consoleWriter.WriteErrorLine($"Failed to get current clipboard contents. Error: {e}");
+                consoleWriter.WriteErrorLine($"Failed to get current clipboard contents. Error: {e.Message}");
                 return -1;
             }
 
