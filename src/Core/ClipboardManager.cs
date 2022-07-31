@@ -5,7 +5,7 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace past.Core
 {
-    public class ClipboardManager
+    public class ClipboardManager : IClipboardManager
     {
         #region Private Fields
         private readonly IWinRtClipboardWrapper _winRtClipboard;
