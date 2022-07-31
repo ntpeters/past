@@ -11,7 +11,9 @@
 
     <!--
     Needed to access the current clipboard content without UI.
-    NOTE: If the UseWPF property is enabled in a project where the output is a console app, then the DisableWinExeOutputInference property must also be enabled.
+    NOTE: If the UseWPF property is enabled in a project where the output is a console app,
+          then the DisableWinExeOutputInference property must also be enabled.
+          This is not the case if the project is only the dependency of a console app project.
     -->
     <UseWPF>true</UseWPF>
 
