@@ -12,6 +12,34 @@ namespace past.ConsoleApp
         /// </summary>
         /// <param name="error">Error message if enabling virtual terminal processing fails.</param>
         /// <returns>True if enabling virtual terminal processing succeeds, false otherwise.</returns>
-        bool TryEnableVirtualTerminalProcessing([NotNullWhen(false)] out string? error);
+        bool TryEnableVirtualTerminalProcessing([NotNullWhen(false)] out string? error, bool useCommandLineInteropApi = true);
+
+        /// <summary>
+        /// Enables virtual terminal input in the current console.
+        /// </summary>
+        /// <param name="error">Error message if enabling virtual terminal input fails.</param>
+        /// <returns>True if enabling virtual terminal input succeeds, false otherwise.</returns>
+        bool TryEnableVirtualTerminalInput([NotNullWhen(false)] out string? error);
+
+        /// <summary>
+        /// Clears the console mode.
+        /// </summary>
+        /// <param name="originalMode">The console mode before it was cleared, if clearing the console mode was successful.</param>
+        /// <param name="error">Error message if clearing the console mode fails.</param>
+        /// <returns>True if clearing the console mode succeeds, false otherwise</returns>
+        bool TryClearConsoleMode([NotNullWhen(true)] out uint? originalMode, [NotNullWhen(false)] out string? error);
+
+        /// <summary>
+        /// Gets the system error message associated with the specified system error code.
+        /// </summary>
+        /// <param name="errorCode">System error code.</param>
+        /// <returns>Message associated with the <paramref name="errorCode"/>.</returns>
+        string GetSystemErrorMessage(uint errorCode);
+
+        /// <summary>
+        /// Gets the system error message associated with the calling thread's last error code value.
+        /// </summary>
+        /// <returns>Message associated with the the calling thread's last error code value.</returns>
+        string GetLastErrorMessage();
     }
 }
