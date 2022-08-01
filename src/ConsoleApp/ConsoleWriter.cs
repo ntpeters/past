@@ -11,14 +11,27 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace past.ConsoleApp
 {
+    /// <inheritdoc cref="IConsoleWriter"/>
     public class ConsoleWriter : IConsoleWriter
     {
+        #region Private Fields
         private readonly IConsole _console;
         private readonly IConsoleUtilities _consoleUtilities;
         private readonly bool _suppressErrorOutput;
         private readonly bool _enableAnsiProcessing;
         private readonly AnsiResetType _ansiResetType;
+        #endregion Private Fields
 
+        #region Constructors
+        /// <summary>
+        /// Creates a new <see cref="ConsoleWriter"/> connected to the given console, with the provided options.
+        /// </summary>
+        /// <param name="console">Console to write output to.</param>
+        /// <param name="consoleUtilities">Used to set the console mode.</param>
+        /// <param name="suppressErrorOutput">Whether to silence error output.</param>
+        /// <param name="enableAnsiProcessing">Whether to enable virtual terminal processing.</param>
+        /// <param name="ansiResetType">Controls how to determine whether ANSI reset should be emitted.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="console"/> or <paramref name="consoleUtilities"/> is null.</exception>
         public ConsoleWriter(IConsole console, IConsoleUtilities consoleUtilities, bool suppressErrorOutput, bool enableAnsiProcessing, AnsiResetType ansiResetType)
         {
             _console = console ?? throw new ArgumentNullException(nameof(console));
@@ -27,7 +40,9 @@ namespace past.ConsoleApp
             _enableAnsiProcessing = enableAnsiProcessing;
             _ansiResetType = ansiResetType;
         }
+        #endregion Constructors
 
+        #region Public Methods
         public async Task WriteItemAsync(IClipboardHistoryItemWrapper item, ContentType type, int? index = null, IValueFormatter? formatter = null, bool emitLineEnding = false)
         {
             var value = await GetClipboardItemValueAsync(item.Content, type);
@@ -64,7 +79,14 @@ namespace past.ConsoleApp
         public void WriteLine(string text) => _console.WriteLine(text);
 
         public void WriteErrorLine(string text) => _console.WriteErrorLine(text, _suppressErrorOutput);
+        #endregion Public Methods
 
+        #region Private Methods
+        /// <summary>
+        /// Writes the given value to the output stream of the connected console.
+        /// Attempts to enable virtual terminal processing if option was enabled and output was not redirected.
+        /// </summary>
+        /// <param name="value">Value to write.</param>
         private void WriteValueInternal(string value)
         {
             if (_enableAnsiProcessing && !_console.IsOutputRedirected && !_consoleUtilities.TryEnableVirtualTerminalProcessing(out var error))
@@ -75,6 +97,12 @@ namespace past.ConsoleApp
             _console.Write(value);
         }
 
+        /// <summary>
+        /// Gets the value stored in the given data package that is compatible with the specified type.
+        /// </summary>
+        /// <param name="content">Data package to get the value from.</param>
+        /// <param name="type">Type of value to get.</param>
+        /// <returns>The value, or null if the requested type is not supported.</returns>
         private async Task<string?> GetClipboardItemValueAsync(DataPackageView content, ContentType type = ContentType.Text)
         {
             if (type.HasFlag(ContentType.Text) && content.Contains(StandardDataFormats.Text))
@@ -96,6 +124,21 @@ namespace past.ConsoleApp
             return null;
         }
 
+        /// <summary>
+        /// Determines whether ANSI reset should be emitted for the given value and current invocation, in the current environment.
+        /// </summary>
+        /// <remarks>
+        /// When <see cref="_ansiResetType"/> is <see cref="AnsiResetType.Auto"/>, then this method will return true
+        /// if all of the following conditions are also true:
+        /// <list type="bullet">
+        /// <item>ANSI processing is enabled</item>
+        /// <item>Console output is not redirected</item>
+        /// <item>COLORTERM is '24bit' or 'truecolor'</item>
+        /// <item>The <paramref name="value"/> contains ANSI escape sequences</item>
+        /// </list>
+        /// </remarks>
+        /// <param name="value">Value to include in the evaluation.</param>
+        /// <returns>True if ANSI reset should be emitted, false otherwise.</returns>
         private bool ShouldEmitAnsiReset(string value)
         {
             switch (_ansiResetType)
@@ -131,5 +174,6 @@ namespace past.ConsoleApp
                 default: return false;
             }
         }
+        #endregion Private Methods
     }
 }

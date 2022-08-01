@@ -5,6 +5,9 @@ using System.CommandLine.Parsing;
 
 namespace past.ConsoleApp.Binders
 {
+    /// <summary>
+    /// Supports binding <see cref="ValueFormatter"/>.
+    /// </summary>
     public class ValueFormatterBinder : BinderBase<IValueFormatter>
     {
         private readonly Option<bool>? _nullOption;
@@ -12,6 +15,9 @@ namespace past.ConsoleApp.Binders
         private readonly Option<bool>? _idOption;
         private readonly Option<bool>? _timeOption;
 
+        /// <summary>
+        /// Creates a new <see cref="ValueFormatterBinder"/> with all options disabled.
+        /// </summary>
         public ValueFormatterBinder()
         {
             _nullOption = null;
@@ -20,6 +26,16 @@ namespace past.ConsoleApp.Binders
             _timeOption = null;
         }
 
+        /// <summary>
+        /// Creates a new <see cref="ValueFormatterBinder"/> for the given options.
+        /// </summary>
+        /// <param name="nullOption">Null option to bind to.</param>
+        /// <param name="indexOption">Index option to bind to.</param>
+        /// <param name="idOption">ID option to bind to.</param>
+        /// <param name="timeOption">Time option to bind to.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="nullOption"/>, <paramref name="indexOption"/>, <paramref name="idOption"/>, or <paramref name="timeOption"/> is null.
+        /// </exception>
         public ValueFormatterBinder(Option<bool> nullOption, Option<bool> indexOption, Option<bool> idOption, Option<bool> timeOption)
         {
             _nullOption = nullOption ?? throw new ArgumentNullException(nameof(nullOption));

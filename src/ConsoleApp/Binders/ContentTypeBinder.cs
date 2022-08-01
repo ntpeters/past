@@ -6,11 +6,20 @@ using System.CommandLine.Parsing;
 
 namespace past.ConsoleApp.Binders
 {
+    /// <summary>
+    /// Supports binding <see cref="ContentType"/>.
+    /// </summary>
     public class ContentTypeBinder : BinderBase<ContentType>
     {
         private readonly Option<ContentType> _typeOption;
         private readonly Option<bool> _allOption;
 
+        /// <summary>
+        /// Creates a new <see cref="ContentTypeBinder"/> for the given options.
+        /// </summary>
+        /// <param name="typeOption">Type option to bind to.</param>
+        /// <param name="allOption">All option to bind to.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="typeOption"/> or <paramref name="allOption"/> is null.</exception>
         public ContentTypeBinder(Option<ContentType> typeOption, Option<bool> allOption)
         {
             _typeOption = typeOption ?? throw new ArgumentNullException(nameof(typeOption));

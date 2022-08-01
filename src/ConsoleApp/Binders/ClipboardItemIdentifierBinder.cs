@@ -6,10 +6,18 @@ using System.CommandLine.Parsing;
 
 namespace past.ConsoleApp.Binders
 {
+    /// <summary>
+    /// Supports binding <see cref="ClipboardItemIdentifier"/>.
+    /// </summary>
     public class ClipboardItemIdentifierBinder : BinderBase<ClipboardItemIdentifier>
     {
         private readonly Argument<string> _identifierArgument;
 
+        /// <summary>
+        /// Creates a new <see cref="ClipboardItemIdentifierBinder"/> for the given argument.
+        /// </summary>
+        /// <param name="identifierArgument">Identifier argument to bind to.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="identifierArgument"/> is null.</exception>
         public ClipboardItemIdentifierBinder(Argument<string> identifierArgument)
         {
             _identifierArgument = identifierArgument ?? throw new ArgumentNullException(nameof(identifierArgument));

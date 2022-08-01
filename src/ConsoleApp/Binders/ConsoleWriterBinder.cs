@@ -5,12 +5,24 @@ using System.CommandLine.Parsing;
 
 namespace past.ConsoleApp.Binders
 {
+    /// <summary>
+    /// Supports binding <see cref="ConsoleWriter"/>.
+    /// </summary>
     public class ConsoleWriterBinder : BinderBase<IConsoleWriter>
     {
         private readonly Option<bool>? _ansiOption;
         private readonly Option<AnsiResetType>? _ansiResetOption;
         private readonly Option<bool> _quietOption;
 
+        /// <summary>
+        /// Creates a new <see cref="ConsoleWriterBinder"/> for the given options.
+        /// </summary>
+        /// <param name="ansiOption">ANSI option to bind to.</param>
+        /// <param name="ansiResetOption">ANSI reset option to bind to.</param>
+        /// <param name="quietOption">Quiet option to bind to.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="ansiOption"/>, <paramref name="ansiResetOption"/>, or <paramref name="quietOption"/> is null.
+        /// </exception>
         public ConsoleWriterBinder(Option<bool> ansiOption, Option<AnsiResetType> ansiResetOption, Option<bool> quietOption)
             : this(quietOption)
         {
@@ -18,6 +30,11 @@ namespace past.ConsoleApp.Binders
             _ansiResetOption = ansiResetOption ?? throw new ArgumentNullException(nameof(ansiResetOption));
         }
 
+        /// <summary>
+        /// Creates a new <see cref="ConsoleWriterBinder"/> for the given option.
+        /// </summary>
+        /// <param name="quietOption">Quiet option to bind to.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="quietOption"/> is null.</exception>
         public ConsoleWriterBinder(Option<bool> quietOption)
         {
             _quietOption = quietOption ?? throw new ArgumentNullException(nameof(quietOption));
