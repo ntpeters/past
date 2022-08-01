@@ -26,7 +26,7 @@ namespace past.ConsoleApp
             _ansiResetType = ansiResetType;
         }
 
-        public async Task WriteItemAsync(IClipboardHistoryItemWrapper item, ContentType type, int? index = null, IValueFormatter? formatter = null)
+        public async Task WriteItemAsync(IClipboardHistoryItemWrapper item, ContentType type, int? index = null, IValueFormatter? formatter = null, bool emitLineEnding = false)
         {
             var value = await GetClipboardItemValueAsync(item.Content, type);
             if (value == null)
@@ -37,19 +37,34 @@ namespace past.ConsoleApp
             if (formatter != null)
             {
                 var emitAnsiReset = ShouldEmitAnsiReset(value);
-                value = formatter.Format(value, index, item.Id, item.Timestamp, emitAnsiReset);
+                value = formatter.Format(value, index, item.Id, item.Timestamp, emitAnsiReset, emitLineEnding);
             }
 
-            WriteValue(value);
+            WriteInternal(value);
         }
 
-        public void WriteValue(string? value)
+        public void WriteValue(string? value, IValueFormatter? formatter = null)
         {
             if (value == null)
             {
                 return;
             }
 
+            if (formatter != null)
+            {
+                var emitAnsiReset = ShouldEmitAnsiReset(value);
+                value = formatter.Format(value, emitAnsiReset);
+            }
+
+            WriteInternal(value);
+        }
+
+        public void WriteLine(string text) => _console.WriteLine(text);
+
+        public void WriteErrorLine(string text) => _console.WriteErrorLine(text, _suppressErrorOutput);
+
+        private void WriteInternal(string value)
+        {
             if (_enableAnsiProcessing && !_console.IsOutputRedirected && !ConsoleHelpers.TryEnableVirtualTerminalProcessing(out var error))
             {
                 _console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: _suppressErrorOutput);
@@ -57,10 +72,6 @@ namespace past.ConsoleApp
 
             _console.Write(value);
         }
-
-        public void WriteLine(string text) => _console.WriteLine(text);
-
-        public void WriteErrorLine(string text) => _console.WriteErrorLine(text, _suppressErrorOutput);
 
         private async Task<string?> GetClipboardItemValueAsync(DataPackageView content, ContentType type = ContentType.Text)
         {

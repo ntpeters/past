@@ -19,7 +19,16 @@ namespace past.ConsoleApp
             _includeTimestamp = includeTimestamp;
         }
 
-        public string Format(string value, int? index, string id, DateTimeOffset timestamp, bool emitAnsiReset )
+        public string Format(string value, bool emitAnsiReset, bool emitLineEnding = false)
+        {
+            var outputValue = new StringBuilder();
+            outputValue.Append(value);
+            AppendAnsiResetAndLineEnding(outputValue, emitAnsiReset, emitLineEnding);
+            return outputValue.ToString();
+
+        }
+
+        public string Format(string value, int? index, string id, DateTimeOffset timestamp, bool emitAnsiReset, bool emitLineEnding = false)
         {
             var outputValue = new StringBuilder();
             if (_includeIndex && index != null)
@@ -39,21 +48,31 @@ namespace past.ConsoleApp
 
             outputValue.Append(value);
 
-            if (emitAnsiReset)
-            {
-                outputValue.Append(Ansi.Text.AttributesOff.EscapeSequence);
-            }
-
-            if (_nullLineEnding)
-            {
-                outputValue.Append('\0');
-            }
-            else
-            {
-                outputValue.Append('\n');
-            }
+            AppendAnsiResetAndLineEnding(outputValue, emitAnsiReset, emitLineEnding);
 
             return outputValue.ToString();
+        }
+
+        private StringBuilder AppendAnsiResetAndLineEnding(StringBuilder stringBuilder, bool emitAnsiReset, bool emitLineEnding)
+        {
+            if (emitAnsiReset)
+            {
+                stringBuilder.Append(Ansi.Text.AttributesOff.EscapeSequence);
+            }
+
+            if (emitLineEnding)
+            {
+                if (_nullLineEnding)
+                {
+                    stringBuilder.Append('\0');
+                }
+                else
+                {
+                    stringBuilder.Append('\n');
+                }
+            }
+
+            return stringBuilder;
         }
     }
 }
