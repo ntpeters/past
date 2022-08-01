@@ -4,8 +4,19 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace past.Core.Extensions
 {
+    /// <summary>
+    /// Extensions for <see cref="ClipboardHistoryItemsResultWrapper"/>.
+    /// </summary>
     public static class ClipboardHistoryItemsResultWrapperExtensions
     {
+        /// <summary>
+        /// Gets the <see cref="IClipboardHistoryItemWrapper"/> described by the given identifier.
+        /// </summary>
+        /// <param name="result">Result to get the item from.</param>
+        /// <param name="identifier">Identifier describing which item to get.</param>
+        /// <param name="clipboardHistoryItem">The item if found, otherwise null.</param>
+        /// <returns>True if the item was found, false otherwise.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="result"/> or <paramref name="identifier"/> is null.</exception>
         public static bool TryGetItem(this IClipboardHistoryItemsResultWrapper result, ClipboardItemIdentifier identifier, [NotNullWhen(true)] out IClipboardHistoryItemWrapper? clipboardHistoryItem)
         {
             if (result == null)

@@ -2,6 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace past.Core
 {
+    /// <summary>
+    /// Identifier describing a clipbpoard history item with either the index or the item ID.
+    /// </summary>
     public class ClipboardItemIdentifier : IEquatable<ClipboardItemIdentifier>
     {
         #region Private Fields
@@ -10,6 +13,13 @@ namespace past.Core
         #endregion Private Fields
 
         #region Static Methods
+        /// <summary>
+        /// Converts the string representation of either a 32-bit signed integer or a <see cref="Guid"/>
+        /// to the equivalent <see cref="ClipboardItemIdentifier"/>.
+        /// </summary>
+        /// <param name="value">Value to parse.</param>
+        /// <param name="identifier">Identifier represented by the given value if parsing succeeds, null otherwise.</param>
+        /// <returns>True if parsing succeeds, false otherwise.</returns>
         public static bool TryParse(string value, [NotNullWhen(true)] out ClipboardItemIdentifier? identifier)
         {
             if (int.TryParse(value, out var index))
@@ -29,11 +39,19 @@ namespace past.Core
         #endregion Static Methods
 
         #region Constructors
+        /// <summary>
+        /// Creates a new <see cref="ClipboardItemIdentifier"/> wrapping the given index.
+        /// </summary>
+        /// <param name="index">Index to create the identifier with.</param>
         public ClipboardItemIdentifier(int index)
         {
             _index = index;
         }
 
+        /// <summary>
+        /// Creates a new <see cref="ClipboardItemIdentifier"/> wrapping the given ID.
+        /// </summary>
+        /// <param name="id">ID to create the identifier with.</param>
         public ClipboardItemIdentifier(Guid id)
         {
             _id = id;
@@ -41,6 +59,11 @@ namespace past.Core
         #endregion Constructors
 
         #region Public Methods
+        /// <summary>
+        /// Gets the identifier value as a 32-bit signed integer.
+        /// </summary>
+        /// <param name="index">Index represented by the identifier if it was created with an index, null otherwise.</param>
+        /// <returns>True if the identifier was created with an index, false otherwise.</returns>
         public bool TryGetAsIndex([NotNullWhen(true)] out int? index)
         {
             if (_index.HasValue)
@@ -53,6 +76,11 @@ namespace past.Core
             return false;
         }
 
+        /// <summary>
+        /// Gets the identifier value as a <see cref="Guid"/>.
+        /// </summary>
+        /// <param name="id">ID represented by the identifier if it was created with an ID, null otherwise.</param>
+        /// <returns>True if the identifier was created with an ID, false otherwise.</returns>
         public bool TryGetAsGuid([NotNullWhen(true)] out Guid? id)
         {
             if (_id.HasValue)

@@ -5,25 +5,41 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace past.Core
 {
+    /// <inheritdoc cref="IClipboardManager"/>
     public class ClipboardManager : IClipboardManager
     {
         #region Private Fields
         private readonly IWinRtClipboardWrapper _winRtClipboard;
         private readonly IWin32ClipboardWrapper _win32Clipboard;
         private readonly IPinnedClipboardItemProvider _pinnedClipboardItemProvider;
+        #endregion Private Fields
 
+        #region Constructors
+        /// <summary>
+        /// Creates a new <see cref="ClipboardManager"/> using the system clipboard.
+        /// </summary>
         public ClipboardManager()
             : this(new WinRtClipboardWrapper(), new Win32ClipboardWrapper(), new PinnedClipboardItemProvider())
         {
         }
 
+        /// <summary>
+        /// Creates a new <see cref="ClipboardManager"/> using the provided clipboards.
+        /// </summary>
+        /// <remarks>
+        /// This constructor is provided to support mocking.
+        /// </remarks>
+        /// <param name="winRtClipboard">Windows Runtime clipboard APIs.</param>
+        /// <param name="win32Clipboard">Win32 clipboard APIs.</param>
+        /// <param name="pinnedClipboardItemProvider">Provider for pinned clipboard item metadata.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="winRtClipboard"/>, <paramref name="win32Clipboard"/>, or <paramref name="pinnedClipboardItemProvider"/> is null.</exception>
         public ClipboardManager(IWinRtClipboardWrapper winRtClipboard, IWin32ClipboardWrapper win32Clipboard, IPinnedClipboardItemProvider pinnedClipboardItemProvider)
         {
             _winRtClipboard = winRtClipboard ?? throw new ArgumentNullException(nameof(winRtClipboard));
             _win32Clipboard = win32Clipboard ?? throw new ArgumentNullException(nameof(win32Clipboard));
             _pinnedClipboardItemProvider = pinnedClipboardItemProvider ?? throw new ArgumentNullException(nameof(pinnedClipboardItemProvider));
         }
-        #endregion Private Fields
+        #endregion Constructors
 
         #region Public Methods
         public async Task<string?> GetCurrentClipboardValueAsync(ContentType type, CancellationToken? cancellationToken = null)
