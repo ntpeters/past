@@ -38,7 +38,9 @@ namespace past.ConsoleApp.Binders
             var ansiEnabled = _ansiOption != null && parseResult.GetValueForOption(_ansiOption);
             var ansiResetType = _ansiResetOption != null ? parseResult.GetValueForOption(_ansiResetOption) : AnsiResetType.Off;
             var quietEnabled = parseResult.GetValueForOption(_quietOption);
-            return new ConsoleWriter(console, quietEnabled, ansiEnabled , ansiResetType);
+
+            var consoleUtilities = new ConsoleUtilities();
+            return new ConsoleWriter(console, consoleUtilities, quietEnabled, ansiEnabled , ansiResetType);
         }
 
         protected override IConsoleWriter GetBoundValue(BindingContext bindingContext)

@@ -14,13 +14,15 @@ namespace past.ConsoleApp
     public class ConsoleWriter : IConsoleWriter
     {
         private readonly IConsole _console;
+        private readonly IConsoleUtilities _consoleUtilities;
         private readonly bool _suppressErrorOutput;
         private readonly bool _enableAnsiProcessing;
         private readonly AnsiResetType _ansiResetType;
 
-        public ConsoleWriter(IConsole console, bool suppressErrorOutput, bool enableAnsiProcessing, AnsiResetType ansiResetType)
+        public ConsoleWriter(IConsole console, IConsoleUtilities consoleUtilities, bool suppressErrorOutput, bool enableAnsiProcessing, AnsiResetType ansiResetType)
         {
             _console = console ?? throw new ArgumentNullException(nameof(console));
+            _consoleUtilities = consoleUtilities ?? throw new ArgumentNullException(nameof(consoleUtilities));
             _suppressErrorOutput = suppressErrorOutput;
             _enableAnsiProcessing = enableAnsiProcessing;
             _ansiResetType = ansiResetType;
@@ -40,7 +42,7 @@ namespace past.ConsoleApp
                 value = formatter.Format(value, index, item.Id, item.Timestamp, emitAnsiReset, emitLineEnding);
             }
 
-            WriteInternal(value);
+            WriteValueInternal(value);
         }
 
         public void WriteValue(string? value, IValueFormatter? formatter = null)
@@ -56,16 +58,16 @@ namespace past.ConsoleApp
                 value = formatter.Format(value, emitAnsiReset);
             }
 
-            WriteInternal(value);
+            WriteValueInternal(value);
         }
 
         public void WriteLine(string text) => _console.WriteLine(text);
 
         public void WriteErrorLine(string text) => _console.WriteErrorLine(text, _suppressErrorOutput);
 
-        private void WriteInternal(string value)
+        private void WriteValueInternal(string value)
         {
-            if (_enableAnsiProcessing && !_console.IsOutputRedirected && !ConsoleHelpers.TryEnableVirtualTerminalProcessing(out var error))
+            if (_enableAnsiProcessing && !_console.IsOutputRedirected && !_consoleUtilities.TryEnableVirtualTerminalProcessing(out var error))
             {
                 _console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: _suppressErrorOutput);
             }
