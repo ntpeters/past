@@ -7,14 +7,19 @@ namespace past.ConsoleApp.Binders
 {
     public class ConsoleWriterBinder : BinderBase<IConsoleWriter>
     {
-        private readonly Option<bool> _ansiOption;
-        private readonly Option<AnsiResetType> _ansiResetOption;
+        private readonly Option<bool>? _ansiOption;
+        private readonly Option<AnsiResetType>? _ansiResetOption;
         private readonly Option<bool> _quietOption;
 
         public ConsoleWriterBinder(Option<bool> ansiOption, Option<AnsiResetType> ansiResetOption, Option<bool> quietOption)
+            : this(quietOption)
         {
             _ansiOption = ansiOption ?? throw new ArgumentNullException(nameof(ansiOption));
             _ansiResetOption = ansiResetOption ?? throw new ArgumentNullException(nameof(ansiResetOption));
+        }
+
+        public ConsoleWriterBinder(Option<bool> quietOption)
+        {
             _quietOption = quietOption ?? throw new ArgumentNullException(nameof(quietOption));
         }
 
@@ -30,8 +35,8 @@ namespace past.ConsoleApp.Binders
         /// <returns><see cref="IConsoleWriter"/> based on the values from the parse result.</returns>
         public IConsoleWriter GetBoundValue(ParseResult parseResult, IConsole console)
         {
-            var ansiEnabled = parseResult.GetValueForOption(_ansiOption);
-            var ansiResetType = parseResult.GetValueForOption(_ansiResetOption);
+            var ansiEnabled = _ansiOption != null && parseResult.GetValueForOption(_ansiOption);
+            var ansiResetType = _ansiResetOption != null ? parseResult.GetValueForOption(_ansiResetOption) : AnsiResetType.Off;
             var quietEnabled = parseResult.GetValueForOption(_quietOption);
             return new ConsoleWriter(console, quietEnabled, ansiEnabled , ansiResetType);
         }

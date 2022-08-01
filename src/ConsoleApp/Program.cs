@@ -57,9 +57,10 @@ namespace past.ConsoleApp
             rootCommand.AddCommand(statusCommand);
             rootCommand.AddCommand(helpCommand);
 
-            rootCommand.SetHandler<IConsoleWriter, ContentType, CancellationToken>(
+            rootCommand.SetHandler<IConsoleWriter, IValueFormatter, ContentType, CancellationToken>(
                 consoleClipboard.GetCurrentClipboardValueAsync,
                 new ConsoleWriterBinder(commandFactory.AnsiOption, commandFactory.AnsiResetOption, commandFactory.QuietOption),
+                new ValueFormatterBinder(),
                 new ContentTypeBinder(commandFactory.TypeOption, commandFactory.AllOption));
 
             return await rootCommand.InvokeAsync(args);

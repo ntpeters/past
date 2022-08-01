@@ -7,10 +7,18 @@ namespace past.ConsoleApp.Binders
 {
     public class ValueFormatterBinder : BinderBase<IValueFormatter>
     {
-        private readonly Option<bool> _nullOption;
-        private readonly Option<bool> _indexOption;
-        private readonly Option<bool> _idOption;
-        private readonly Option<bool> _timeOption;
+        private readonly Option<bool>? _nullOption;
+        private readonly Option<bool>? _indexOption;
+        private readonly Option<bool>? _idOption;
+        private readonly Option<bool>? _timeOption;
+
+        public ValueFormatterBinder()
+        {
+            _nullOption = null;
+            _indexOption = null;
+            _idOption = null;
+            _timeOption = null;
+        }
 
         public ValueFormatterBinder(Option<bool> nullOption, Option<bool> indexOption, Option<bool> idOption, Option<bool> timeOption)
         {
@@ -31,10 +39,10 @@ namespace past.ConsoleApp.Binders
         /// <returns><see cref="IValueFormatter"/> based on the values from the parse result.</returns>
         public IValueFormatter GetBoundValue(ParseResult parseResult)
         {
-            var nullEnabled = parseResult.GetValueForOption(_nullOption);
-            var indexEnabled = parseResult.GetValueForOption(_indexOption);
-            var idEnabled = parseResult.GetValueForOption(_idOption);
-            var timeEnabled = parseResult.GetValueForOption(_timeOption);
+            var nullEnabled = _nullOption != null && parseResult.GetValueForOption(_nullOption);
+            var indexEnabled = _indexOption != null && parseResult.GetValueForOption(_indexOption);
+            var idEnabled = _idOption != null && parseResult.GetValueForOption(_idOption);
+            var timeEnabled = _timeOption != null && parseResult.GetValueForOption(_timeOption);
             return new ValueFormatter(nullEnabled, indexEnabled, idEnabled, timeEnabled);
         }
 

@@ -64,27 +64,28 @@ namespace past.ConsoleApp
             return listCommand;
         }
 
-        public Command CreateGetCommand(Func<IConsoleWriter, ClipboardItemIdentifier, ContentType, bool, CancellationToken, Task> handle)
+        public Command CreateGetCommand(Func<IConsoleWriter, IValueFormatter, ClipboardItemIdentifier, ContentType, bool, CancellationToken, Task> handle)
         {
             var getCommand = new Command("get", "Gets the item at the specified index from clipboard history");
             getCommand.AddArgument(IdentifierArgument);
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             getCommand.AddOption(setCurrentOption);
-            getCommand.SetHandler<IConsoleWriter, ClipboardItemIdentifier, ContentType, bool, CancellationToken>(
+            getCommand.SetHandler<IConsoleWriter, IValueFormatter, ClipboardItemIdentifier, ContentType, bool, CancellationToken>(
                 handle,
                 new ConsoleWriterBinder(AnsiOption, AnsiResetOption, QuietOption),
+                new ValueFormatterBinder(),
                 new ClipboardItemIdentifierBinder(IdentifierArgument),
                 new ContentTypeBinder(TypeOption, AllOption),
                 setCurrentOption);
             return getCommand;
         }
 
-        public Command CreateStatusCommand(Action<InvocationContext, IConsole, bool, CancellationToken> handle)
+        public Command CreateStatusCommand(Action<IConsoleWriter, InvocationContext> handle)
         {
             var statusCommand = new Command("status", "Gets the status of the clipboard history settings on this device.");
             statusCommand.SetHandler(
                 handle,
-                QuietOption);
+                new ConsoleWriterBinder(QuietOption));
             return statusCommand;
         }
 
