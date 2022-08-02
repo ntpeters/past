@@ -14,12 +14,15 @@ namespace past.ConsoleApp
     /// <inheritdoc cref="IConsoleWriter"/>
     public class ConsoleWriter : IConsoleWriter
     {
+        #region Public Properties
+        public  bool SuppressErrorOutput { get; }
+        public  bool EnableAnsiProcessing { get; }
+        public  AnsiResetType AnsiResetType { get; }
+        #endregion Public Properties
+
         #region Private Fields
         private readonly IConsole _console;
         private readonly IConsoleUtilities _consoleUtilities;
-        private readonly bool _suppressErrorOutput;
-        private readonly bool _enableAnsiProcessing;
-        private readonly AnsiResetType _ansiResetType;
         #endregion Private Fields
 
         #region Constructors
@@ -36,15 +39,17 @@ namespace past.ConsoleApp
         {
             _console = console ?? throw new ArgumentNullException(nameof(console));
             _consoleUtilities = consoleUtilities ?? throw new ArgumentNullException(nameof(consoleUtilities));
-            _suppressErrorOutput = suppressErrorOutput;
-            _enableAnsiProcessing = enableAnsiProcessing;
-            _ansiResetType = ansiResetType;
+            SuppressErrorOutput = suppressErrorOutput;
+            EnableAnsiProcessing = enableAnsiProcessing;
+            AnsiResetType = ansiResetType;
         }
         #endregion Constructors
 
         #region Public Methods
         public async Task WriteItemAsync(IClipboardHistoryItemWrapper item, ContentType type, int? index = null, IValueFormatter? formatter = null, bool emitLineEnding = false)
         {
+            _ = item ?? throw new ArgumentNullException(nameof(item));
+
             var value = await GetClipboardItemValueAsync(item.Content, type);
             if (value == null)
             {
@@ -78,7 +83,7 @@ namespace past.ConsoleApp
 
         public void WriteLine(string text) => _console.WriteLine(text);
 
-        public void WriteErrorLine(string text) => _console.WriteErrorLine(text, _suppressErrorOutput);
+        public void WriteErrorLine(string text) => _console.WriteErrorLine(text, SuppressErrorOutput);
         #endregion Public Methods
 
         #region Private Methods
@@ -89,9 +94,9 @@ namespace past.ConsoleApp
         /// <param name="value">Value to write.</param>
         private void WriteValueInternal(string value)
         {
-            if (_enableAnsiProcessing && !_console.IsOutputRedirected && !_consoleUtilities.TryEnableVirtualTerminalProcessing(out var error))
+            if (EnableAnsiProcessing && !_console.IsOutputRedirected && !_consoleUtilities.TryEnableVirtualTerminalProcessing(out var error))
             {
-                _console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: _suppressErrorOutput);
+                _console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: SuppressErrorOutput);
             }
 
             _console.Write(value);
@@ -112,7 +117,7 @@ namespace past.ConsoleApp
             else if (type == ContentType.All)
             {
                 var message = new StringBuilder();
-                if (_enableAnsiProcessing)
+                if (EnableAnsiProcessing)
                 {
                     message.Append(Ansi.Color.Foreground.Red.EscapeSequence);
                 }
@@ -128,7 +133,7 @@ namespace past.ConsoleApp
         /// Determines whether ANSI reset should be emitted for the given value and current invocation, in the current environment.
         /// </summary>
         /// <remarks>
-        /// When <see cref="_ansiResetType"/> is <see cref="AnsiResetType.Auto"/>, then this method will return true
+        /// When <see cref="AnsiResetType"/> is <see cref="AnsiResetType.Auto"/>, then this method will return true
         /// if all of the following conditions are also true:
         /// <list type="bullet">
         /// <item>ANSI processing is enabled</item>
@@ -141,11 +146,11 @@ namespace past.ConsoleApp
         /// <returns>True if ANSI reset should be emitted, false otherwise.</returns>
         private bool ShouldEmitAnsiReset(string value)
         {
-            switch (_ansiResetType)
+            switch (AnsiResetType)
             {
                 case AnsiResetType.Auto:
-                    bool shouldEmitAnsiReset = _enableAnsiProcessing;
-                    if (!_enableAnsiProcessing)
+                    bool shouldEmitAnsiReset = EnableAnsiProcessing;
+                    if (!EnableAnsiProcessing)
                     {
                         if (_console.IsOutputRedirected)
                         {

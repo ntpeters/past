@@ -10,6 +10,21 @@ namespace past.ConsoleApp
     public interface IConsoleWriter
     {
         /// <summary>
+        /// When true, error messages will be suppressed.
+        /// </summary>
+        bool SuppressErrorOutput { get; }
+
+        /// <summary>
+        /// When true, will attempt to enable virtual terminal processing for the connected console.
+        /// </summary>
+        bool EnableAnsiProcessing { get; }
+
+        /// <summary>
+        /// Controls whether to emit ANSI reset after writing values to the console.
+        /// </summary>
+        AnsiResetType AnsiResetType { get; }
+
+        /// <summary>
         /// Formats the given value with the provided type, index, formatted, and line ending preference.
         /// Writes the formatted value to the output stream of the connected console.
         /// </summary>
@@ -19,6 +34,7 @@ namespace past.ConsoleApp
         /// <param name="formatter">Optional formatter to use for formatting the value.</param>
         /// <param name="emitLineEnding">Whether to emit a line ending after writing the item value.</param>
         /// <returns>A task representing the operation.</returns>
+        /// <exception cref="System.ArgumentNullException"><paramref name="item"/> is null.</exception>
         Task WriteItemAsync(IClipboardHistoryItemWrapper item, ContentType type, int? index = null, IValueFormatter? formatter = null, bool emitLineEnding = false);
 
         /// <summary>
