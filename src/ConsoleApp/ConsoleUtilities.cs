@@ -33,54 +33,29 @@ namespace past.ConsoleApp
         #endregion Constructors
 
         #region Public Methods
-        public bool TryEnableVirtualTerminalProcessing([NotNullWhen(false)] out string? error, bool useCommandLineInteropApi = true)
+        public bool TryEnableVirtualTerminalProcessing([NotNullWhen(false)] out string? error)
         {
-            if (useCommandLineInteropApi)
+            var iStdOut = _nativeMethods.GetStdHandle(NativeConstants.STD_OUTPUT_HANDLE);
+            if (iStdOut == NativeConstants.INVALID_HANDLE_VALUE)
             {
-                var vtMode = VirtualTerminalMode.TryEnable();
-                if (vtMode == null)
-                {
-                    error = "VTMode is null";
-                    return false;
-                }
-
-                if (!vtMode.IsEnabled)
-                {
-                    if (vtMode.Error != null)
-                    {
-                        error = $"VTMode Error {vtMode.Error}: {GetSystemErrorMessage((uint)vtMode.Error)}";
-                    }
-                    else
-                    {
-                        error = "VTMode error is null";
-                    }
-                    return false;
-                }
-            }
-            else
-            {
-                var iStdOut = _nativeMethods.GetStdHandle(NativeConstants.STD_OUTPUT_HANDLE);
-                if (iStdOut == NativeConstants.INVALID_HANDLE_VALUE)
-                {
-                    error = GetLastErrorMessage();
-                    return false;
-                }
-
-                if (!_nativeMethods.GetConsoleMode(iStdOut, out uint outConsoleMode))
-                {
-                    error = GetLastErrorMessage();
-                    return false;
-                }
-
-                outConsoleMode |= NativeConstants.ENABLE_VIRTUAL_TERMINAL_PROCESSING | NativeConstants.DISABLE_NEWLINE_AUTO_RETURN;
-                if (!_nativeMethods.SetConsoleMode(iStdOut, outConsoleMode))
-                {
-                    error = GetLastErrorMessage();
-                    return false;
-                }
+                error = GetLastErrorMessage();
+                return false;
             }
 
-            error = string.Empty;
+            if (!_nativeMethods.GetConsoleMode(iStdOut, out uint outConsoleMode))
+            {
+                error = GetLastErrorMessage();
+                return false;
+            }
+
+            outConsoleMode |= NativeConstants.ENABLE_VIRTUAL_TERMINAL_PROCESSING | NativeConstants.DISABLE_NEWLINE_AUTO_RETURN;
+            if (!_nativeMethods.SetConsoleMode(iStdOut, outConsoleMode))
+            {
+                error = GetLastErrorMessage();
+                return false;
+            }
+
+            error = null;
             return true;
         }
 
@@ -106,7 +81,7 @@ namespace past.ConsoleApp
                 return false;
             }
 
-            error = string.Empty;
+            error = null;
             return true;
         }
 
@@ -127,18 +102,26 @@ namespace past.ConsoleApp
                 return false;
             }
 
-            originalMode = outConsoleMode;
             if (!_nativeMethods.SetConsoleMode(iStdOut, NativeConstants.CLEAR_CONSOLE_MODE))
             {
                 error = GetLastErrorMessage();
+                originalMode = null;
                 return false;
             }
 
-            error = string.Empty;
+            originalMode = outConsoleMode;
+            error = null;
             return true;
         }
+        #endregion Public Methods
 
-        public string GetSystemErrorMessage(uint errorCode)
+        #region Private Methods
+        /// <summary>
+        /// Gets the system error message associated with the specified system error code.
+        /// </summary>
+        /// <param name="errorCode">System error code.</param>
+        /// <returns>Message associated with the <paramref name="errorCode"/>.</returns>
+        private string GetSystemErrorMessage(uint errorCode)
         {
             if (_nativeMethods.FormatMessage(
                 NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER | NativeConstants.FORMAT_MESSAGE_FROM_SYSTEM | NativeConstants.FORMAT_MESSAGE_IGNORE_INSERTS,
@@ -156,13 +139,17 @@ namespace past.ConsoleApp
             return message.TrimEnd('\n');
         }
 
-        public string GetLastErrorMessage()
+        /// <summary>
+        /// Gets the system error message associated with the calling thread's last error code value.
+        /// </summary>
+        /// <returns>Message associated with the the calling thread's last error code value.</returns>
+        private string GetLastErrorMessage()
         {
             var errorCode = _nativeMethods.GetLastError();
             var errorMessage = GetSystemErrorMessage(errorCode);
             return $"Error {errorCode}: {errorMessage}";
         }
-        #endregion Public Methods
+        #endregion Private Methods
 
     }
 }
