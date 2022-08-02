@@ -57,6 +57,22 @@ namespace past.ConsoleApp.Wrappers
         public const uint ENABLE_PROCESSED_OUTPUT = 0x0001;
 
         /// <summary>
+        /// When writing writing or echoing to the console, the cursor moves to the beginning of the
+        /// next row when it reaches the end of the current row.
+        /// <br/>
+        /// This causes the rows displayed in the console window to scroll up automatically when the
+        /// cursor advances beyond the last row in the window.
+        /// It also causes the contents of the console screen buffer to scroll up (discarding the top row of the console screen buffer)
+        /// when the cursor advances beyond the last row in the console screen buffer.
+        /// <br/>
+        /// If this mode is disabled, the last character in the row is overwritten with any subsequent characters.
+        /// </summary>
+        /// <remarks>
+        /// For more info, see: <see href="https://docs.microsoft.com/en-us/windows/console/setconsolemode#parameters"/>
+        /// </remarks>
+        public const uint ENABLE_WRAP_AT_EOL_OUTPUT = 0x0002;
+
+        /// <summary>
         /// When writing to the console, characters are parsed for VT100 and similar control character sequences that
         /// control cursor movement, color/font mode, and other operations that can also be performed via the existing
         /// Console APIs.
