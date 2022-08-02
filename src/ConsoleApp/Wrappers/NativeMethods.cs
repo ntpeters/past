@@ -63,8 +63,10 @@ namespace past.ConsoleApp.Wrappers
         /// </list>
         /// </param>
         /// <returns>
-        /// If the function succeeds, the return value is a handle to the specified device, or a redirected handle set by a previous call to SetStdHandle.
-        /// The handle has GENERIC_READ and GENERIC_WRITE access rights, unless the application has used SetStdHandle to set a standard handle with lesser access.
+        /// If the function succeeds, the return value is a handle to the specified device,
+        /// or a redirected handle set by a previous call to SetStdHandle.
+        /// The handle has GENERIC_READ and GENERIC_WRITE access rights, unless the application
+        /// has used SetStdHandle to set a standard handle with lesser access.
         /// <br/>
         /// If the function fails, the return value is <see cref="NativeConstants.INVALID_HANDLE_VALUE"/>.
         /// To get extended error information, call <see cref="GetLastError"/>.
@@ -93,7 +95,8 @@ namespace past.ConsoleApp.Wrappers
         /// Formats a message string.
         /// <br/>
         /// The function requires a message definition as input.
-        /// The message definition can come from a buffer passed into the function. It can come from a message table resource in an already-loaded module.
+        /// The message definition can come from a buffer passed into the function.
+        /// It can come from a message table resource in an already-loaded module.
         /// Or the caller can ask the function to search the system's message table resource(s) for the message definition.
         /// <br/>
         /// The function finds the message definition in a message table resource based on a message identifier and a language identifier.
@@ -129,8 +132,10 @@ namespace past.ConsoleApp.Wrappers
         /// This buffer cannot be larger than 64K bytes.
         /// </param>
         /// <param name="nSize">
-        /// If the <see cref="NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER"/> flag is not set, this parameter specifies the size of the output buffer, in TCHARs.
-        /// If <see cref="NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER"/> is set, this parameter specifies the minimum number of TCHARs to allocate for an output buffer.
+        /// If the <see cref="NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER"/> flag is not set,
+        /// this parameter specifies the size of the output buffer, in TCHARs.
+        /// If <see cref="NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER"/> is set,
+        /// this parameter specifies the minimum number of TCHARs to allocate for an output buffer.
         /// <br/>
         /// The output buffer cannot be larger than 64K bytes.
         /// </param>
