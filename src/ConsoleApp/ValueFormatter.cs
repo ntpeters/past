@@ -7,11 +7,14 @@ namespace past.ConsoleApp
     /// <inheritdoc cref="IValueFormatter"/>
     public class ValueFormatter : IValueFormatter
     {
-        private readonly bool _nullLineEnding;
-        private readonly bool _includeIndex;
-        private readonly bool _includeId;
-        private readonly bool _includeTimestamp;
+        #region Public Properties
+        public bool NullLineEnding { get; }
+        public bool IncludeIndex { get; }
+        public bool IncludeId { get; }
+        public bool IncludeTimestamp { get; }
+        #endregion Public Properties
 
+        #region Constructor
         /// <summary>
         /// Creates a new <see cref="ValueFormatter"/> with the given options.
         /// </summary>
@@ -21,11 +24,12 @@ namespace past.ConsoleApp
         /// <param name="includeTimestamp">Whether to include the timestamp in formatted values.</param>
         public ValueFormatter(bool nullLineEnding, bool includeIndex, bool includeId, bool includeTimestamp)
         {
-            _nullLineEnding = nullLineEnding;
-            _includeIndex = includeIndex;
-            _includeId = includeId;
-            _includeTimestamp = includeTimestamp;
+            NullLineEnding = nullLineEnding;
+            IncludeIndex = includeIndex;
+            IncludeId = includeId;
+            IncludeTimestamp = includeTimestamp;
         }
+        #endregion Constructor
 
         #region Public Methods
         public string Format(string value, bool emitAnsiReset, bool emitLineEnding = false)
@@ -40,17 +44,17 @@ namespace past.ConsoleApp
         public string Format(string value, int? index, string id, DateTimeOffset timestamp, bool emitAnsiReset, bool emitLineEnding = false)
         {
             var outputValue = new StringBuilder();
-            if (_includeIndex && index != null)
+            if (IncludeIndex && index != null)
             {
                 outputValue.Append($"{index}:");
             }
 
-            if (_includeId)
+            if (IncludeId)
             {
                 outputValue.Append($"{id}:");
             }
 
-            if (_includeTimestamp)
+            if (IncludeTimestamp)
             {
                 outputValue.Append($"{timestamp}:");
             }
@@ -68,8 +72,8 @@ namespace past.ConsoleApp
         /// Appends ANSI reset and the line ending, if specified, to the given <see cref="StringBuilder"/>.
         /// </summary>
         /// <remarks>
-        /// The line ending will be the current environment's line ending unless this <see cref="_nullLineEnding"/> is true.
-        /// If <see cref="_nullLineEnding"/> is true then the null byte ('\0') will be appended instead.
+        /// The line ending will be the current environment's line ending unless this <see cref="NullLineEnding"/> is true.
+        /// If <see cref="NullLineEnding"/> is true then the null byte ('\0') will be appended instead.
         /// </remarks>
         /// <param name="stringBuilder">The <see cref="StringBuilder"/> to append to.</param>
         /// <param name="emitAnsiReset">Whether to emit ANSI reset.</param>
@@ -84,7 +88,7 @@ namespace past.ConsoleApp
 
             if (emitLineEnding)
             {
-                if (_nullLineEnding)
+                if (NullLineEnding)
                 {
                     stringBuilder.Append('\0');
                 }

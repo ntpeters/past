@@ -9,7 +9,14 @@ namespace past.ConsoleApp.Test
         [TestCaseSource(nameof(ConstructorTestCases))]
         public void Create_ValidParameters_Success(bool nullLineEnding, bool includeIndex, bool includeId, bool includeTimestamp)
         {
-            Assert.DoesNotThrow(() => new ValueFormatter(nullLineEnding, includeIndex, includeId, includeTimestamp));
+            IValueFormatter? createdInstance = null;
+            Assert.DoesNotThrow(() => createdInstance = new ValueFormatter(nullLineEnding, includeIndex, includeId, includeTimestamp));
+
+            Assert.That(createdInstance, Is.Not.Null);
+            Assert.That(createdInstance.NullLineEnding, Is.EqualTo(nullLineEnding));
+            Assert.That(createdInstance.IncludeIndex, Is.EqualTo(includeIndex));
+            Assert.That(createdInstance.IncludeId, Is.EqualTo(includeId));
+            Assert.That(createdInstance.IncludeTimestamp, Is.EqualTo(includeTimestamp));
         }
         #endregion Constructor
 

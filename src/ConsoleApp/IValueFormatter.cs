@@ -8,6 +8,26 @@ namespace past.ConsoleApp
     public interface IValueFormatter
     {
         /// <summary>
+        /// When true, the ASCII NUL character will be used as the line ending in the formatted value.
+        /// </summary>
+        bool NullLineEnding { get; }
+
+        /// <summary>
+        /// When true, the provided index will be included in the formatted value.
+        /// </summary>
+        bool IncludeIndex { get; }
+
+        /// <summary>
+        /// When true, the provided ID will be included in the formatted value.
+        /// </summary>
+        bool IncludeId { get; }
+
+        /// <summary>
+        /// When true, the provided timestamp will be included in the formatted value.
+        /// </summary>
+        bool IncludeTimestamp { get; }
+
+        /// <summary>
         /// Formats the given value to append ANSI reset and the current environment's line ending if specified.
         /// </summary>
         /// <param name="value">Value to format.</param>
