@@ -1,0 +1,30 @@
+# Ignore dirs #
+[Bb]in/
+[Bb]uild/
+[Gg]en/
+[Oo]ut/
+[Tt]mp/
+[Oo]bj/
+
+# Tags #
+TAGS
+!TAGS/
+tags
+tags.lock
+tags.temp
+!tags/
+
+# Visual Studio #
+*.suo
+*.user
+*.sln.docstates
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+*.ide/
+.vs/
+TestResults/
