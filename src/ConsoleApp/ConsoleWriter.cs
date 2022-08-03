@@ -152,30 +152,28 @@ namespace past.ConsoleApp
             switch (AnsiResetType)
             {
                 case AnsiResetType.Auto:
-                    bool shouldEmitAnsiReset = EnableAnsiProcessing;
-                    if (!EnableAnsiProcessing)
+                    // Don't emit ANSI reset if the value doesn't contain ANSI escape sequences
+                    if (!Regex.IsMatch(value, "\\e\\[[0-9;]*m"))
                     {
-                        if (_console.IsOutputRedirected)
-                        {
-                            // Don't emit ANSI reset if output was redirected and ANSI processing was not enabled
-                            shouldEmitAnsiReset = false;
-                        }
-                        else
-                        {
-                            // Emit ANSI reset if the current terminal probably supports ANSI sequences based on TERM and COLORTERM, even if ANSI processing was not enabled
-                            var termValue = _environment.GetEnvironmentVariable("TERM");
-                            var colorTermValue = _environment.GetEnvironmentVariable("COLORTERM");
-                            shouldEmitAnsiReset = termValue == "xterm-256color" || colorTermValue == "24bit" || colorTermValue == "truecolor";
-                        }
+                        return false;
                     }
 
-                    if (shouldEmitAnsiReset && Regex.IsMatch(value, "\\e\\[[0-9;]*m"))
+                    // Emit ANSI reset if the value contains ANSI escape sequences and ANSI processing was enabled
+                    if (EnableAnsiProcessing)
                     {
-                        // Emit ANSI reset if the value contains ANSI escape sequences and either ANSI processing was enabled or the current terminal probably supports them based on TERM and COLORTERM
-                        shouldEmitAnsiReset = true;
+                        return true;
                     }
 
-                    return shouldEmitAnsiReset;
+                    // Don't emit ANSI reset if output was redirected and ANSI processing was not enabled
+                    if (_console.IsOutputRedirected)
+                    {
+                        return false;
+                    }
+
+                    // Emit ANSI reset if  the value contains ANSI escape sequences and the current terminal probably
+                    // supports ANSI sequences based on COLORTERM, even if ANSI processing was not enabled
+                    var colorTermValue = _environment.GetEnvironmentVariable("COLORTERM");
+                    return colorTermValue == "24bit" || colorTermValue == "truecolor";
                 case AnsiResetType.On:
                     return true;
                 case AnsiResetType.Off: // Fallthrough
