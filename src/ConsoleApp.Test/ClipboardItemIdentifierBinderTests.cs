@@ -10,8 +10,8 @@ namespace past.ConsoleApp.Test
         [Test]
         public void Constructor_NonNullArgument_Success()
         {
-            var commandFactory = new CommandFactory();
-            Assert.DoesNotThrow(() => new ClipboardItemIdentifierBinder(commandFactory.IdentifierArgument));
+            var identifierArgument = new Argument<string>("--identitifier");
+            Assert.DoesNotThrow(() => new ClipboardItemIdentifierBinder(identifierArgument));
         }
 
         [Test]
@@ -27,15 +27,15 @@ namespace past.ConsoleApp.Test
         {
             // Arrange
             var expectedIndex = 42;
-            var commandFactory = new CommandFactory();
+            var identifierArgument = new Argument<string>("--identitifier");
 
             var testCommand = new Command("test");
-            testCommand.AddArgument(commandFactory.IdentifierArgument);
+            testCommand.AddArgument(identifierArgument);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse($"{expectedIndex}");
 
-            var binder = new ClipboardItemIdentifierBinder(commandFactory.IdentifierArgument);
+            var binder = new ClipboardItemIdentifierBinder(identifierArgument);
 
             // Act
             var identifier = binder.GetBoundValue(parseResult);
@@ -51,15 +51,15 @@ namespace past.ConsoleApp.Test
         {
             // Arrange
             var expectedId = Guid.NewGuid();
-            var commandFactory = new CommandFactory();
+            var identifierArgument = new Argument<string>("--identitifier");
 
             var testCommand = new Command("test");
-            testCommand.AddArgument(commandFactory.IdentifierArgument);
+            testCommand.AddArgument(identifierArgument);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse($"{expectedId}");
 
-            var binder = new ClipboardItemIdentifierBinder(commandFactory.IdentifierArgument);
+            var binder = new ClipboardItemIdentifierBinder(identifierArgument);
 
             // Act
             var identifier = binder.GetBoundValue(parseResult);
@@ -77,15 +77,15 @@ namespace past.ConsoleApp.Test
         {
             // Arrange
             var expectedExceptionMessage = $"Failed to parse identifier: ${invalidIdentifierString}";
-            var commandFactory = new CommandFactory();
+            var identifierArgument = new Argument<string>("--identitifier");
 
             var testCommand = new Command("test");
-            testCommand.AddArgument(commandFactory.IdentifierArgument);
+            testCommand.AddArgument(identifierArgument);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse(invalidIdentifierString);
 
-            var binder = new ClipboardItemIdentifierBinder(commandFactory.IdentifierArgument);
+            var binder = new ClipboardItemIdentifierBinder(identifierArgument);
 
             // Act
             var actualException = Assert.Throws<ArgumentException>(() => binder.GetBoundValue(parseResult));

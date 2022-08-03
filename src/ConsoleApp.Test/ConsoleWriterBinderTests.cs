@@ -11,8 +11,8 @@ namespace past.ConsoleApp.Test
         [Test]
         public void CreateWithQuietOption_NonNull_Success()
         {
-            var commandFactory = new CommandFactory();
-            Assert.DoesNotThrow(() => new ConsoleWriterBinder(commandFactory.QuietOption));
+            var quietOption = new Option<bool>("--quiet");
+            Assert.DoesNotThrow(() => new ConsoleWriterBinder(quietOption));
         }
 
         [Test]
@@ -24,40 +24,49 @@ namespace past.ConsoleApp.Test
         [Test]
         public void CreateWithAllOptions_AllNonNull_Success()
         {
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+            var quietOption = new Option<bool>("--quiet");
+
             Assert.DoesNotThrow(() => new ConsoleWriterBinder(
-                commandFactory.AnsiOption,
-                commandFactory.AnsiResetOption,
-                commandFactory.QuietOption));
+                ansiOption,
+                ansiResetOption,
+                quietOption));
         }
 
         [Test]
         public void CreateWithAllOptions_NullAnsiOption_ThrowsArgumentNullException()
         {
-            var commandFactory = new CommandFactory();
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+            var quietOption = new Option<bool>("--quiet");
+
             Assert.Throws<ArgumentNullException>(() => new ConsoleWriterBinder(
                 null!,
-                commandFactory.AnsiResetOption,
-                commandFactory.QuietOption));
+                ansiResetOption,
+                quietOption));
         }
 
         [Test]
         public void CreateWithAllOptions_NullAnsiResetOption_ThrowsArgumentNullException()
         {
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var quietOption = new Option<bool>("--quiet");
+
             Assert.Throws<ArgumentNullException>(() => new ConsoleWriterBinder(
-                commandFactory.AnsiOption,
+                ansiOption,
                 null!,
-                commandFactory.QuietOption));
+                quietOption));
         }
 
         [Test]
         public void CreateWithAllOptions_NullQuietOption_ThrowsArgumentNullException()
         {
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+
             Assert.Throws<ArgumentNullException>(() => new ConsoleWriterBinder(
-                commandFactory.AnsiOption,
-                commandFactory.AnsiResetOption,
+                ansiOption,
+                ansiResetOption,
                 null!));
         }
         #endregion Constructors
@@ -67,18 +76,21 @@ namespace past.ConsoleApp.Test
         public void GetBoundValueQuietOptionOnly_NoBoundOptions_ReturnsConsoleWriterWithNoOptionsEnabled()
         {
             // Arrange
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+            var quietOption = new Option<bool>("--quiet");
+
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.AnsiOption);
-            testCommand.AddOption(commandFactory.AnsiResetOption);
-            testCommand.AddOption(commandFactory.QuietOption);
+            testCommand.AddOption(ansiOption);
+            testCommand.AddOption(ansiResetOption);
+            testCommand.AddOption(quietOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse("");
 
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
 
-            var binder = new ConsoleWriterBinder(commandFactory.QuietOption);
+            var binder = new ConsoleWriterBinder(quietOption);
 
             // Act
             var consoleWriter = binder.GetBoundValue(parseResult, mockConsole.Object);
@@ -94,18 +106,21 @@ namespace past.ConsoleApp.Test
         public void GetBoundValueQuietOptionOnly_AnsiOption_ReturnsConsoleWriterWithNoOptionsEnabled()
         {
             // Arrange
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+            var quietOption = new Option<bool>("--quiet");
+
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.AnsiOption);
-            testCommand.AddOption(commandFactory.AnsiResetOption);
-            testCommand.AddOption(commandFactory.QuietOption);
+            testCommand.AddOption(ansiOption);
+            testCommand.AddOption(ansiResetOption);
+            testCommand.AddOption(quietOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse("--ansi");
 
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
 
-            var binder = new ConsoleWriterBinder(commandFactory.QuietOption);
+            var binder = new ConsoleWriterBinder(quietOption);
 
             // Act
             var consoleWriter = binder.GetBoundValue(parseResult, mockConsole.Object);
@@ -124,18 +139,21 @@ namespace past.ConsoleApp.Test
         public void GetBoundValueQuietOptionOnly_AnsiResetOption_ReturnsConsoleWriterWithNoOptionsEnabled(AnsiResetType inputAnsiResetType)
         {
             // Arrange
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+            var quietOption = new Option<bool>("--quiet");
+
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.AnsiOption);
-            testCommand.AddOption(commandFactory.AnsiResetOption);
-            testCommand.AddOption(commandFactory.QuietOption);
+            testCommand.AddOption(ansiOption);
+            testCommand.AddOption(ansiResetOption);
+            testCommand.AddOption(quietOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse($"--ansi-reset {inputAnsiResetType}");
 
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
 
-            var binder = new ConsoleWriterBinder(commandFactory.QuietOption);
+            var binder = new ConsoleWriterBinder(quietOption);
 
             // Act
             var consoleWriter = binder.GetBoundValue(parseResult, mockConsole.Object);
@@ -151,18 +169,21 @@ namespace past.ConsoleApp.Test
         public void GetBoundValueQuietOptionOnly_QuietOption_ReturnsConsoleWriterWithOnlySuppressErrorOutputEnabled()
         {
             // Arrange
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+            var quietOption = new Option<bool>("--quiet");
+
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.AnsiOption);
-            testCommand.AddOption(commandFactory.AnsiResetOption);
-            testCommand.AddOption(commandFactory.QuietOption);
+            testCommand.AddOption(ansiOption);
+            testCommand.AddOption(ansiResetOption);
+            testCommand.AddOption(quietOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse("--quiet");
 
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
 
-            var binder = new ConsoleWriterBinder(commandFactory.QuietOption);
+            var binder = new ConsoleWriterBinder(quietOption);
 
             // Act
             var consoleWriter = binder.GetBoundValue(parseResult, mockConsole.Object);
@@ -178,18 +199,21 @@ namespace past.ConsoleApp.Test
         public void GetBoundValueQuietOptionOnly_AllOptions_ReturnsConsoleWriterWithOnlySuppressErrorOutputEnabled()
         {
             // Arrange
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+            var quietOption = new Option<bool>("--quiet");
+
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.AnsiOption);
-            testCommand.AddOption(commandFactory.AnsiResetOption);
-            testCommand.AddOption(commandFactory.QuietOption);
+            testCommand.AddOption(ansiOption);
+            testCommand.AddOption(ansiResetOption);
+            testCommand.AddOption(quietOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse("--ansi --ansi-reset On --quiet");
 
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
 
-            var binder = new ConsoleWriterBinder(commandFactory.QuietOption);
+            var binder = new ConsoleWriterBinder(quietOption);
 
             // Act
             var consoleWriter = binder.GetBoundValue(parseResult, mockConsole.Object);
@@ -207,11 +231,14 @@ namespace past.ConsoleApp.Test
         public void GetBoundValueAllOptions_NoBoundOptions_ReturnsConsoleWriterWithExpectedOptions()
         {
             // Arrange
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+            var quietOption = new Option<bool>("--quiet");
+
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.AnsiOption);
-            testCommand.AddOption(commandFactory.AnsiResetOption);
-            testCommand.AddOption(commandFactory.QuietOption);
+            testCommand.AddOption(ansiOption);
+            testCommand.AddOption(ansiResetOption);
+            testCommand.AddOption(quietOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse("");
@@ -219,9 +246,9 @@ namespace past.ConsoleApp.Test
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
 
             var binder = new ConsoleWriterBinder(
-                commandFactory.AnsiOption,
-                commandFactory.AnsiResetOption,
-                commandFactory.QuietOption);
+                ansiOption,
+                ansiResetOption,
+                quietOption);
 
             // Act
             var consoleWriter = binder.GetBoundValue(parseResult, mockConsole.Object);
@@ -237,11 +264,14 @@ namespace past.ConsoleApp.Test
         public void GetBoundValueAllOptions_AnsiOption_ReturnsConsoleWriterWithExpectedOptions()
         {
             // Arrange
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+            var quietOption = new Option<bool>("--quiet");
+
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.AnsiOption);
-            testCommand.AddOption(commandFactory.AnsiResetOption);
-            testCommand.AddOption(commandFactory.QuietOption);
+            testCommand.AddOption(ansiOption);
+            testCommand.AddOption(ansiResetOption);
+            testCommand.AddOption(quietOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse("--ansi");
@@ -249,9 +279,9 @@ namespace past.ConsoleApp.Test
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
 
             var binder = new ConsoleWriterBinder(
-                commandFactory.AnsiOption,
-                commandFactory.AnsiResetOption,
-                commandFactory.QuietOption);
+                ansiOption,
+                ansiResetOption,
+                quietOption);
 
             // Act
             var consoleWriter = binder.GetBoundValue(parseResult, mockConsole.Object);
@@ -270,11 +300,14 @@ namespace past.ConsoleApp.Test
         public void GetBoundValueAllOptions_AnsiResetOption_ReturnsConsoleWriterWithExpectedOptions(AnsiResetType inputAnsiResetType)
         {
             // Arrange
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+            var quietOption = new Option<bool>("--quiet");
+
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.AnsiOption);
-            testCommand.AddOption(commandFactory.AnsiResetOption);
-            testCommand.AddOption(commandFactory.QuietOption);
+            testCommand.AddOption(ansiOption);
+            testCommand.AddOption(ansiResetOption);
+            testCommand.AddOption(quietOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse($"--ansi-reset {inputAnsiResetType}");
@@ -282,9 +315,9 @@ namespace past.ConsoleApp.Test
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
 
             var binder = new ConsoleWriterBinder(
-                commandFactory.AnsiOption,
-                commandFactory.AnsiResetOption,
-                commandFactory.QuietOption);
+                ansiOption,
+                ansiResetOption,
+                quietOption);
 
             // Act
             var consoleWriter = binder.GetBoundValue(parseResult, mockConsole.Object);
@@ -300,11 +333,14 @@ namespace past.ConsoleApp.Test
         public void GetBoundValueAllOptions_QuietOption_ReturnsConsoleWriterWithExpectedOptions()
         {
             // Arrange
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+            var quietOption = new Option<bool>("--quiet");
+
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.AnsiOption);
-            testCommand.AddOption(commandFactory.AnsiResetOption);
-            testCommand.AddOption(commandFactory.QuietOption);
+            testCommand.AddOption(ansiOption);
+            testCommand.AddOption(ansiResetOption);
+            testCommand.AddOption(quietOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse("--quiet");
@@ -312,9 +348,9 @@ namespace past.ConsoleApp.Test
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
 
             var binder = new ConsoleWriterBinder(
-                commandFactory.AnsiOption,
-                commandFactory.AnsiResetOption,
-                commandFactory.QuietOption);
+                ansiOption,
+                ansiResetOption,
+                quietOption);
 
             // Act
             var consoleWriter = binder.GetBoundValue(parseResult, mockConsole.Object);
@@ -330,11 +366,14 @@ namespace past.ConsoleApp.Test
         public void GetBoundValueAllOptions_AllOptions_ReturnsConsoleWriterWithExpectedOptions()
         {
             // Arrange
-            var commandFactory = new CommandFactory();
+            var ansiOption = new Option<bool>("--ansi");
+            var ansiResetOption = new Option<AnsiResetType>("--ansi-reset");
+            var quietOption = new Option<bool>("--quiet");
+
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.AnsiOption);
-            testCommand.AddOption(commandFactory.AnsiResetOption);
-            testCommand.AddOption(commandFactory.QuietOption);
+            testCommand.AddOption(ansiOption);
+            testCommand.AddOption(ansiResetOption);
+            testCommand.AddOption(quietOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse("--ansi --ansi-reset On --quiet");
@@ -342,9 +381,9 @@ namespace past.ConsoleApp.Test
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
 
             var binder = new ConsoleWriterBinder(
-                commandFactory.AnsiOption,
-                commandFactory.AnsiResetOption,
-                commandFactory.QuietOption);
+                ansiOption,
+                ansiResetOption,
+                quietOption);
 
             // Act
             var consoleWriter = binder.GetBoundValue(parseResult, mockConsole.Object);

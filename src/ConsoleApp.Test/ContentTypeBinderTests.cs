@@ -11,22 +11,28 @@ namespace past.ConsoleApp.Test
         [Test]
         public void Constructor_NonNullParameters_Success()
         {
-            var commandFactory = new CommandFactory();
-            Assert.DoesNotThrow(() => new ContentTypeBinder(commandFactory.TypeOption, commandFactory.AllOption));
+            var typeOption = new Option<ContentType>("--type");
+            var allOption = new Option<bool>("--all");
+
+            Assert.DoesNotThrow(() => new ContentTypeBinder(typeOption, allOption));
         }
 
         [Test]
         public void Constructor_NullTypeOption_ThrowsArgumentNullException()
         {
-            var commandFactory = new CommandFactory();
-            Assert.Throws<ArgumentNullException>(() => new ContentTypeBinder(null!, commandFactory.AllOption));
+            var typeOption = new Option<ContentType>("--type");
+            var allOption = new Option<bool>("--all");
+
+            Assert.Throws<ArgumentNullException>(() => new ContentTypeBinder(null!, allOption));
         }
 
         [Test]
         public void Constructor_NullAllOption_ThrowsArgumentNullException()
         {
-            var commandFactory = new CommandFactory();
-            Assert.Throws<ArgumentNullException>(() => new ContentTypeBinder(commandFactory.TypeOption, null!));
+            var typeOption = new Option<ContentType>("--type");
+            var allOption = new Option<bool>("--all");
+
+            Assert.Throws<ArgumentNullException>(() => new ContentTypeBinder(typeOption, null!));
         }
         #endregion Constructor
 
@@ -36,16 +42,17 @@ namespace past.ConsoleApp.Test
         {
             // Arrange
             var expectedContentType = ContentType.All;
-            var commandFactory = new CommandFactory();
+            var typeOption = new Option<ContentType>("--type");
+            var allOption = new Option<bool>("--all");
 
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.TypeOption);
-            testCommand.AddOption(commandFactory.AllOption);
+            testCommand.AddOption(typeOption);
+            testCommand.AddOption(allOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse("--all");
 
-            var binder = new ContentTypeBinder(commandFactory.TypeOption, commandFactory.AllOption);
+            var binder = new ContentTypeBinder(typeOption, allOption);
 
             // Act
             var actualContentType = binder.GetBoundValue(parseResult);
@@ -62,16 +69,17 @@ namespace past.ConsoleApp.Test
         {
             // Arrange
             var expectedContentType = ContentType.All;
-            var commandFactory = new CommandFactory();
+            var typeOption = new Option<ContentType>("--type");
+            var allOption = new Option<bool>("--all");
 
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.TypeOption);
-            testCommand.AddOption(commandFactory.AllOption);
+            testCommand.AddOption(typeOption);
+            testCommand.AddOption(allOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse($"--all --type {type.ToString()}");
 
-            var binder = new ContentTypeBinder(commandFactory.TypeOption, commandFactory.AllOption);
+            var binder = new ContentTypeBinder(typeOption, allOption);
 
             // Act
             var actualContentType = binder.GetBoundValue(parseResult);
@@ -87,16 +95,17 @@ namespace past.ConsoleApp.Test
         public void GetBoundValue_OnlyContentTypeProvided_ReturnsExpectedContentType(ContentType expectedContentType)
         {
             // Arrange
-            var commandFactory = new CommandFactory();
+            var typeOption = new Option<ContentType>("--type");
+            var allOption = new Option<bool>("--all");
 
             var testCommand = new Command("test");
-            testCommand.AddOption(commandFactory.TypeOption);
-            testCommand.AddOption(commandFactory.AllOption);
+            testCommand.AddOption(typeOption);
+            testCommand.AddOption(allOption);
 
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse($"--type {expectedContentType.ToString()}");
 
-            var binder = new ContentTypeBinder(commandFactory.TypeOption, commandFactory.AllOption);
+            var binder = new ContentTypeBinder(typeOption, allOption);
 
             // Act
             var actualContentType = binder.GetBoundValue(parseResult);
@@ -110,13 +119,14 @@ namespace past.ConsoleApp.Test
         {
             // Arrange
             var expectedExceptionMessage = "Failed to bind content type";
-            var commandFactory = new CommandFactory();
+            var typeOption = new Option<ContentType>("--type");
+            var allOption = new Option<bool>("--all");
 
             var testCommand = new Command("test");
             var testCommandParser = new Parser(testCommand);
             var parseResult = testCommandParser.Parse(string.Empty);
 
-            var binder = new ContentTypeBinder(commandFactory.TypeOption, commandFactory.AllOption);
+            var binder = new ContentTypeBinder(typeOption, allOption);
 
             // Act + Assert
             var actualException = Assert.Throws<ArgumentException>(() => binder.GetBoundValue(parseResult));
