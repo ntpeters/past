@@ -1,10 +1,8 @@
-using past.ConsoleApp.Binders;
-using past.Core;
+using past.ConsoleApp.Commands;
 using System;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace past.ConsoleApp
@@ -25,44 +23,7 @@ namespace past.ConsoleApp
                 Console.ReadKey(intercept: true); // Suppress printing the pressed key
             }
 #endif // DEBUG
-
-            var consoleClipboard = new ConsoleClipboard();
-            var commandFactory = new CommandFactory();
-
-            var rootCommand = new RootCommand();
-            rootCommand.AddGlobalOption(commandFactory.TypeOption);
-            rootCommand.AddGlobalOption(commandFactory.AllOption);
-            rootCommand.AddGlobalOption(commandFactory.AnsiOption);
-            rootCommand.AddGlobalOption(commandFactory.AnsiResetOption);
-            rootCommand.AddGlobalOption(commandFactory.QuietOption);
-            rootCommand.AddGlobalOption(commandFactory.DebugOption);
-
-            var listCommand = commandFactory.CreateListCommand(consoleClipboard.ListClipboardHistoryAsync);
-            var getCommand = commandFactory.CreateGetCommand(consoleClipboard.GetClipboardHistoryItemAsync);
-            var statusCommand = commandFactory.CreateStatusCommand(consoleClipboard.GetClipboardHistoryStatus);
-            var helpCommand = commandFactory.CreateHelpCommand(async (command) =>
-                {
-                    if (string.IsNullOrWhiteSpace(command))
-                    {
-                        await Main(new string[] { "--help" });
-                    }
-                    else
-                    {
-                        await Main(new string[] { "--help", command });
-                    }
-                });
-
-            rootCommand.AddCommand(listCommand);
-            rootCommand.AddCommand(getCommand);
-            rootCommand.AddCommand(statusCommand);
-            rootCommand.AddCommand(helpCommand);
-
-            rootCommand.SetHandler<IConsoleWriter, IValueFormatter, ContentType, CancellationToken>(
-                consoleClipboard.GetCurrentClipboardValueAsync,
-                new ConsoleWriterBinder(commandFactory.AnsiOption, commandFactory.AnsiResetOption, commandFactory.QuietOption),
-                new ValueFormatterBinder(),
-                new ContentTypeBinder(commandFactory.TypeOption, commandFactory.AllOption));
-
+            var rootCommand = new PastCommand();
             return await rootCommand.InvokeAsync(args);
         }
     }
