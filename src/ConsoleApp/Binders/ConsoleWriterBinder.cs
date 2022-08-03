@@ -1,3 +1,4 @@
+using past.ConsoleApp.Wrappers;
 using System;
 using System.CommandLine;
 using System.CommandLine.Binding;
@@ -57,7 +58,8 @@ namespace past.ConsoleApp.Binders
             var quietEnabled = parseResult.GetValueForOption(_quietOption);
 
             var consoleUtilities = new ConsoleUtilities();
-            return new ConsoleWriter(console, consoleUtilities, quietEnabled, ansiEnabled , ansiResetType);
+            var environment = new EnvironmentWrapper();
+            return new ConsoleWriter(console, consoleUtilities, environment, quietEnabled, ansiEnabled , ansiResetType);
         }
 
         protected override IConsoleWriter GetBoundValue(BindingContext bindingContext)

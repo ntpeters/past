@@ -1,4 +1,5 @@
 using past.ConsoleApp.Extensions;
+using past.ConsoleApp.Wrappers;
 using past.Core;
 using past.Core.Wrappers;
 using System;
@@ -23,6 +24,7 @@ namespace past.ConsoleApp
         #region Private Fields
         private readonly IConsole _console;
         private readonly IConsoleUtilities _consoleUtilities;
+        private readonly IEnvironmentWrapper _environment;
         #endregion Private Fields
 
         #region Constructors
@@ -35,10 +37,11 @@ namespace past.ConsoleApp
         /// <param name="enableAnsiProcessing">Whether to enable virtual terminal processing.</param>
         /// <param name="ansiResetType">Controls how to determine whether ANSI reset should be emitted.</param>
         /// <exception cref="ArgumentNullException"><paramref name="console"/> or <paramref name="consoleUtilities"/> is null.</exception>
-        public ConsoleWriter(IConsole console, IConsoleUtilities consoleUtilities, bool suppressErrorOutput, bool enableAnsiProcessing, AnsiResetType ansiResetType)
+        public ConsoleWriter(IConsole console, IConsoleUtilities consoleUtilities, IEnvironmentWrapper environment, bool suppressErrorOutput, bool enableAnsiProcessing, AnsiResetType ansiResetType)
         {
             _console = console ?? throw new ArgumentNullException(nameof(console));
             _consoleUtilities = consoleUtilities ?? throw new ArgumentNullException(nameof(consoleUtilities));
+            _environment = environment ?? throw new ArgumentNullException(nameof(environment));
             SuppressErrorOutput = suppressErrorOutput;
             EnableAnsiProcessing = enableAnsiProcessing;
             AnsiResetType = ansiResetType;
@@ -160,8 +163,8 @@ namespace past.ConsoleApp
                         else
                         {
                             // Emit ANSI reset if the current terminal probably supports ANSI sequences based on TERM and COLORTERM, even if ANSI processing was not enabled
-                            var termValue = Environment.GetEnvironmentVariable("TERM");
-                            var colorTermValue = Environment.GetEnvironmentVariable("COLORTERM");
+                            var termValue = _environment.GetEnvironmentVariable("TERM");
+                            var colorTermValue = _environment.GetEnvironmentVariable("COLORTERM");
                             shouldEmitAnsiReset = termValue == "xterm-256color" || colorTermValue == "24bit" || colorTermValue == "truecolor";
                         }
                     }
