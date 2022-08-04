@@ -24,7 +24,7 @@ namespace past.ConsoleApp.Commands
         /// Creates a new <see cref="PastCommand"/> using the given <see cref="ConsoleClipboard"/> for handlers.
         /// </summary>
         /// <param name="consoleClipboard"><see cref="ConsoleClipboard"/> providing the handlers for most commands.</param>
-        public PastCommand(ConsoleClipboard consoleClipboard)
+        public PastCommand(IConsoleClipboard consoleClipboard)
         {
             // Shared Arguments & Options
             var identifierArgument = new Argument<string>("identifier", "The identifier of the item to get from clipboard history");

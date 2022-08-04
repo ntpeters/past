@@ -97,6 +97,7 @@ namespace past.ConsoleApp
         /// <param name="value">Value to write.</param>
         private void WriteValueInternal(string value)
         {
+            // TODO: Move this to startup, and restore original console mode on exit
             if (EnableAnsiProcessing && !_console.IsOutputRedirected && !_consoleUtilities.TryEnableVirtualTerminalProcessing(out var error))
             {
                 _console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: SuppressErrorOutput);
