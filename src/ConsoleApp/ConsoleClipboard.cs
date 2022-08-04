@@ -55,12 +55,12 @@ namespace past.ConsoleApp
                 consoleWriter.WriteLine($"Clipboard History Enabled: {_clipboard.IsHistoryEnabled()}");
                 consoleWriter.WriteLine($"Clipboard Roaming Enabled: {_clipboard.IsRoamingEnabled()}");
 
-               context.ExitCode = 0;
+               context.ExitCode = (int)ErrorCode.Success;
             }
-            catch (Exception e)
+            catch (PastException e)
             {
                 consoleWriter.WriteErrorLine($"Failed to get current clipboard history status. Error: {e.Message}");
-                context.ExitCode = -1;
+                context.ExitCode = (int)e.ErrorCode;
             }
         }
 
@@ -83,10 +83,10 @@ namespace past.ConsoleApp
                 string? value = await _clipboard.GetCurrentClipboardValueAsync(type, cancellationToken);
                 consoleWriter.WriteValue(value, formatter);
             }
-            catch (Exception e)
+            catch (PastException e)
             {
                 consoleWriter.WriteErrorLine($"Failed to get current clipboard contents. Error: {e.Message}");
-                return -1;
+                return (int)e.ErrorCode;
             }
 
             return 0;
@@ -122,10 +122,10 @@ namespace past.ConsoleApp
                     consoleWriter.WriteErrorLine($"Failed updating the current clipboard content with the selected history item. Error: {setContentStatus}");
                 }
             }
-            catch (Exception e)
+            catch (PastException e)
             {
                 consoleWriter.WriteErrorLine($"Failed to get clipboard history. Error: {e.Message}");
-                return -1;
+                return (int)e.ErrorCode;
             }
 
             return 0;
@@ -158,10 +158,10 @@ namespace past.ConsoleApp
                     index++;
                 }
             }
-            catch (Exception e)
+            catch (PastException e)
             {
                 consoleWriter.WriteErrorLine($"Failed to get clipboard history. Error: {e.Message}");
-                return -1;
+                return (int)e.ErrorCode;
             }
 
             return 0;

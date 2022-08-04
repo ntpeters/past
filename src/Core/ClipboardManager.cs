@@ -98,17 +98,17 @@ namespace past.Core
             var items = await _winRtClipboard.GetHistoryItemsAsync();
             if (items.Status != ClipboardHistoryItemsResultStatus.Success)
             {
-                throw new Exception($"Failed to get clipboard history. Result: {items.Status}");
+                throw new PastException(items.Status.ToErrorCode(), $"Failed to get clipboard history. Result: {items.Status}");
             }
 
             if (!items.TryGetItem(identifier, out var item))
             {
-                throw new Exception("Failed to get specified clipboard history item");
+                throw new PastException(ErrorCode.NotFound, "Failed to get specified clipboard history item");
             }
 
             if (!type.Supports(item.Content.Contains))
             {
-                throw new Exception("Item does not support the specified content type");
+                throw new PastException(ErrorCode.IncompatibleContentType, "Item does not support the specified content type");
             }
 
             SetHistoryItemAsContentStatus? setContentStatus = null;
@@ -125,12 +125,12 @@ namespace past.Core
             var items = await _winRtClipboard.GetHistoryItemsAsync();
             if (items.Status != ClipboardHistoryItemsResultStatus.Success)
             {
-                throw new Exception($"Failed to get clipboard history. Result: {items.Status}");
+                throw new PastException(items.Status.ToErrorCode(), $"Failed to get clipboard history. Result: {items.Status}");
             }
 
             if (items.Items.Count == 0)
             {
-                throw new Exception("Clipboard history is empty");
+                throw new PastException(ErrorCode.NotFound, "Clipboard history is empty");
             }
 
             IEnumerable<IClipboardHistoryItemWrapper> clipboardItems;
@@ -138,13 +138,13 @@ namespace past.Core
             {
                 if (!_pinnedClipboardItemProvider.TryGetPinnedClipboardHistoryItemIds(out var pinnedItemIds, out var errorMessage))
                 {
-                    throw new Exception(errorMessage);
+                    throw new PastException(ErrorCode.NotFound, errorMessage);
                 }
 
                 clipboardItems = items.Items.Where(item => pinnedItemIds.Contains(item.Id));
                 if (clipboardItems.Count() == 0)
                 {
-                    throw new Exception("No pinned items in clipboard history");
+                    throw new PastException(ErrorCode.NotFound, "No pinned items in clipboard history");
                 }
             }
             else
@@ -155,7 +155,7 @@ namespace past.Core
             var filteredItems = clipboardItems.Where(item => type.Supports(item.Content.Contains));
             if (filteredItems.Count() == 0)
             {
-                throw new Exception("No supported items in clipboard history");
+                throw new PastException(ErrorCode.IncompatibleContentType, "No supported items in clipboard history");
             }
 
             return filteredItems;
