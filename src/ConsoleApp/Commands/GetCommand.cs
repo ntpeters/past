@@ -32,6 +32,12 @@ namespace past.ConsoleApp.Commands
             Func<IConsoleWriter, IValueFormatter, ClipboardItemIdentifier, ContentType, bool, CancellationToken, Task> handler)
             : base("get", "Gets the item at the specified index from clipboard history")
         {
+            // Add Shared Options
+            this.AddOption(typeOption);
+            this.AddOption(allOption);
+            this.AddOption(ansiOption);
+            this.AddOption(ansiResetOption);
+
             this.AddArgument(identifierArgument);
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
             this.AddOption(setCurrentOption);

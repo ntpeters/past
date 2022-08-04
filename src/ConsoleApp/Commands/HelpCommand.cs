@@ -18,6 +18,7 @@ namespace past.ConsoleApp.Commands
         {
             var commandArgument = new Argument<string>("command");
             commandArgument.SetDefaultValue(string.Empty);
+            commandArgument.AddCompletions("list", "get", "status");
             this.AddArgument(commandArgument);
             this.SetHandler(handler,
                 commandArgument);

@@ -30,6 +30,13 @@ namespace past.ConsoleApp.Commands
             Func<IConsoleWriter, IValueFormatter, ContentType, bool, CancellationToken, Task> handler)
             : base("list", "Lists the clipboard history")
         {
+            // Add Shared Options
+            this.AddOption(typeOption);
+            this.AddOption(allOption);
+            this.AddOption(ansiOption);
+            this.AddOption(ansiResetOption);
+
+            // Add List Specific Options
             var nullOption = new Option<bool>("--null", "Use the null byte to separate entries");
             this.AddOption(nullOption);
 
