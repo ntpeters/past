@@ -1,4 +1,5 @@
 using past.ConsoleApp.Commands;
+using past.ConsoleApp.Middleware;
 using past.Core;
 using System;
 using System.CommandLine;
@@ -35,6 +36,12 @@ namespace past.ConsoleApp
             commandLineBuilder.UseVersionOption("--version", "-v");
             commandLineBuilder.CancelOnProcessTermination();
             commandLineBuilder.UseExceptionHandler(errorExitCode: (int)ErrorCode.UnexpectedError);
+
+            if (args.Contains("--ansi"))
+            {
+                var consoleModeMiddleware = new ConsoleModeMiddleware();
+                commandLineBuilder.AddMiddleware(consoleModeMiddleware.ConfigureConsoleMode);
+            }
 
             var commandLineParser = commandLineBuilder.Build();
             return await commandLineParser.InvokeAsync(args);
