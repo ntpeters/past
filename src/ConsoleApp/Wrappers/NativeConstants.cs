@@ -21,6 +21,11 @@ namespace past.ConsoleApp.Wrappers
         public static readonly string ANSI_RESET = $"{ANSI_ESCAPE}[0m";
 
         /// <summary>
+        /// Sets the background to red.
+        /// </summary>
+        public static readonly string ANSI_RED = $"{ANSI_ESCAPE}[41m";
+
+        /// <summary>
         /// Represents an invalid handle.
         /// </summary>
         public static readonly IntPtr INVALID_HANDLE_VALUE = new(-1);

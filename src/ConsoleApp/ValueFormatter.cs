@@ -1,5 +1,5 @@
+using past.ConsoleApp.Wrappers;
 using System;
-using System.CommandLine.Rendering;
 using System.Text;
 
 namespace past.ConsoleApp
@@ -83,7 +83,7 @@ namespace past.ConsoleApp
         {
             if (emitAnsiReset)
             {
-                stringBuilder.Append(Ansi.Text.AttributesOff.EscapeSequence);
+                stringBuilder.Append(NativeConstants.ANSI_RESET);
             }
 
             if (emitLineEnding)

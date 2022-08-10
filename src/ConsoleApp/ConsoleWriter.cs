@@ -4,7 +4,6 @@ using past.Core;
 using past.Core.Wrappers;
 using System;
 using System.CommandLine;
-using System.CommandLine.Rendering;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -105,7 +104,7 @@ namespace past.ConsoleApp
                 var message = new StringBuilder();
                 if (EnableAnsiProcessing)
                 {
-                    message.Append(Ansi.Color.Foreground.Red.EscapeSequence);
+                    message.Append(NativeConstants.ANSI_RED);
                 }
 
                 message.Append($"[Unsupported Format: {string.Join(',', content.AvailableFormats)}]");
