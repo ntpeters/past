@@ -23,7 +23,6 @@ namespace past.ConsoleApp
 
         #region Private Fields
         private readonly IConsole _console;
-        private readonly IConsoleUtilities _consoleUtilities;
         private readonly IEnvironmentWrapper _environment;
         #endregion Private Fields
 
@@ -37,10 +36,9 @@ namespace past.ConsoleApp
         /// <param name="enableAnsiProcessing">Whether to enable virtual terminal processing.</param>
         /// <param name="ansiResetType">Controls how to determine whether ANSI reset should be emitted.</param>
         /// <exception cref="ArgumentNullException"><paramref name="console"/> or <paramref name="consoleUtilities"/> is null.</exception>
-        public ConsoleWriter(IConsole console, IConsoleUtilities consoleUtilities, IEnvironmentWrapper environment, bool suppressErrorOutput, bool enableAnsiProcessing, AnsiResetType ansiResetType)
+        public ConsoleWriter(IConsole console, IEnvironmentWrapper environment, bool suppressErrorOutput, bool enableAnsiProcessing, AnsiResetType ansiResetType)
         {
             _console = console ?? throw new ArgumentNullException(nameof(console));
-            _consoleUtilities = consoleUtilities ?? throw new ArgumentNullException(nameof(consoleUtilities));
             _environment = environment ?? throw new ArgumentNullException(nameof(environment));
             SuppressErrorOutput = suppressErrorOutput;
             EnableAnsiProcessing = enableAnsiProcessing;
@@ -65,7 +63,7 @@ namespace past.ConsoleApp
                 value = formatter.Format(value, index, item.Id, item.Timestamp, emitAnsiReset, emitLineEnding);
             }
 
-            WriteValueInternal(value);
+            _console.Write(value);
         }
 
         public void WriteValue(string? value, IValueFormatter? formatter = null)
@@ -81,7 +79,7 @@ namespace past.ConsoleApp
                 value = formatter.Format(value, emitAnsiReset);
             }
 
-            WriteValueInternal(value);
+            _console.Write(value);
         }
 
         public void WriteLine(string text) => _console.WriteLine(text);
@@ -90,22 +88,6 @@ namespace past.ConsoleApp
         #endregion Public Methods
 
         #region Private Methods
-        /// <summary>
-        /// Writes the given value to the output stream of the connected console.
-        /// Attempts to enable virtual terminal processing if option was enabled and output was not redirected.
-        /// </summary>
-        /// <param name="value">Value to write.</param>
-        private void WriteValueInternal(string value)
-        {
-            // TODO: Move this to startup, and restore original console mode on exit
-            if (EnableAnsiProcessing && !_console.IsOutputRedirected && !_consoleUtilities.TryEnableVirtualTerminalProcessing(out var error))
-            {
-                _console.WriteErrorLine($"Failed to enable virtual terminal processing. [{error}]", suppressOutput: SuppressErrorOutput);
-            }
-
-            _console.Write(value);
-        }
-
         /// <summary>
         /// Gets the value stored in the given data package that is compatible with the specified type.
         /// </summary>

@@ -15,7 +15,7 @@ namespace past.ConsoleApp
         bool SuppressErrorOutput { get; }
 
         /// <summary>
-        /// When true, will attempt to enable virtual terminal processing for the connected console.
+        /// Whether virtual terminal processing was requested to be enabled for the connected console.
         /// </summary>
         bool EnableAnsiProcessing { get; }
 

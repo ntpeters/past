@@ -17,11 +17,9 @@ namespace past.ConsoleApp.Test
         public void Constructor_ValidParameters_Success(bool expectedSuppressErrorOutput, bool expectedEnableAnsiProcessing, AnsiResetType expectedAnsiResetType)
         {
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
             Assert.DoesNotThrow(() => new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 expectedSuppressErrorOutput,
                 expectedEnableAnsiProcessing,
@@ -31,24 +29,8 @@ namespace past.ConsoleApp.Test
         [Test]
         public void Constructor_NullConsole_ThrowsArgumentNullException()
         {
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
             Assert.Throws<ArgumentNullException>(() => new ConsoleWriter(
-                null!,
-                mockConsoleUtilities.Object,
-                mockEnvironment.Object,
-                true,
-                true,
-                AnsiResetType.Auto));
-        }
-
-        [Test]
-        public void Constructor_NullConsoleUtilities_ThrowsArgumentNullException()
-        {
-            var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
-            var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
-            Assert.Throws<ArgumentNullException>(() => new ConsoleWriter(
-                mockConsole.Object,
                 null!,
                 mockEnvironment.Object,
                 true,
@@ -60,10 +42,8 @@ namespace past.ConsoleApp.Test
         public void Constructor_NullEnvironment_ThrowsArgumentNullException()
         {
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
             Assert.Throws<ArgumentNullException>(() => new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 null!,
                 true,
                 true,
@@ -84,13 +64,11 @@ namespace past.ConsoleApp.Test
             var expectedIndex = 0;
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -123,8 +101,6 @@ namespace past.ConsoleApp.Test
             var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
             mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -143,7 +119,6 @@ namespace past.ConsoleApp.Test
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -161,7 +136,6 @@ namespace past.ConsoleApp.Test
             Assert.That(actualWrittenValue, Is.EqualTo(expectedText));
 
             mockItem.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -184,13 +158,11 @@ namespace past.ConsoleApp.Test
             var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
             mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -208,7 +180,6 @@ namespace past.ConsoleApp.Test
             // no setup was proved for the output stream and the console mock is created with MockBehavior.Strict
 
             mockItem.Verify();
-            mockConsoleUtilities.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
         }
@@ -234,13 +205,11 @@ namespace past.ConsoleApp.Test
             var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
             mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -258,7 +227,6 @@ namespace past.ConsoleApp.Test
             // no setup was proved for the output stream and the console mock is created with MockBehavior.Strict
 
             mockItem.Verify();
-            mockConsoleUtilities.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
         }
@@ -288,8 +256,6 @@ namespace past.ConsoleApp.Test
             var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
             mockItem.SetupGet(mock => mock.Content).Returns(dataPackageView).Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -308,7 +274,6 @@ namespace past.ConsoleApp.Test
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -326,7 +291,6 @@ namespace past.ConsoleApp.Test
             Assert.That(actualWrittenValue, Is.EqualTo(expectedText));
 
             mockItem.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -368,8 +332,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -388,7 +350,6 @@ namespace past.ConsoleApp.Test
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -407,7 +368,6 @@ namespace past.ConsoleApp.Test
 
             mockItem.Verify();
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -416,180 +376,7 @@ namespace past.ConsoleApp.Test
         [Test]
         [TestCase(true)]
         [TestCase(false)]
-        public async Task WriteItemAsync_AnsiProcessingEnabled_EnablesVtProcessingWhenNotRedirected(bool outputRedirected)
-        {
-            // Arrange
-            var type = ContentType.Text;
-            var ansiResetType = AnsiResetType.On;
-            bool enableAnsiProcessing = true;
-            var suppressErrorOutput = false;
-            var emitLineEnding = false;
-            var index = 0;
-            var id = Guid.NewGuid();
-            var timestamp = DateTimeOffset.Now;
-
-            var expectedText = "~meow~";
-            var dataPackage = new DataPackage();
-            dataPackage.SetText(expectedText);
-            var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
-            mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
-
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-            mockConsoleUtilities
-                .Setup(mock => mock.TryEnableVirtualTerminalProcessing(out It.Ref<string?>.IsAny))
-                .Returns(true)
-                .Verifiable();
-
-            var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
-
-            string? actualWrittenValue = null;
-            mockStreamWriter
-                .Setup(mock => mock.Write(It.IsAny<string?>()))
-                .Callback<string?>(value => actualWrittenValue = value)
-                .Verifiable();
-
-            var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
-            mockConsole
-                .SetupGet(mock => mock.Out)
-                .Returns(mockStreamWriter.Object)
-                .Verifiable();
-
-            mockConsole
-                .SetupGet(mock => mock.IsOutputRedirected)
-                .Returns(outputRedirected)
-                .Verifiable();
-
-            var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
-
-            var consoleWriter = new ConsoleWriter(
-                mockConsole.Object,
-                mockConsoleUtilities.Object,
-                mockEnvironment.Object,
-                suppressErrorOutput,
-                enableAnsiProcessing,
-                ansiResetType);
-
-            // Act
-            await consoleWriter.WriteItemAsync(
-                mockItem.Object,
-                type,
-                index,
-                null,
-                emitLineEnding);
-
-            // Assert
-            Assert.That(actualWrittenValue, Is.EqualTo(expectedText));
-
-            mockItem.Verify();
-            mockConsoleUtilities.Verify(mock => mock.TryEnableVirtualTerminalProcessing(out It.Ref<string?>.IsAny), Times.Exactly(outputRedirected ? 0 : 1));
-            mockStreamWriter.Verify();
-            mockConsole.Verify();
-            mockEnvironment.Verify();
-        }
-
-        [Test]
-        [TestCase(true)]
-        [TestCase(false)]
-        public async Task WriteItemAsync_EnableAnsiProcessingFails_WritesErrorAndValue(bool suppressErrorOutput)
-        {
-            // Arrange
-            var type = ContentType.Text;
-            var ansiResetType = AnsiResetType.On;
-            bool enableAnsiProcessing = true;
-            var emitLineEnding = false;
-            var index = 0;
-            var id = Guid.NewGuid();
-            var timestamp = DateTimeOffset.Now;
-
-            var expectedText = "~meow~";
-            var dataPackage = new DataPackage();
-            dataPackage.SetText(expectedText);
-            var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
-            mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
-
-            var enableVtProcessingError = "Uh-oh Spaghettio!";
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-            mockConsoleUtilities
-                .Setup(mock => mock.TryEnableVirtualTerminalProcessing(out It.Ref<string?>.IsAny))
-                .Returns((out string? error) =>
-                {
-                    error = enableVtProcessingError;
-                    return false;
-                })
-                .Verifiable();
-
-            string? actualWrittenValue = null;
-            var mockOutStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
-            mockOutStreamWriter
-                .Setup(mock => mock.Write(It.IsAny<string?>()))
-                .Callback<string?>(value => actualWrittenValue = value)
-                .Verifiable();
-
-            string? expectedErrorMessage = null;
-            string? actualErrorMessage = null;
-            var mockErrorStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
-            if (!suppressErrorOutput)
-            {
-                expectedErrorMessage = $"Failed to enable virtual terminal processing. [{enableVtProcessingError}]{Environment.NewLine}";
-                mockErrorStreamWriter
-                    .Setup(mock => mock.Write(It.IsAny<string?>()))
-                    .Callback<string?>(value => actualErrorMessage = value)
-                    .Verifiable();
-            }
-
-            var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
-            mockConsole
-                .SetupGet(mock => mock.Out)
-                .Returns(mockOutStreamWriter.Object)
-                .Verifiable();
-
-            if (!suppressErrorOutput)
-            {
-                mockConsole
-                    .SetupGet(mock => mock.Error)
-                    .Returns(mockErrorStreamWriter.Object)
-                    .Verifiable();
-            }
-
-            mockConsole
-                .SetupGet(mock => mock.IsOutputRedirected)
-                .Returns(false)
-                .Verifiable();
-
-            var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
-
-            var consoleWriter = new ConsoleWriter(
-                mockConsole.Object,
-                mockConsoleUtilities.Object,
-                mockEnvironment.Object,
-                suppressErrorOutput,
-                enableAnsiProcessing,
-                ansiResetType);
-
-            // Act
-            await consoleWriter.WriteItemAsync(
-                mockItem.Object,
-                type,
-                index,
-                null,
-                emitLineEnding);
-
-            // Assert
-            Assert.That(actualWrittenValue, Is.EqualTo(expectedText));
-            Assert.That(actualErrorMessage, Is.EqualTo(expectedErrorMessage));
-
-            mockItem.Verify();
-            mockConsoleUtilities.Verify();
-            mockOutStreamWriter.Verify();
-            mockErrorStreamWriter.Verify();
-            mockConsole.Verify();
-            mockEnvironment.Verify();
-        }
-
-        [Test]
-        [TestCase(true)]
-        [TestCase(false)]
-        public async Task WriteItemAsync_AnsiResetOff_PassesFormatterEmitAnsiResetFalse(bool enableAnsiProcessing)
+        public async Task WriteItemAsync_AnsiResetOff_EmitAnsiResetFalse(bool enableAnsiProcessing)
         {
             // Arrange
             var ansiResetType = AnsiResetType.Off;
@@ -623,8 +410,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -639,19 +424,10 @@ namespace past.ConsoleApp.Test
                 .Returns(mockStreamWriter.Object)
                 .Verifiable();
 
-            if (enableAnsiProcessing)
-            {
-                mockConsole
-                    .SetupGet(mock => mock.IsOutputRedirected)
-                    .Returns(true)
-                    .Verifiable();
-            }
-
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -670,7 +446,6 @@ namespace past.ConsoleApp.Test
 
             mockItem.Verify();
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -679,7 +454,7 @@ namespace past.ConsoleApp.Test
         [Test]
         [TestCase(true)]
         [TestCase(false)]
-        public async Task WriteItemAsync_AnsiResetOn_PassesFormatterEmitAnsiResetTrue(bool enableAnsiProcessing)
+        public async Task WriteItemAsync_AnsiResetOn_EmitAnsiResetTrue(bool enableAnsiProcessing)
         {
             // Arrange
             var ansiResetType = AnsiResetType.On;
@@ -713,8 +488,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -729,19 +502,10 @@ namespace past.ConsoleApp.Test
                 .Returns(mockStreamWriter.Object)
                 .Verifiable();
 
-            if (enableAnsiProcessing)
-            {
-                mockConsole
-                    .SetupGet(mock => mock.IsOutputRedirected)
-                    .Returns(true)
-                    .Verifiable();
-            }
-
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -760,7 +524,6 @@ namespace past.ConsoleApp.Test
 
             mockItem.Verify();
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -810,12 +573,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-            mockConsoleUtilities
-                .Setup(mock => mock.TryEnableVirtualTerminalProcessing(out It.Ref<string?>.IsAny))
-                .Returns(true)
-                .Verifiable();
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -830,16 +587,10 @@ namespace past.ConsoleApp.Test
                 .Returns(mockStreamWriter.Object)
                 .Verifiable();
 
-            mockConsole
-                .SetupGet(mock => mock.IsOutputRedirected)
-                .Returns(false)
-                .Verifiable();
-
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -858,7 +609,6 @@ namespace past.ConsoleApp.Test
 
             mockItem.Verify();
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -901,8 +651,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -926,7 +674,6 @@ namespace past.ConsoleApp.Test
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -945,7 +692,6 @@ namespace past.ConsoleApp.Test
 
             mockItem.Verify();
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -991,8 +737,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -1020,7 +764,6 @@ namespace past.ConsoleApp.Test
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1039,7 +782,6 @@ namespace past.ConsoleApp.Test
 
             mockItem.Verify();
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -1084,8 +826,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -1113,7 +853,6 @@ namespace past.ConsoleApp.Test
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1132,7 +871,6 @@ namespace past.ConsoleApp.Test
 
             mockItem.Verify();
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -1150,13 +888,11 @@ namespace past.ConsoleApp.Test
             var suppressErrorOutput = false;
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1168,7 +904,6 @@ namespace past.ConsoleApp.Test
             // NOTE: No asserts needed for this test, as it will fail if something is written to the console since
             // no setup was proved for the output stream and the console mock is created with MockBehavior.Strict
 
-            mockConsoleUtilities.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
         }
@@ -1193,8 +928,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -1213,7 +946,6 @@ namespace past.ConsoleApp.Test
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1226,7 +958,6 @@ namespace past.ConsoleApp.Test
             Assert.That(actualWrittenValue, Is.EqualTo(expectedFormattedText));
 
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -1235,151 +966,7 @@ namespace past.ConsoleApp.Test
         [Test]
         [TestCase(true)]
         [TestCase(false)]
-        public void WriteValue_AnsiProcessingEnabled_EnablesVtProcessingWhenNotRedirected(bool outputRedirected)
-
-        {
-            // Arrange
-            var ansiResetType = AnsiResetType.On;
-            bool enableAnsiProcessing = true;
-            var suppressErrorOutput = false;
-
-            var expectedText = "🦄";
-
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-            mockConsoleUtilities
-                .Setup(mock => mock.TryEnableVirtualTerminalProcessing(out It.Ref<string?>.IsAny))
-                .Returns(true)
-                .Verifiable();
-
-            var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
-
-            string? actualWrittenValue = null;
-            mockStreamWriter
-                .Setup(mock => mock.Write(It.IsAny<string?>()))
-                .Callback<string?>(value => actualWrittenValue = value)
-                .Verifiable();
-
-            var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
-            mockConsole
-                .SetupGet(mock => mock.Out)
-                .Returns(mockStreamWriter.Object)
-                .Verifiable();
-
-            mockConsole
-                .SetupGet(mock => mock.IsOutputRedirected)
-                .Returns(outputRedirected)
-                .Verifiable();
-
-            var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
-
-            var consoleWriter = new ConsoleWriter(
-                mockConsole.Object,
-                mockConsoleUtilities.Object,
-                mockEnvironment.Object,
-                suppressErrorOutput,
-                enableAnsiProcessing,
-                ansiResetType);
-
-            // Act
-            consoleWriter.WriteValue(expectedText, null!);
-
-            // Assert
-            Assert.That(actualWrittenValue, Is.EqualTo(expectedText));
-
-            mockConsoleUtilities.Verify(mock => mock.TryEnableVirtualTerminalProcessing(out It.Ref<string?>.IsAny), Times.Exactly(outputRedirected ? 0 : 1));
-            mockStreamWriter.Verify();
-            mockConsole.Verify();
-            mockEnvironment.Verify();
-        }
-
-        [Test]
-        [TestCase(true)]
-        [TestCase(false)]
-        public void WriteValue_EnableAnsiProcessingFails_WritesErrorAndValue(bool suppressErrorOutput)
-        {
-            // Arrange
-            var ansiResetType = AnsiResetType.On;
-            bool enableAnsiProcessing = true;
-
-            var expectedText = "🦄";
-
-            var enableVtProcessingError = "Uh-oh Spaghettio!";
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-            mockConsoleUtilities
-                .Setup(mock => mock.TryEnableVirtualTerminalProcessing(out It.Ref<string?>.IsAny))
-                .Returns((out string? error) =>
-                {
-                    error = enableVtProcessingError;
-                    return false;
-                })
-                .Verifiable();
-
-            string? actualWrittenValue = null;
-            var mockOutStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
-            mockOutStreamWriter
-                .Setup(mock => mock.Write(It.IsAny<string?>()))
-                .Callback<string?>(value => actualWrittenValue = value)
-                .Verifiable();
-
-            string? expectedErrorMessage = null;
-            string? actualErrorMessage = null;
-            var mockErrorStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
-            if (!suppressErrorOutput)
-            {
-                expectedErrorMessage = $"Failed to enable virtual terminal processing. [{enableVtProcessingError}]{Environment.NewLine}";
-                mockErrorStreamWriter
-                    .Setup(mock => mock.Write(It.IsAny<string?>()))
-                    .Callback<string?>(value => actualErrorMessage = value)
-                    .Verifiable();
-            }
-
-            var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
-            mockConsole
-                .SetupGet(mock => mock.Out)
-                .Returns(mockOutStreamWriter.Object)
-                .Verifiable();
-
-            if (!suppressErrorOutput)
-            {
-                mockConsole
-                    .SetupGet(mock => mock.Error)
-                    .Returns(mockErrorStreamWriter.Object)
-                    .Verifiable();
-            }
-
-            mockConsole
-                .SetupGet(mock => mock.IsOutputRedirected)
-                .Returns(false)
-                .Verifiable();
-
-            var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
-
-            var consoleWriter = new ConsoleWriter(
-                mockConsole.Object,
-                mockConsoleUtilities.Object,
-                mockEnvironment.Object,
-                suppressErrorOutput,
-                enableAnsiProcessing,
-                ansiResetType);
-
-            // Act
-            consoleWriter.WriteValue(expectedText, null!);
-
-            // Assert
-            Assert.That(actualWrittenValue, Is.EqualTo(expectedText));
-            Assert.That(actualErrorMessage, Is.EqualTo(expectedErrorMessage));
-
-            mockConsoleUtilities.Verify();
-            mockOutStreamWriter.Verify();
-            mockErrorStreamWriter.Verify();
-            mockConsole.Verify();
-            mockEnvironment.Verify();
-        }
-
-        [Test]
-        [TestCase(true)]
-        [TestCase(false)]
-        public void WriteValue_AnsiResetOff_PassesFormatterEmitAnsiResetFalse(bool enableAnsiProcessing)
+        public void WriteValue_AnsiResetOff_EmitAnsiResetFalse(bool enableAnsiProcessing)
         {
             // Arrange
             var ansiResetType = AnsiResetType.Off;
@@ -1399,8 +986,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -1415,19 +1000,10 @@ namespace past.ConsoleApp.Test
                 .Returns(mockStreamWriter.Object)
                 .Verifiable();
 
-            if (enableAnsiProcessing)
-            {
-                mockConsole
-                    .SetupGet(mock => mock.IsOutputRedirected)
-                    .Returns(true)
-                    .Verifiable();
-            }
-
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1440,7 +1016,6 @@ namespace past.ConsoleApp.Test
             Assert.That(actualWrittenValue, Is.EqualTo(expectedFormattedText));
 
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -1449,7 +1024,7 @@ namespace past.ConsoleApp.Test
         [Test]
         [TestCase(true)]
         [TestCase(false)]
-        public void WriteValue_AnsiResetOn_PassesFormatterEmitAnsiResetTrue(bool enableAnsiProcessing)
+        public void WriteValue_AnsiResetOn_EmitAnsiResetTrue(bool enableAnsiProcessing)
         {
             // Arrange
             var ansiResetType = AnsiResetType.On;
@@ -1469,8 +1044,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -1485,19 +1058,10 @@ namespace past.ConsoleApp.Test
                 .Returns(mockStreamWriter.Object)
                 .Verifiable();
 
-            if (enableAnsiProcessing)
-            {
-                mockConsole
-                    .SetupGet(mock => mock.IsOutputRedirected)
-                    .Returns(true)
-                    .Verifiable();
-            }
-
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1510,7 +1074,6 @@ namespace past.ConsoleApp.Test
             Assert.That(actualWrittenValue, Is.EqualTo(expectedFormattedText));
 
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -1545,12 +1108,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-            mockConsoleUtilities
-                .Setup(mock => mock.TryEnableVirtualTerminalProcessing(out It.Ref<string?>.IsAny))
-                .Returns(true)
-                .Verifiable();
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -1565,16 +1122,10 @@ namespace past.ConsoleApp.Test
                 .Returns(mockStreamWriter.Object)
                 .Verifiable();
 
-            mockConsole
-                .SetupGet(mock => mock.IsOutputRedirected)
-                .Returns(false)
-                .Verifiable();
-
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1587,7 +1138,6 @@ namespace past.ConsoleApp.Test
             Assert.That(actualWrittenValue, Is.EqualTo(expectedFormattedText));
 
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -1615,8 +1165,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -1640,7 +1188,6 @@ namespace past.ConsoleApp.Test
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1653,7 +1200,6 @@ namespace past.ConsoleApp.Test
             Assert.That(actualWrittenValue, Is.EqualTo(expectedFormattedText));
 
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -1684,8 +1230,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -1713,7 +1257,6 @@ namespace past.ConsoleApp.Test
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1726,7 +1269,6 @@ namespace past.ConsoleApp.Test
             Assert.That(actualWrittenValue, Is.EqualTo(expectedFormattedText));
 
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -1756,8 +1298,6 @@ namespace past.ConsoleApp.Test
                 .Returns(expectedFormattedText)
                 .Verifiable();
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -1785,7 +1325,6 @@ namespace past.ConsoleApp.Test
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1798,7 +1337,6 @@ namespace past.ConsoleApp.Test
             Assert.That(actualWrittenValue, Is.EqualTo(expectedFormattedText));
 
             mockFormatter.Verify();
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -1818,8 +1356,6 @@ namespace past.ConsoleApp.Test
             bool enableAnsiProcessing = false;
             var suppressErrorOutput = false;
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -1838,7 +1374,6 @@ namespace past.ConsoleApp.Test
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1850,7 +1385,6 @@ namespace past.ConsoleApp.Test
             // Assert
             Assert.That(actualWrittenValue, Is.EqualTo(expectedWrittenValue));
 
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -1870,8 +1404,6 @@ namespace past.ConsoleApp.Test
             bool enableAnsiProcessing = false;
             var suppressErrorOutput = false;
 
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
-
             var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
 
             string? actualWrittenValue = null;
@@ -1890,7 +1422,6 @@ namespace past.ConsoleApp.Test
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1902,7 +1433,6 @@ namespace past.ConsoleApp.Test
             // Assert
             Assert.That(actualWrittenValue, Is.EqualTo(expectedWrittenValue));
 
-            mockConsoleUtilities.Verify();
             mockStreamWriter.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -1916,14 +1446,11 @@ namespace past.ConsoleApp.Test
             var ansiResetType = AnsiResetType.Off;
             bool enableAnsiProcessing = false;
             var suppressErrorOutput = true;
-
-            var mockConsoleUtilities = new Mock<IConsoleUtilities>(MockBehavior.Strict);
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
             var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
 
             var consoleWriter = new ConsoleWriter(
                 mockConsole.Object,
-                mockConsoleUtilities.Object,
                 mockEnvironment.Object,
                 suppressErrorOutput,
                 enableAnsiProcessing,
@@ -1935,7 +1462,6 @@ namespace past.ConsoleApp.Test
             // NOTE: No asserts needed for this test, as it will fail if something is written to the console since
             // no setup was proved for the error stream and the console mock is created with MockBehavior.Strict
 
-            mockConsoleUtilities.Verify();
             mockConsole.Verify();
             mockEnvironment.Verify();
         }
