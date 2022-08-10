@@ -1,6 +1,5 @@
 using past.ConsoleApp.Wrappers;
 using System;
-using System.CommandLine.Rendering;
 using System.Diagnostics.CodeAnalysis;
 
 namespace past.ConsoleApp
@@ -8,8 +7,11 @@ namespace past.ConsoleApp
     /// <inheritdoc cref="IConsoleUtilities"/>
     public class ConsoleUtilities : IConsoleUtilities
     {
+        private const uint EnableVtProcessingModeMask = NativeConstants.ENABLE_VIRTUAL_TERMINAL_PROCESSING | NativeConstants.DISABLE_NEWLINE_AUTO_RETURN;
+
         #region Private Fields
         private readonly INativeMethodsWrapper _nativeMethods;
+        private uint? _originalConsoleMode;
         #endregion Private Fields
 
         #region Constructors
@@ -35,6 +37,8 @@ namespace past.ConsoleApp
         #region Public Methods
         public bool TryEnableVirtualTerminalProcessing([NotNullWhen(false)] out string? error)
         {
+            error = null;
+
             var iStdOut = _nativeMethods.GetStdHandle(NativeConstants.STD_OUTPUT_HANDLE);
             if (iStdOut == NativeConstants.INVALID_HANDLE_VALUE)
             {
@@ -48,14 +52,22 @@ namespace past.ConsoleApp
                 return false;
             }
 
-            outConsoleMode |= NativeConstants.ENABLE_VIRTUAL_TERMINAL_PROCESSING | NativeConstants.DISABLE_NEWLINE_AUTO_RETURN;
-            if (!_nativeMethods.SetConsoleMode(iStdOut, outConsoleMode))
+            // If the desired options are already set, nothing to do
+            if ((outConsoleMode & EnableVtProcessingModeMask) == EnableVtProcessingModeMask)
+            {
+                return true;
+            }
+
+            var newConsoleMode = outConsoleMode | EnableVtProcessingModeMask;
+            if (!_nativeMethods.SetConsoleMode(iStdOut, newConsoleMode))
             {
                 error = GetLastErrorMessage();
                 return false;
             }
 
-            error = null;
+            // Only store the original mode if it hasn't already been stored
+            _originalConsoleMode ??= outConsoleMode;
+
             return true;
         }
 
@@ -85,32 +97,65 @@ namespace past.ConsoleApp
             return true;
         }
 
-        public bool TryClearConsoleMode([NotNullWhen(true)] out uint? originalMode, [NotNullWhen(false)] out string? error)
+        public bool TryClearConsoleMode([NotNullWhen(false)] out string? error)
         {
+            error = null;
+
             var iStdOut = _nativeMethods.GetStdHandle(NativeConstants.STD_OUTPUT_HANDLE);
             if (iStdOut == NativeConstants.INVALID_HANDLE_VALUE)
             {
                 error = GetLastErrorMessage();
-                originalMode = null;
                 return false;
             }
 
             if (!_nativeMethods.GetConsoleMode(iStdOut, out uint outConsoleMode))
             {
                 error = GetLastErrorMessage();
-                originalMode = null;
                 return false;
+            }
+
+            // If the mode is already cleared, nothing to do
+            if (outConsoleMode == NativeConstants.CLEAR_CONSOLE_MODE)
+            {
+                return true;
             }
 
             if (!_nativeMethods.SetConsoleMode(iStdOut, NativeConstants.CLEAR_CONSOLE_MODE))
             {
                 error = GetLastErrorMessage();
-                originalMode = null;
                 return false;
             }
 
-            originalMode = outConsoleMode;
+            // Only store the original mode if it hasn't already been stored
+            _originalConsoleMode ??= outConsoleMode;
+
+            return true;
+        }
+
+        public bool TryRestoreConsoleMode([NotNullWhen(false)] out string? error)
+        {
             error = null;
+
+            // If no original mode has been stored, nothing to restore
+            if (_originalConsoleMode == null)
+            {
+                return true;
+            }
+
+            var iStdOut = _nativeMethods.GetStdHandle(NativeConstants.STD_OUTPUT_HANDLE);
+            if (iStdOut == NativeConstants.INVALID_HANDLE_VALUE)
+            {
+                error = GetLastErrorMessage();
+                return false;
+            }
+
+            if (!_nativeMethods.SetConsoleMode(iStdOut, _originalConsoleMode.Value))
+            {
+                error = GetLastErrorMessage();
+                return false;
+            }
+
+            _originalConsoleMode = null;
             return true;
         }
         #endregion Public Methods

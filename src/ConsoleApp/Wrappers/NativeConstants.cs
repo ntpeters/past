@@ -43,7 +43,7 @@ namespace past.ConsoleApp.Wrappers
         /// <summary>
         /// When this value is provided as the mode when setting the console mode, the console mode is cleared.
         /// </summary>
-        public const int CLEAR_CONSOLE_MODE = 0;
+        public const uint CLEAR_CONSOLE_MODE = 0;
 
         /// <summary>
         /// Characters written or echoed to the console are parsed for ASCII control sequences, and the correct action is performed.

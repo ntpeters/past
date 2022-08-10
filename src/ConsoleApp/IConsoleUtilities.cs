@@ -10,6 +10,9 @@ namespace past.ConsoleApp
         /// <summary>
         /// Enables virtual terminal processing in the current console.
         /// </summary>
+        /// <remarks>
+        /// The original mode can be restored by calling <see cref="TryRestoreConsoleMode(out string?)"/>.
+        /// </remarks>
         /// <param name="error">Error message if enabling virtual terminal processing fails.</param>
         /// <returns>True if enabling virtual terminal processing succeeds, false otherwise.</returns>
         bool TryEnableVirtualTerminalProcessing([NotNullWhen(false)] out string? error);
@@ -24,9 +27,23 @@ namespace past.ConsoleApp
         /// <summary>
         /// Clears the console mode.
         /// </summary>
-        /// <param name="originalMode">The console mode before it was cleared, if clearing the console mode was successful.</param>
+        /// <remarks>
+        /// The original mode can be restored by calling <see cref="TryRestoreConsoleMode(out string?)"/>.
+        /// </remarks>
         /// <param name="error">Error message if clearing the console mode fails.</param>
         /// <returns>True if clearing the console mode succeeds, false otherwise.</returns>
-        bool TryClearConsoleMode([NotNullWhen(true)] out uint? originalMode, [NotNullWhen(false)] out string? error);
+        bool TryClearConsoleMode([NotNullWhen(false)] out string? error);
+
+        /// <summary>
+        /// Restores the original console mode before calling <see cref="TryEnableVirtualTerminalInput(out string?)"/>
+        /// or <see cref="TryClearConsoleMode(out string?)"/>.
+        /// </summary>
+        /// <remarks>
+        /// If the console mode was not altered by either <see cref="TryEnableVirtualTerminalInput(out string?)"/>
+        /// or <see cref="TryClearConsoleMode(out string?)"/>, then this method will do nothing and return true.
+        /// </remarks>
+        /// <param name="error">Error message if restoring the console mode fails.</param>
+        /// <returns>True if restoring the console mode succeeds, false otherwise.</returns>
+        bool TryRestoreConsoleMode([NotNullWhen(false)] out string? error);
     }
 }
