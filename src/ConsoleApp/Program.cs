@@ -1,6 +1,8 @@
 using past.ConsoleApp.Commands;
+using past.Core;
 using System;
 using System.CommandLine;
+using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,8 +25,19 @@ namespace past.ConsoleApp
                 Console.ReadKey(intercept: true); // Suppress printing the pressed key
             }
 #endif // DEBUG
+
             var rootCommand = new PastCommand();
-            return await rootCommand.InvokeAsync(args);
+            var commandLineBuilder = new CommandLineBuilder(rootCommand);
+            commandLineBuilder.UseSuggestDirective();
+            commandLineBuilder.RegisterWithDotnetSuggest();
+            commandLineBuilder.UseParseErrorReporting((int)ErrorCode.ParseError);
+            commandLineBuilder.UseHelp("help", "--help", "-h", "-?");
+            commandLineBuilder.UseVersionOption("--version", "-v");
+            commandLineBuilder.CancelOnProcessTermination();
+            commandLineBuilder.UseExceptionHandler(errorExitCode: (int)ErrorCode.UnexpectedError);
+
+            var commandLineParser = commandLineBuilder.Build();
+            return await commandLineParser.InvokeAsync(args);
         }
     }
 }

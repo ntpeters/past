@@ -6,6 +6,11 @@ namespace past.Core
     public enum ErrorCode
     {
         /// <summary>
+        /// An unexpected error occurred.
+        /// </summary>
+        UnexpectedError = -99,
+
+        /// <summary>
         /// Access was denied to a resource while processing the operation.
         /// </summary>
         AccessDenied = -5,
