@@ -3,6 +3,7 @@ using past.Core;
 using System;
 using System.CommandLine;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace past.ConsoleApp.Commands
 {
@@ -21,11 +22,14 @@ namespace past.ConsoleApp.Commands
         }
 
         /// <summary>
-        /// Creates a new <see cref="PastCommand"/> using the given <see cref="ConsoleClipboard"/> for handlers.
+        /// Creates a new <see cref="PastCommand"/> using the given <see cref="IConsoleClipboard"/> for handlers.
         /// </summary>
-        /// <param name="consoleClipboard"><see cref="ConsoleClipboard"/> providing the handlers for most commands.</param>
+        /// <param name="consoleClipboard"><see cref="IConsoleClipboard"/> providing the handlers for most commands.</param>
         public PastCommand(IConsoleClipboard consoleClipboard)
+            : base("A CLI for interating with Windows Clipboard History.")
         {
+            _ = consoleClipboard ?? throw new ArgumentNullException(nameof(consoleClipboard));
+
             // Shared Arguments & Options
             var identifierArgument = new Argument<string>("identifier", "The identifier of the item to get from clipboard history");
             var typeOption = CreateTypeOption();
@@ -69,7 +73,9 @@ namespace past.ConsoleApp.Commands
                 ansiResetOption,
                 quietOption,
                 consoleClipboard.GetClipboardHistoryItemAsync);
+
             var statusCommand = new StatusCommand(quietOption, consoleClipboard.GetClipboardHistoryStatus);
+
             var helpCommand = new HelpCommand(async (command) =>
             {
                 if (string.IsNullOrWhiteSpace(command))
@@ -87,11 +93,37 @@ namespace past.ConsoleApp.Commands
             this.AddCommand(statusCommand);
             this.AddCommand(helpCommand);
 
-            this.SetHandler<IConsoleWriter, IValueFormatter, ContentType, CancellationToken>(
+            SetHandler(
                 consoleClipboard.GetCurrentClipboardValueAsync,
                 new ConsoleWriterBinder(ansiOption, ansiResetOption, quietOption),
                 new ValueFormatterBinder(),
                 new ContentTypeBinder(typeOption, allOption));
+        }
+
+        /// <summary>
+        /// Sets the command's handler to the provided <paramref name="handler"/> with the given binders.
+        /// </summary>
+        /// <remarks>
+        /// This is a thin, strongly typed wrapper around <see cref="Handler.SetHandler{T1, T2, T3, T4}(Command, Func{T1, T2, T3, T4, Task}, System.CommandLine.Binding.IValueDescriptor[])"/>.
+        /// <br/>
+        /// The only purpose of this method is to ensure that the handler parameter is strongly typed so that the original concrete type
+        /// is preserved for handler type validation in tests.
+        /// </remarks>
+        /// <param name="handler">Command handler.</param>
+        /// <param name="consoleWriterBinder">Binder for <see cref="ConsoleWriter"/>.</param>
+        /// <param name="valueFormatterBinder">Binder for <see cref="ValueFormatter"/>.</param>
+        /// <param name="contentTypeBinder">Binder for <see cref="ContentType"/>.</param>
+        private void SetHandler(
+            Func<IConsoleWriter, IValueFormatter, ContentType, CancellationToken, Task<int>> handler, ConsoleWriterBinder consoleWriterBinder,
+            ValueFormatterBinder valueFormatterBinder,
+            ContentTypeBinder contentTypeBinder
+            )
+        {
+            this.SetHandler<IConsoleWriter, IValueFormatter, ContentType, CancellationToken>(
+                handler,
+                consoleWriterBinder,
+                valueFormatterBinder,
+                contentTypeBinder);
         }
 
         /// <summary>

@@ -15,6 +15,11 @@ namespace past.ConsoleApp.Commands
         /// <summary>
         /// Creates a new <see cref="GetCommand"/> with the given arugment, options, and handler.
         /// </summary>
+        /// <remarks>
+        /// The <paramref name="quietOption"/> is not added to the command's options by this constructor,
+        /// as it is expected to be set as a global option.
+        /// This option is only included as a parameter since it is required for a type binding.
+        /// </remarks>
         /// <param name="identifierArgument">Argument for identifying an item in the clipboard history.</param>
         /// <param name="typeOption">Option for specifying content type.</param>
         /// <param name="allOption">Option alias for ContentType.All</param>
@@ -29,9 +34,17 @@ namespace past.ConsoleApp.Commands
             Option<bool> ansiOption,
             Option<AnsiResetType> ansiResetOption,
             Option<bool> quietOption,
-            Func<IConsoleWriter, IValueFormatter, ClipboardItemIdentifier, ContentType, bool, CancellationToken, Task> handler)
+            Func<IConsoleWriter, IValueFormatter, ClipboardItemIdentifier, ContentType, bool, CancellationToken, Task<int>> handler)
             : base("get", "Gets the item at the specified index from clipboard history")
         {
+            _ = identifierArgument ?? throw new ArgumentNullException(nameof(identifierArgument));
+            _ = typeOption ?? throw new ArgumentNullException(nameof(typeOption));
+            _ = allOption ?? throw new ArgumentNullException(nameof(allOption));
+            _ = ansiOption ?? throw new ArgumentNullException(nameof(ansiOption));
+            _ = ansiResetOption ?? throw new ArgumentNullException(nameof(ansiResetOption));
+            _ = quietOption ?? throw new ArgumentNullException(nameof(quietOption));
+            _ = handler ?? throw new ArgumentNullException(nameof(handler));
+
             // Add Shared Options
             this.AddOption(typeOption);
             this.AddOption(allOption);
@@ -40,7 +53,9 @@ namespace past.ConsoleApp.Commands
 
             this.AddArgument(identifierArgument);
             var setCurrentOption = new Option<bool>("--set-current", "Sets the current clipboard contents to the returned history item");
+
             this.AddOption(setCurrentOption);
+
             this.SetHandler<IConsoleWriter, IValueFormatter, ClipboardItemIdentifier, ContentType, bool, CancellationToken>(
                 handler,
                 new ConsoleWriterBinder(ansiOption, ansiResetOption, quietOption),

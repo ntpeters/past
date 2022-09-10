@@ -15,6 +15,11 @@ namespace past.ConsoleApp.Commands
         /// <summary>
         /// Creates a new <see cref="ListCommand"/> with the given options and handler.
         /// </summary>
+        /// <remarks>
+        /// The <paramref name="quietOption"/> is not added to the command's options by this constructor,
+        /// as it is expected to be set as a global option.
+        /// This option is only included as a parameter since it is required for a type binding.
+        /// </remarks>
         /// <param name="typeOption">Option for specifying content type.</param>
         /// <param name="allOption">Option alias for ContentType.All</param>
         /// <param name="ansiOption">Option for enabling VT processing.</param>
@@ -27,9 +32,16 @@ namespace past.ConsoleApp.Commands
             Option<bool> ansiOption,
             Option<AnsiResetType> ansiResetOption,
             Option<bool> quietOption,
-            Func<IConsoleWriter, IValueFormatter, ContentType, bool, CancellationToken, Task> handler)
+            Func<IConsoleWriter, IValueFormatter, ContentType, bool, CancellationToken, Task<int>> handler)
             : base("list", "Lists the clipboard history")
         {
+            _ = typeOption ?? throw new ArgumentNullException(nameof(typeOption));
+            _ = allOption ?? throw new ArgumentNullException(nameof(allOption));
+            _ = ansiOption ?? throw new ArgumentNullException(nameof(ansiOption));
+            _ = ansiResetOption ?? throw new ArgumentNullException(nameof(ansiResetOption));
+            _ = quietOption ?? throw new ArgumentNullException(nameof(quietOption));
+            _ = handler ?? throw new ArgumentNullException(nameof(handler));
+
             // Add Shared Options
             this.AddOption(typeOption);
             this.AddOption(allOption);
