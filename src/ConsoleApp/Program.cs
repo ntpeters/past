@@ -2,8 +2,10 @@ using past.ConsoleApp.Commands;
 using past.ConsoleApp.Middleware;
 using past.Core;
 using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
+using System.CommandLine.Help;
 using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,6 +35,24 @@ namespace past.ConsoleApp
             commandLineBuilder.RegisterWithDotnetSuggest();
             commandLineBuilder.UseParseErrorReporting((int)ErrorCode.ParseError);
             commandLineBuilder.UseHelp("help", "--help", "-h", "-?");
+            commandLineBuilder.UseHelp(context =>
+            {
+                context.HelpBuilder.CustomizeLayout(_ =>
+                {
+                    return HelpBuilder.Default.GetLayout().Append(_ =>
+                    {
+                        _.Output.WriteLine();
+                        _.Output.WriteLine("Exit Codes:");
+
+                        var lines = new List<TwoColumnHelpRow>();
+                        foreach (var errorCode in Enum.GetValues<ErrorCode>())
+                        {
+                            lines.Add(new TwoColumnHelpRow($"{(int)errorCode}", errorCode.ToString()));
+                        }
+                        _.HelpBuilder.WriteColumns(lines, _);
+                    });
+                });
+            });
             commandLineBuilder.UseVersionOption("--version", "-v");
             commandLineBuilder.CancelOnProcessTermination();
             commandLineBuilder.UseExceptionHandler(errorExitCode: (int)ErrorCode.UnexpectedError);
