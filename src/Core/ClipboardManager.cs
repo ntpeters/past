@@ -115,7 +115,7 @@ namespace past.Core
             return item;
         }
 
-        public async Task<IEnumerable<IClipboardHistoryItemWrapper>> ListClipboardHistoryAsync(ContentType type, bool pinned, CancellationToken? cancellationToken = null)
+        public async Task<IEnumerable<IClipboardHistoryItemWrapper>> GetClipboardHistoryAsync(ContentType type, bool pinned, CancellationToken? cancellationToken = null)
         {
             var items = await _winRtClipboard.GetHistoryItemsAsync();
             if (items.Status != ClipboardHistoryItemsResultStatus.Success)

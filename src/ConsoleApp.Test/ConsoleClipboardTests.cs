@@ -732,7 +732,7 @@ namespace past.ConsoleApp.Test
 
             var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
             mockClipboardManager
-                .Setup(mock => mock.ListClipboardHistoryAsync(
+                .Setup(mock => mock.GetClipboardHistoryAsync(
                     It.Is<ContentType>(actualType => actualType == expectedType),
                     It.Is<bool>(actualPinned => actualPinned == expectedPinned),
                     It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
@@ -802,7 +802,7 @@ namespace past.ConsoleApp.Test
 
             var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
             mockClipboardManager
-                .Setup(mock => mock.ListClipboardHistoryAsync(
+                .Setup(mock => mock.GetClipboardHistoryAsync(
                     It.Is<ContentType>(actualType => actualType == expectedType),
                     It.Is<bool>(actualPinned => actualPinned == expectedPinned),
                     It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
@@ -838,7 +838,7 @@ namespace past.ConsoleApp.Test
 
             var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
             mockClipboardManager
-                .Setup(mock => mock.ListClipboardHistoryAsync(
+                .Setup(mock => mock.GetClipboardHistoryAsync(
                     It.Is<ContentType>(actualType => actualType == expectedType),
                     It.Is<bool>(actualPinned => actualPinned == expectedPinned),
                     It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
@@ -874,7 +874,7 @@ namespace past.ConsoleApp.Test
 
             var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
             mockClipboardManager
-                .Setup(mock => mock.ListClipboardHistoryAsync(
+                .Setup(mock => mock.GetClipboardHistoryAsync(
                     It.Is<ContentType>(actualType => actualType == expectedType),
                     It.Is<bool>(actualPinned => actualPinned == expectedPinned),
                     It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))

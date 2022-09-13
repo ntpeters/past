@@ -113,7 +113,7 @@ namespace past.ConsoleApp
 
             try
             {
-                var clipboardItems = await _clipboard.ListClipboardHistoryAsync(type, pinned, cancellationToken);
+                var clipboardItems = await _clipboard.GetClipboardHistoryAsync(type, pinned, cancellationToken);
 
                 int index = 0;
                 foreach (var item in clipboardItems)

@@ -40,7 +40,7 @@ namespace past.Core
         /// <param name="cancellationToken">see cref="CancellationToken"/> representing request cancellation.</param>
         /// <returns>List of all clipboard history items. filtered on on <paramref name="type"/> and <paramref name="pinned"/>.</returns>
         /// <exception cref="PastException">Failure to retrieve the clipboard history, failure getting pinned items, or no items  match the specified content type.</exception>
-        Task<IEnumerable<IClipboardHistoryItemWrapper>> ListClipboardHistoryAsync(ContentType type, bool pinned, CancellationToken? cancellationToken = null);
+        Task<IEnumerable<IClipboardHistoryItemWrapper>> GetClipboardHistoryAsync(ContentType type, bool pinned, CancellationToken? cancellationToken = null);
 
         /// <inheritdoc cref="WinRtClipboardWrapper.SetHistoryItemAsContent(IClipboardHistoryItemWrapper)"/>
         SetHistoryItemAsContentStatus SetHistoryItemAsContent(IClipboardHistoryItemWrapper item);

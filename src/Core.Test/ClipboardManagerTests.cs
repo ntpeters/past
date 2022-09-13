@@ -406,11 +406,11 @@ namespace past.Core.Test
         }
         #endregion GetClipboardHistoryItemAsync
 
-        #region ListClipboardHistoryAsync
+        #region GetClipboardHistoryAsync
         [Test]
         [TestCase(ClipboardHistoryItemsResultStatus.AccessDenied)]
         [TestCase(ClipboardHistoryItemsResultStatus.ClipboardHistoryDisabled)]
-        public void ListClipboardHistoryAsync_FailToGetClipboardHistory_ThrowsException(ClipboardHistoryItemsResultStatus clipboardHistoryItemsResultStatus)
+        public void GetClipboardHistoryAsync_FailToGetClipboardHistory_ThrowsException(ClipboardHistoryItemsResultStatus clipboardHistoryItemsResultStatus)
         {
             // Arrange
             var expectedExceptionErrorCode = clipboardHistoryItemsResultStatus.ToErrorCode();
@@ -426,13 +426,13 @@ namespace past.Core.Test
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act + Assert
-            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.ListClipboardHistoryAsync(ContentType.Text, false));
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.GetClipboardHistoryAsync(ContentType.Text, false));
             Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
             Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
         }
 
         [Test]
-        public void ListClipboardHistoryAsync_EmptyClipboardHistory_ThrowsException()
+        public void GetClipboardHistoryAsync_EmptyClipboardHistory_ThrowsException()
         {
             // Arrange
             var expectedExceptionErrorCode = ErrorCode.NotFound;
@@ -450,13 +450,13 @@ namespace past.Core.Test
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act + Assert
-            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.ListClipboardHistoryAsync(ContentType.Text, false));
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.GetClipboardHistoryAsync(ContentType.Text, false));
             Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
             Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
         }
 
         [Test]
-        public async Task ListClipboardHistoryAsync_AllItemsMatchContentType_ReturnsAllItems()
+        public async Task GetClipboardHistoryAsync_AllItemsMatchContentType_ReturnsAllItems()
         {
             // Arrange
             var expectedItems = new List<IClipboardHistoryItemWrapper>();
@@ -481,14 +481,14 @@ namespace past.Core.Test
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act
-            var actualItems = await clipboardManager.ListClipboardHistoryAsync(ContentType.Text, false);
+            var actualItems = await clipboardManager.GetClipboardHistoryAsync(ContentType.Text, false);
 
             // Assert
             Assert.That(actualItems, Is.EqualTo(expectedItems));
         }
 
         [Test]
-        public async Task ListClipboardHistoryAsync_SomeItemsMatchContentType_ReturnsMatchingItems()
+        public async Task GetClipboardHistoryAsync_SomeItemsMatchContentType_ReturnsMatchingItems()
         {
             // Arrange
             var allItems = new List<IClipboardHistoryItemWrapper>();
@@ -522,14 +522,14 @@ namespace past.Core.Test
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act
-            var actualItems = await clipboardManager.ListClipboardHistoryAsync(ContentType.Text, false);
+            var actualItems = await clipboardManager.GetClipboardHistoryAsync(ContentType.Text, false);
 
             // Assert
             Assert.That(actualItems, Is.EqualTo(expectedItems));
         }
 
         [Test]
-        public void ListClipboardHistoryAsync_NoItemsMatchContentType_ThrowsException()
+        public void GetClipboardHistoryAsync_NoItemsMatchContentType_ThrowsException()
         {
             // Arrange
             var expectedExceptionErrorCode = ErrorCode.IncompatibleContentType;
@@ -556,13 +556,13 @@ namespace past.Core.Test
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act + Assert
-            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.ListClipboardHistoryAsync(ContentType.Image, false));
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.GetClipboardHistoryAsync(ContentType.Image, false));
             Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
             Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
         }
 
         [Test]
-        public async Task ListClipboardHistoryAsync_GetPinnedItems_ReturnsOnlyPinnedItems()
+        public async Task GetClipboardHistoryAsync_GetPinnedItems_ReturnsOnlyPinnedItems()
         {
             // Arrange
             var mockClipboardItems = new List<IClipboardHistoryItemWrapper>();
@@ -600,14 +600,14 @@ namespace past.Core.Test
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act
-            var actualPinnedItems = await clipboardManager.ListClipboardHistoryAsync(ContentType.Text, true);
+            var actualPinnedItems = await clipboardManager.GetClipboardHistoryAsync(ContentType.Text, true);
 
             // Assert
             Assert.That(actualPinnedItems, Is.EqualTo(expectedPinnedItems));
         }
 
         [Test]
-        public void ListClipboardHistoryAsync_FailToGetPinnedItems_ThrowsException()
+        public void GetClipboardHistoryAsync_FailToGetPinnedItems_ThrowsException()
         {
             // Arrange
             var expectedExceptionErrorCode = ErrorCode.NotFound;
@@ -638,13 +638,13 @@ namespace past.Core.Test
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act + Assert
-            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.ListClipboardHistoryAsync(ContentType.Text, true));
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.GetClipboardHistoryAsync(ContentType.Text, true));
             Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
             Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
         }
 
         [Test]
-        public void ListClipboardHistoryAsync_NoPinnedItems_ThrowsException()
+        public void GetClipboardHistoryAsync_NoPinnedItems_ThrowsException()
         {
             // Arrange
             var expectedExceptionErrorCode = ErrorCode.NotFound;
@@ -677,13 +677,13 @@ namespace past.Core.Test
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act + Assert
-            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.ListClipboardHistoryAsync(ContentType.Text, true));
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.GetClipboardHistoryAsync(ContentType.Text, true));
             Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
             Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
         }
 
         [Test]
-        public void ListClipboardHistoryAsync_NoMatchingPinnedItems_ThrowsException()
+        public void GetClipboardHistoryAsync_NoMatchingPinnedItems_ThrowsException()
         {
             // Arrange
             var expectedExceptionErrorCode = ErrorCode.NotFound;
@@ -716,11 +716,11 @@ namespace past.Core.Test
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
             // Act + Assert
-            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.ListClipboardHistoryAsync(ContentType.Text, true));
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.GetClipboardHistoryAsync(ContentType.Text, true));
             Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
             Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
         }
-        #endregion ListClipboardHistoryAsync
+        #endregion GetClipboardHistoryAsync
 
         #region SetHistoryItemAsContent
         [Test]
