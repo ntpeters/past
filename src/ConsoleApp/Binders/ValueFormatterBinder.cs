@@ -2,6 +2,7 @@ using System;
 using System.CommandLine;
 using System.CommandLine.Binding;
 using System.CommandLine.Parsing;
+using System.Diagnostics.CodeAnalysis;
 using past.ConsoleApp.Output;
 
 namespace past.ConsoleApp.Binders
@@ -63,6 +64,7 @@ namespace past.ConsoleApp.Binders
             return new ValueFormatter(nullEnabled, indexEnabled, idEnabled, timeEnabled);
         }
 
+        [ExcludeFromCodeCoverage(Justification = "BindingContext is not mockable and has no public constructor. Use GetBoundValue(ParseResult) for testing instead.")]
         protected override IValueFormatter GetBoundValue(BindingContext bindingContext)
             => GetBoundValue(bindingContext.ParseResult);
     }

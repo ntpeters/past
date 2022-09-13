@@ -4,6 +4,7 @@ using System;
 using System.CommandLine;
 using System.CommandLine.Binding;
 using System.CommandLine.Parsing;
+using System.Diagnostics.CodeAnalysis;
 
 namespace past.ConsoleApp.Binders
 {
@@ -62,6 +63,7 @@ namespace past.ConsoleApp.Binders
             return new ConsoleWriter(console, environment, quietEnabled, ansiEnabled , ansiResetType);
         }
 
+        [ExcludeFromCodeCoverage(Justification = "BindingContext is not mockable and has no public constructor. Use GetBoundValue(ParseResult) for testing instead.")]
         protected override IConsoleWriter GetBoundValue(BindingContext bindingContext)
             => GetBoundValue(bindingContext.ParseResult, bindingContext.Console);
     }
