@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace past.ConsoleApp.Wrappers
 {
     /// <inheritdoc cref="INativeMethodsWrapper"/>
+    [ExcludeFromCodeCoverage(Justification = "Wrappers are not intended to be tested, as they exist solely to enable dependency injection of non-mockable APIs.")]
     internal class NativeMethodsWrapper : INativeMethodsWrapper
     {
         public bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode)

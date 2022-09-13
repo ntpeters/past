@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace past.Core.Wrappers
 {
     /// <inheritdoc cref="IClipboardHistoryItemsResultWrapper"/>
+    [ExcludeFromCodeCoverage(Justification = "Wrappers are not intended to be tested, as they exist solely to enable dependency injection of non-mockable APIs.")]
     public class ClipboardHistoryItemsResultWrapper : IClipboardHistoryItemsResultWrapper
     {
         #region Private Fields

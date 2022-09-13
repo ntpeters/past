@@ -1,9 +1,11 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace past.ConsoleApp.Wrappers
 {
     /// <inheritdoc cref="IAppDomainWrapper"/>
+    [ExcludeFromCodeCoverage(Justification = "Wrappers are not intended to be tested, as they exist solely to enable dependency injection of non-mockable APIs.")]
     public class AppDomainWrapper : IAppDomainWrapper
     {
         public event EventHandler ProcessExit

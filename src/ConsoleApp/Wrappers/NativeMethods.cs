@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace past.ConsoleApp.Wrappers
@@ -6,6 +7,7 @@ namespace past.ConsoleApp.Wrappers
     /// <summary>
     /// Imported native methods for access via platform invoke.
     /// </summary>
+    [ExcludeFromCodeCoverage(Justification = "Native methods are not tested.")]
     internal static class NativeMethods
     {
         /// <summary>
