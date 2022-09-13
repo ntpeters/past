@@ -1,6 +1,7 @@
+using past.ConsoleApp.Output;
 using past.ConsoleApp.Wrappers;
 
-namespace past.ConsoleApp.Test
+namespace past.ConsoleApp.Test.Output
 {
     public class ValueFormatterTests
     {

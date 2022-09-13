@@ -1,4 +1,6 @@
-namespace past.Core.Test
+using past.Core.Models;
+
+namespace past.Core.Test.Models
 {
     public class ClipboardItemIdentifierTests
     {

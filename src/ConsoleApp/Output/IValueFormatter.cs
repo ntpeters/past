@@ -1,6 +1,6 @@
 using System;
 
-namespace past.ConsoleApp
+namespace past.ConsoleApp.Output
 {
     /// <summary>
     /// Formats values for output.

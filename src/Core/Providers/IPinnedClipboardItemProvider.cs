@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace past.Core
+namespace past.Core.Providers
 {
     /// <summary>
     /// Provides metadata of pinned clipboard history items.

@@ -1,4 +1,4 @@
-using past.Core;
+using past.Core.Models;
 using System;
 using System.CommandLine;
 using System.CommandLine.Binding;

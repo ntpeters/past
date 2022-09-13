@@ -9,15 +9,15 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace past.ConsoleApp
+namespace past.ConsoleApp.Output
 {
     /// <inheritdoc cref="IConsoleWriter"/>
     public class ConsoleWriter : IConsoleWriter
     {
         #region Public Properties
-        public  bool SuppressErrorOutput { get; }
-        public  bool EnableAnsiProcessing { get; }
-        public  AnsiResetType AnsiResetType { get; }
+        public bool SuppressErrorOutput { get; }
+        public bool EnableAnsiProcessing { get; }
+        public AnsiResetType AnsiResetType { get; }
         #endregion Public Properties
 
         #region Private Fields

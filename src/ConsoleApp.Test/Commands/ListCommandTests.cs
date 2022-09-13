@@ -1,4 +1,5 @@
 using past.ConsoleApp.Commands;
+using past.ConsoleApp.Output;
 using past.ConsoleApp.Test.TestHelpers;
 using past.Core;
 using System.CommandLine;

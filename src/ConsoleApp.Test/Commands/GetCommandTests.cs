@@ -1,6 +1,8 @@
 using past.ConsoleApp.Commands;
+using past.ConsoleApp.Output;
 using past.ConsoleApp.Test.TestHelpers;
 using past.Core;
+using past.Core.Models;
 using System.CommandLine;
 
 namespace past.ConsoleApp.Test.Commands

@@ -1,3 +1,4 @@
+using past.Core.Models;
 using past.Core.Wrappers;
 using System.Diagnostics.CodeAnalysis;
 using Windows.ApplicationModel.DataTransfer;

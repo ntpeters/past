@@ -2,6 +2,7 @@ using System;
 using System.CommandLine;
 using System.CommandLine.Binding;
 using System.CommandLine.Parsing;
+using past.ConsoleApp.Output;
 
 namespace past.ConsoleApp.Binders
 {

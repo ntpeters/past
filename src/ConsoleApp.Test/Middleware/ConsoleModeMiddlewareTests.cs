@@ -5,7 +5,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 
-namespace past.ConsoleApp.Test
+namespace past.ConsoleApp.Test.Middleware
 {
     public class ConsoleModeMiddlewareTests
     {

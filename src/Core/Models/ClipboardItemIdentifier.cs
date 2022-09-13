@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace past.Core
+namespace past.Core.Models
 {
     /// <summary>
     /// Identifier describing a clipbpoard history item with either the index or the item ID.
@@ -120,7 +120,7 @@ namespace past.Core
             return false;
         }
 
-        public override bool Equals(object? other) => (other is ClipboardItemIdentifier otherId) && Equals(otherId);
+        public override bool Equals(object? other) => other is ClipboardItemIdentifier otherId && Equals(otherId);
 
         public override int GetHashCode() => (_index, _id).GetHashCode();
 

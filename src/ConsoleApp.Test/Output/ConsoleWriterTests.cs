@@ -1,4 +1,5 @@
 using Moq;
+using past.ConsoleApp.Output;
 using past.ConsoleApp.Wrappers;
 using past.Core;
 using past.Core.Wrappers;
@@ -7,7 +8,7 @@ using System.CommandLine.IO;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 
-namespace past.ConsoleApp.Test
+namespace past.ConsoleApp.Test.Output
 {
     public class ConsoleWriterTests
     {

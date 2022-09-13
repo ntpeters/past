@@ -3,7 +3,7 @@ using past.ConsoleApp.Binders;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 
-namespace past.ConsoleApp.Test
+namespace past.ConsoleApp.Test.Binders
 {
     public class ConsoleWriterBinderTests
     {

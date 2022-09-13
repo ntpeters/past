@@ -1,4 +1,5 @@
 using past.ConsoleApp.Binders;
+using past.ConsoleApp.Output;
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;

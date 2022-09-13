@@ -3,7 +3,7 @@ using past.ConsoleApp.Extensions;
 using System.CommandLine;
 using System.CommandLine.IO;
 
-namespace past.ConsoleApp.Test
+namespace past.ConsoleApp.Test.Extensions
 {
     public class ConsoleExtensionsTests
     {
@@ -29,7 +29,7 @@ namespace past.ConsoleApp.Test
             var result = mockConsole.Object.WriteError(expectedValue);
 
             // Assert
-            Assert.That(result , Is.True);
+            Assert.That(result, Is.True);
             Assert.That(actualValue, Is.EqualTo(expectedValue));
         }
 

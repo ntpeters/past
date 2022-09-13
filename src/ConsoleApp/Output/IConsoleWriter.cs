@@ -2,7 +2,7 @@ using past.Core;
 using past.Core.Wrappers;
 using System.Threading.Tasks;
 
-namespace past.ConsoleApp
+namespace past.ConsoleApp.Output
 {
     /// <summary>
     /// Represents a writer that can write to a connected console.

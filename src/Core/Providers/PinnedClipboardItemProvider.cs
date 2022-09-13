@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
 
-namespace past.Core
+namespace past.Core.Providers
 {
     /// <inheritdoc cref="IPinnedClipboardItemProvider"/>
     public class PinnedClipboardItemProvider : IPinnedClipboardItemProvider

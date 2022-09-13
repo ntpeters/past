@@ -1,9 +1,10 @@
 using Moq;
 using past.Core.Extensions;
+using past.Core.Models;
 using past.Core.Wrappers;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace past.Core.Test
+namespace past.Core.Test.Extensions
 {
     public class ClipboardHistoryItemsResultWrapperExtensionsTests
     {

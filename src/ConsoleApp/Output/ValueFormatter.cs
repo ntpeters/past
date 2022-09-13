@@ -2,7 +2,7 @@ using past.ConsoleApp.Wrappers;
 using System;
 using System.Text;
 
-namespace past.ConsoleApp
+namespace past.ConsoleApp.Output
 {
     /// <inheritdoc cref="IValueFormatter"/>
     public class ValueFormatter : IValueFormatter

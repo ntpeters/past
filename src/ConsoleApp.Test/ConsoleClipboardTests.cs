@@ -1,5 +1,7 @@
 using Moq;
+using past.ConsoleApp.Output;
 using past.Core;
+using past.Core.Models;
 using past.Core.Wrappers;
 using System.CommandLine;
 using System.CommandLine.Invocation;

@@ -1,4 +1,6 @@
 using past.Core.Extensions;
+using past.Core.Models;
+using past.Core.Providers;
 using past.Core.Wrappers;
 using System.Windows;
 using Windows.ApplicationModel.DataTransfer;

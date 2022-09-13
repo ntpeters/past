@@ -1,8 +1,9 @@
 using Newtonsoft.Json;
 using past.Core.Models;
+using past.Core.Providers;
 using System.Text;
 
-namespace past.Core.Test
+namespace past.Core.Test.Providers
 {
     public class PinnedClipboardItemProviderTests
     {

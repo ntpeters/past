@@ -1,5 +1,7 @@
 using past.ConsoleApp.Binders;
+using past.ConsoleApp.Output;
 using past.Core;
+using past.Core.Models;
 using System;
 using System.CommandLine;
 using System.Threading;
