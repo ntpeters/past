@@ -22,19 +22,15 @@ namespace past.Core
         Task<string?> GetCurrentClipboardValueAsync(ContentType type, CancellationToken? cancellationToken = null);
 
         /// <summary>
-        /// Gets the specified item from the clipboard history, and optionally sets it as the current clipboard value.
+        /// Gets the specified item from the clipboard history.
         /// </summary>
         /// <param name="identifier">Identifier describing an item in the clipboard history.</param>
-        /// <param name="setCurrent">Whether to set the specified item as the current clipboard value.</param>
         /// <param name="type">Content type to filter on.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> representing request cancellation.</param>
-        /// <returns>
-        /// A <see cref="ValueTuple{IClipboardHistoryItemWrapper, SetHistoryItemAsContentStatus?}"/> containing the item and the status of setting the item as the current clipboard value.
-        /// If <paramref name="setCurrent"/> was false, then the status will be null.
-        /// </returns>
+        /// <returns>The specified item, if found.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="identifier"/> is null.</exception>
         /// <exception cref="PastException">Failure to retrieve the clipboard history, specified item isn't found, or item doesn't match the specified content type.</exception>
-        Task<(IClipboardHistoryItemWrapper Item, SetHistoryItemAsContentStatus? SetCurrentStatus)> GetClipboardHistoryItemAsync(ClipboardItemIdentifier identifier, bool setCurrent, ContentType type, CancellationToken? cancellationToken = null);
+        Task<IClipboardHistoryItemWrapper> GetClipboardHistoryItemAsync(ClipboardItemIdentifier identifier, ContentType type, CancellationToken? cancellationToken = null);
 
         /// <summary>
         /// Gets all items in the clipboard history, filtered on <paramref name="type"/> and <paramref name="pinned"/>.
@@ -45,6 +41,9 @@ namespace past.Core
         /// <returns>List of all clipboard history items. filtered on on <paramref name="type"/> and <paramref name="pinned"/>.</returns>
         /// <exception cref="PastException">Failure to retrieve the clipboard history, failure getting pinned items, or no items  match the specified content type.</exception>
         Task<IEnumerable<IClipboardHistoryItemWrapper>> ListClipboardHistoryAsync(ContentType type, bool pinned, CancellationToken? cancellationToken = null);
+
+        /// <inheritdoc cref="WinRtClipboardWrapper.SetHistoryItemAsContent(IClipboardHistoryItemWrapper)"/>
+        SetHistoryItemAsContentStatus SetHistoryItemAsContent(IClipboardHistoryItemWrapper item);
 
         /// <inheritdoc cref="WinRtClipboardWrapper.IsHistoryEnabled"/>
         bool IsHistoryEnabled();

@@ -85,12 +85,16 @@ namespace past.ConsoleApp
 
             try
             {
-                var (item, setContentStatus) = await _clipboard.GetClipboardHistoryItemAsync(identifier, setCurrent, type, cancellationToken);
+                var item = await _clipboard.GetClipboardHistoryItemAsync(identifier, type, cancellationToken);
                 await consoleWriter.WriteItemAsync(item, type, formatter: formatter);
 
-                if (setCurrent && setContentStatus != SetHistoryItemAsContentStatus.Success)
+                if (setCurrent)
                 {
-                    consoleWriter.WriteErrorLine($"Failed updating the current clipboard content with the selected history item. Error: {setContentStatus}");
+                    var setContentStatus = _clipboard.SetHistoryItemAsContent(item);
+                    if (setContentStatus != SetHistoryItemAsContentStatus.Success)
+                    {
+                        consoleWriter.WriteErrorLine($"Failed updating the current clipboard content with the selected history item. Error: {setContentStatus}");
+                    }
                 }
             }
             catch (PastException e)

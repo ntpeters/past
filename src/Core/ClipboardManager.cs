@@ -94,8 +94,7 @@ namespace past.Core
             return await tsc.Task;
         }
 
-        // TODO: Encapsulate return values, or split out setting as the current item
-        public async Task<(IClipboardHistoryItemWrapper Item, SetHistoryItemAsContentStatus? SetCurrentStatus)> GetClipboardHistoryItemAsync(ClipboardItemIdentifier identifier, bool setCurrent, ContentType type, CancellationToken? cancellationToken = null)
+        public async Task<IClipboardHistoryItemWrapper> GetClipboardHistoryItemAsync(ClipboardItemIdentifier identifier, ContentType type, CancellationToken? cancellationToken = null)
         {
             var items = await _winRtClipboard.GetHistoryItemsAsync();
             if (items.Status != ClipboardHistoryItemsResultStatus.Success)
@@ -113,13 +112,7 @@ namespace past.Core
                 throw new PastException(ErrorCode.IncompatibleContentType, "Item does not support the specified content type");
             }
 
-            SetHistoryItemAsContentStatus? setContentStatus = null;
-            if (setCurrent)
-            {
-                setContentStatus = _winRtClipboard.SetHistoryItemAsContent(item);
-            }
-
-            return (item, setContentStatus);
+            return item;
         }
 
         public async Task<IEnumerable<IClipboardHistoryItemWrapper>> ListClipboardHistoryAsync(ContentType type, bool pinned, CancellationToken? cancellationToken = null)
@@ -162,6 +155,8 @@ namespace past.Core
 
             return filteredItems;
         }
+
+        public SetHistoryItemAsContentStatus SetHistoryItemAsContent(IClipboardHistoryItemWrapper item) => _winRtClipboard.SetHistoryItemAsContent(item);
 
         public bool IsHistoryEnabled() => _winRtClipboard.IsHistoryEnabled();
 

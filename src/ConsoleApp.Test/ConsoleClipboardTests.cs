@@ -433,7 +433,7 @@ namespace past.ConsoleApp.Test
             var expectedReturnValue = 0;
             var expectedCancellationTokenSource = new CancellationTokenSource();
             var expectedIdentifier = new ClipboardItemIdentifier(0);
-            SetHistoryItemAsContentStatus? expectedSetCurrentStatus = expectedSetCurrent ? SetHistoryItemAsContentStatus.Success : null;
+            SetHistoryItemAsContentStatus expectedSetCurrentStatus = SetHistoryItemAsContentStatus.Success;
 
             var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
 
@@ -441,11 +441,19 @@ namespace past.ConsoleApp.Test
             mockClipboardManager
                 .Setup(mock => mock.GetClipboardHistoryItemAsync(
                     It.Is<ClipboardItemIdentifier>(actualIdentifier => actualIdentifier == expectedIdentifier),
-                    It.Is<bool>(actualSetCurrent => actualSetCurrent == expectedSetCurrent),
                     It.Is<ContentType>(actualType => actualType == expectedType),
                     It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
-                .ReturnsAsync((mockItem.Object, expectedSetCurrentStatus))
+                .ReturnsAsync(mockItem.Object)
                 .Verifiable();
+
+            if (expectedSetCurrent)
+            {
+                mockClipboardManager
+                    .Setup(mock => mock.SetHistoryItemAsContent(
+                        It.Is<IClipboardHistoryItemWrapper>(actualItem => actualItem == mockItem.Object)))
+                    .Returns(expectedSetCurrentStatus)
+                    .Verifiable();
+            }
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
             var mockConsoleWriter = new Mock<IConsoleWriter>(MockBehavior.Strict);
@@ -489,10 +497,15 @@ namespace past.ConsoleApp.Test
             mockClipboardManager
                 .Setup(mock => mock.GetClipboardHistoryItemAsync(
                     It.Is<ClipboardItemIdentifier>(actualIdentifier => actualIdentifier == expectedIdentifier),
-                    It.Is<bool>(actualSetCurrent => actualSetCurrent == expectedSetCurrent),
                     It.Is<ContentType>(actualType => actualType == expectedType),
                     It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
-                .ReturnsAsync((mockItem.Object, expectedSetCurrentStatus))
+                .ReturnsAsync(mockItem.Object)
+                .Verifiable();
+
+            mockClipboardManager
+                .Setup(mock => mock.SetHistoryItemAsContent(
+                    It.Is<IClipboardHistoryItemWrapper>(actualItem => actualItem == mockItem.Object)))
+                .Returns(expectedSetCurrentStatus)
                 .Verifiable();
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
@@ -541,7 +554,6 @@ namespace past.ConsoleApp.Test
             mockClipboardManager
                 .Setup(mock => mock.GetClipboardHistoryItemAsync(
                     It.Is<ClipboardItemIdentifier>(actualIdentifier => actualIdentifier == expectedIdentifier),
-                    It.Is<bool>(actualSetCurrent => actualSetCurrent == expectedSetCurrent),
                     It.Is<ContentType>(actualType => actualType == expectedType),
                     It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
                 .ThrowsAsync(expectedException)
@@ -581,7 +593,6 @@ namespace past.ConsoleApp.Test
             mockClipboardManager
                 .Setup(mock => mock.GetClipboardHistoryItemAsync(
                     It.Is<ClipboardItemIdentifier>(actualIdentifier => actualIdentifier == expectedIdentifier),
-                    It.Is<bool>(actualSetCurrent => actualSetCurrent == expectedSetCurrent),
                     It.Is<ContentType>(actualType => actualType == expectedType),
                     It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
                 .ThrowsAsync(expectedException)
@@ -607,7 +618,6 @@ namespace past.ConsoleApp.Test
             // Arrange
             var expectedCancellationTokenSource = new CancellationTokenSource();
             bool expectedSetCurrent = false;
-            SetHistoryItemAsContentStatus? expectedSetCurrentStatus = null;
             var expectedIdentifier = new ClipboardItemIdentifier(0);
             ContentType expectedType = ContentType.Text;
             var expectedException = new Exception("Oh no! :o");
@@ -619,10 +629,9 @@ namespace past.ConsoleApp.Test
             mockClipboardManager
                 .Setup(mock => mock.GetClipboardHistoryItemAsync(
                     It.Is<ClipboardItemIdentifier>(actualIdentifier => actualIdentifier == expectedIdentifier),
-                    It.Is<bool>(actualSetCurrent => actualSetCurrent == expectedSetCurrent),
                     It.Is<ContentType>(actualType => actualType == expectedType),
                     It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
-                .ReturnsAsync((mockItem.Object, expectedSetCurrentStatus))
+                .ReturnsAsync(mockItem.Object)
                 .Verifiable();
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
