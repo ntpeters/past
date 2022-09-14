@@ -16,6 +16,11 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <!-- Exclude this project from code coverage since it's a test project. -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Include="Moq" Version="4.18.1" />
