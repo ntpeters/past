@@ -42,7 +42,7 @@ namespace past.Core.Extensions
             }
             else if (identifier.TryGetAsGuid(out Guid? guid))
             {
-                clipboardHistoryItem = result.Items.FirstOrDefault(item => new Guid(item.Id) == guid);
+                clipboardHistoryItem = result.Items.FirstOrDefault(item => Guid.Parse(item.Id) == guid.Value);
             }
 
             return clipboardHistoryItem != null;

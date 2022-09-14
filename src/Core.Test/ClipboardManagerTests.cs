@@ -121,6 +121,39 @@ namespace past.Core.Test
         }
 
         [Test]
+        public async Task GetCurrentClipboardValueAsync_RequestImageForNonImageContent_ReturnsNull()
+        {
+            // Arrange
+            ContentType type = ContentType.Image;
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            mockWin32Clipboard
+                .Setup(
+                mock => mock.ContainsText(It.Is<TextDataFormat>(
+                    format => format == TextDataFormat.Text || format == TextDataFormat.UnicodeText)))
+                .Returns(false)
+                .Verifiable();
+            mockWin32Clipboard
+                .Setup(mock => mock.ContainsImage())
+                .Returns(false)
+                .Verifiable();
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
+
+            // Act
+            var actualValue = await clipboardManager.GetCurrentClipboardValueAsync(type, null);
+
+            // Assert
+            Assert.That(actualValue, Is.Null);
+            mockWin32Clipboard.Verify(mock => mock.ContainsText(It.Is<TextDataFormat>(
+                format => format == TextDataFormat.Text)), Times.AtMostOnce);
+            mockWin32Clipboard.Verify(mock => mock.ContainsText(It.Is<TextDataFormat>(
+                format => format == TextDataFormat.UnicodeText)), Times.AtMostOnce);
+            mockWin32Clipboard.Verify(mock => mock.ContainsImage(), Times.Once);
+            mockWinRtClipboard.Verify();
+        }
+
+        [Test]
         public async Task GetCurrentClipboardValueAsync_ForUnsupportedContent_Success()
         {
             // Arrange
@@ -158,6 +191,25 @@ namespace past.Core.Test
 
             // Assert
             Assert.That(actualValue, Is.EqualTo(expectedValue));
+            mockWin32Clipboard.Verify();
+            mockWinRtClipboard.Verify();
+        }
+
+        [Test]
+        public async Task GetCurrentClipboardValueAsync_ForUnsupportedContentType_ReturnsNull()
+        {
+            // Arrange
+            ContentType type = 0;
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
+
+            // Act
+            var actualValue = await clipboardManager.GetCurrentClipboardValueAsync(type, null);
+
+            // Assert
+            Assert.That(actualValue, Is.Null);
             mockWin32Clipboard.Verify();
             mockWinRtClipboard.Verify();
         }

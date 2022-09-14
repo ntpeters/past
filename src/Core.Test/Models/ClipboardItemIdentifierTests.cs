@@ -234,8 +234,9 @@ namespace past.Core.Test.Models
         {
             // Arrange
             Guid guid = Guid.NewGuid();
+            var guid2 = Guid.Parse(guid.ToString());
             var identifier1 = new ClipboardItemIdentifier(guid);
-            var identifier2 = new ClipboardItemIdentifier(guid);
+            var identifier2 = new ClipboardItemIdentifier(guid2);
 
             // Act + Assert
             Assert.That(identifier1.Equals(identifier2), Is.True);
@@ -259,6 +260,18 @@ namespace past.Core.Test.Models
         {
             // Arrange
             var identifier1 = new ClipboardItemIdentifier(Guid.NewGuid());
+            var identifier2 = new ClipboardItemIdentifier(Guid.NewGuid());
+
+            // Act + Assert
+            Assert.That(identifier1.Equals(identifier2), Is.False);
+            Assert.That(identifier2.Equals(identifier1), Is.False);
+        }
+
+        [Test]
+        public void Equals_WithIndexIdentifierAndGuidIdentifier_ReturnsFalse()
+        {
+            // Arrange
+            var identifier1 = new ClipboardItemIdentifier(1);
             var identifier2 = new ClipboardItemIdentifier(Guid.NewGuid());
 
             // Act + Assert

@@ -107,12 +107,12 @@ namespace past.Core.Models
                 return false;
             }
 
-            if (other.TryGetAsIndex(out var otherIndex) && TryGetAsIndex(out var thisIndex) && otherIndex == thisIndex)
+            if (other.TryGetAsIndex(out var otherIndex) && TryGetAsIndex(out var thisIndex) && otherIndex.Value == thisIndex.Value)
             {
                 return true;
             }
 
-            if (other.TryGetAsGuid(out var otherId) && TryGetAsGuid(out var thisId) && otherId == thisId)
+            if (other.TryGetAsGuid(out var otherId) && TryGetAsGuid(out var thisId) && otherId.Value == thisId.Value)
             {
                 return true;
             }

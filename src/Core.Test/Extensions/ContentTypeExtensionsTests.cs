@@ -72,11 +72,12 @@ namespace past.Core.Test.Extensions
 
         #region Supports
         [Test]
-        public void Supports_TextContentType_PredicateReceivesTextFormatId()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Supports_TextContentType_PredicateReceivesTextFormatId(bool expectedResult)
         {
             // Arrange
             var expectedFormatId = StandardDataFormats.Text;
-            bool expectedResult = true;
             var type = ContentType.Text;
 
             // Act
@@ -93,11 +94,12 @@ namespace past.Core.Test.Extensions
         }
 
         [Test]
-        public void Supports_ImageContentType_PredicateReceivesBitmapFormatId()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Supports_ImageContentType_PredicateReceivesBitmapFormatId(bool expectedResult)
         {
             // Arrange
             var expectedFormatId = StandardDataFormats.Bitmap;
-            bool expectedResult = true;
             var type = ContentType.Image;
 
             // Act
@@ -129,6 +131,25 @@ namespace past.Core.Test.Extensions
 
             // Assert
             Assert.That(actualResult, Is.True);
+            Assert.That(actualFormatId, Is.Null);
+        }
+
+        [Test]
+        public void Supports_UnsupportedType_ReturnsFalse()
+        {
+            // Arrange
+            var type = (ContentType)(0);
+
+            // Act
+            string? actualFormatId = null;
+            var actualResult = type.Supports(formatId =>
+            {
+                actualFormatId = formatId;
+                return false;
+            });
+
+            // Assert
+            Assert.That(actualResult, Is.False);
             Assert.That(actualFormatId, Is.Null);
         }
 

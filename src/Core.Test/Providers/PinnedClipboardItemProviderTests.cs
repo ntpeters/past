@@ -75,12 +75,30 @@ namespace past.Core.Test.Providers
         }
 
         [Test]
-        public void TryGetPinnedClipboardHistoryItemIds_NoPinnedItemsExist_ReturnsFalseAndExpectedError()
+        public void TryGetPinnedClipboardHistoryItemIds_EmptyPinnedItemJsonList_ReturnsTrueAndEmptySet()
+        {
+            // Arrange
+            var pinnedMetadataList = new PinnedClipboardMetadataList();
+            pinnedMetadataList.Items = new Dictionary<string, PinnedClipboardMetadataListItem>();
+            CreateTestPinnedItemMetadataFile(pinnedMetadataList);
+
+            var pinnedItemProvider = new PinnedClipboardItemProvider(GetTestPinnedItemBaseDirectory());
+
+            // Act
+            var result = pinnedItemProvider.TryGetPinnedClipboardHistoryItemIds(out var itemIds, out var actualErrorMessage);
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(itemIds, Is.Empty);
+            Assert.That(actualErrorMessage, Is.Null);
+        }
+
+        [Test]
+        public void TryGetPinnedClipboardHistoryItemIds_NullPinnedItemJsonList_ReturnsFalseAndExpectedError()
         {
             // Arrange
             var expectedErrorMessage = "No pinned items in clipboard history";
             var pinnedMetadataList = new PinnedClipboardMetadataList();
-            pinnedMetadataList.Items = new Dictionary<string, PinnedClipboardMetadataListItem>();
             CreateTestPinnedItemMetadataFile(pinnedMetadataList);
 
             var pinnedItemProvider = new PinnedClipboardItemProvider(GetTestPinnedItemBaseDirectory());

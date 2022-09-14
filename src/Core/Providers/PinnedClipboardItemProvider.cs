@@ -45,13 +45,14 @@ namespace past.Core.Providers
 
             var pinnedClipboardItemMetadataJson = File.ReadAllText(pinnedItemsMetadataPath);
             var pinnedClipboardItemMetadata = JsonDocument.Parse(pinnedClipboardItemMetadataJson);
-            var pinnedClipboardItemIds = pinnedClipboardItemMetadata.RootElement.GetProperty("items").EnumerateObject().Select(property => property.Name);
-            if (pinnedClipboardItemIds == null || !pinnedClipboardItemIds.Any())
+            var pinnedClipboardItems = pinnedClipboardItemMetadata.RootElement.GetProperty("items");
+            if (pinnedClipboardItems.ValueKind == JsonValueKind.Null)
             {
                 errorMessage = "No pinned items in clipboard history";
                 return false;
             }
 
+            var pinnedClipboardItemIds = pinnedClipboardItems.EnumerateObject().Select(property => property.Name);
             pinnedItemIds = pinnedClipboardItemIds.ToHashSet();
             return true;
         }
