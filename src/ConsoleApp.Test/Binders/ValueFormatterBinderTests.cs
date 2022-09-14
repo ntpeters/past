@@ -8,6 +8,12 @@ namespace past.ConsoleApp.Test.Binders
     {
         #region Constructor
         [Test]
+        public void Create_Parameterless_Success()
+        {
+            Assert.DoesNotThrow(() => new ValueFormatterBinder());
+        }
+
+        [Test]
         public void Create_NonNullOptions_Success()
         {
             // Arrange
@@ -90,6 +96,68 @@ namespace past.ConsoleApp.Test.Binders
         #endregion Constructor
 
         #region GetBoundValue
+        [Test]
+        public void GetBoundValue_AllOptionsDisabledWithNoBoundOptions_ReturnsFormatterWithAllOptionsDisabled()
+        {
+            // Arrange
+            var nullOption = new Option<bool>("--null");
+            var indexOption = new Option<bool>("--index");
+            var idOption = new Option<bool>("--id");
+            var timeOption = new Option<bool>("--time");
+
+            var testCommand = new Command("test");
+            testCommand.AddOption(nullOption);
+            testCommand.AddOption(indexOption);
+            testCommand.AddOption(idOption);
+            testCommand.AddOption(timeOption);
+
+            var testCommandParser = new Parser(testCommand);
+            var parseResult = testCommandParser.Parse("");
+
+            var binder = new ValueFormatterBinder();
+
+            // Act
+            var formatter = binder.GetBoundValue(parseResult);
+
+            // Assert
+            Assert.That(formatter, Is.Not.Null);
+            Assert.That(formatter.NullLineEnding, Is.False);
+            Assert.That(formatter.IncludeIndex, Is.False);
+            Assert.That(formatter.IncludeId, Is.False);
+            Assert.That(formatter.IncludeTimestamp, Is.False);
+        }
+
+        [Test]
+        public void GetBoundValue_AllOptionsDisabledWithBoundOptions_ReturnsFormatterWithAllOptionsDisabled()
+        {
+            // Arrange
+            var nullOption = new Option<bool>("--null");
+            var indexOption = new Option<bool>("--index");
+            var idOption = new Option<bool>("--id");
+            var timeOption = new Option<bool>("--time");
+
+            var testCommand = new Command("test");
+            testCommand.AddOption(nullOption);
+            testCommand.AddOption(indexOption);
+            testCommand.AddOption(idOption);
+            testCommand.AddOption(timeOption);
+
+            var testCommandParser = new Parser(testCommand);
+            var parseResult = testCommandParser.Parse("--null --index --id --time");
+
+            var binder = new ValueFormatterBinder();
+
+            // Act
+            var formatter = binder.GetBoundValue(parseResult);
+
+            // Assert
+            Assert.That(formatter, Is.Not.Null);
+            Assert.That(formatter.NullLineEnding, Is.False);
+            Assert.That(formatter.IncludeIndex, Is.False);
+            Assert.That(formatter.IncludeId, Is.False);
+            Assert.That(formatter.IncludeTimestamp, Is.False);
+        }
+
         [Test]
         public void GetBoundValue_NoBoundOptions_ReturnsFormatterWithExpectedOptions()
         {

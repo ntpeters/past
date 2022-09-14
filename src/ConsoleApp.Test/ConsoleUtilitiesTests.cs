@@ -111,12 +111,18 @@ namespace past.ConsoleApp.Test
         }
 
         [Test]
-        public void TryEnableVirtualTerminalProcessing_GetHandleFails_ReturnsFalseWithErrorMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TryEnableVirtualTerminalProcessing_GetHandleFails_ReturnsFalseWithErrorMessage(bool formatSystemErrorMessageSuccess)
         {
             // Arrange
             uint errorCode = 42;
             var errorMessage = "Well that's not good.";
-            var expectedErrorMessage = $"Error {errorCode}: {errorMessage}";
+            var expectedErrorMessage = $"Error {errorCode}: ";
+            if (formatSystemErrorMessageSuccess)
+            {
+                expectedErrorMessage += errorMessage;
+            }
             uint expectedFormatFlags = NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER | NativeConstants.FORMAT_MESSAGE_FROM_SYSTEM | NativeConstants.FORMAT_MESSAGE_IGNORE_INSERTS;
 
             var mockNativeMethods = new Mock<INativeMethodsWrapper>(MockBehavior.Strict);
@@ -141,8 +147,14 @@ namespace past.ConsoleApp.Test
                     It.Is<IntPtr>(arguments => arguments == IntPtr.Zero)))
                 .Returns((uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr arguments) =>
                 {
-                    lpBuffer = errorMessage;
-                    return (uint)errorMessage.Length;
+                    if (formatSystemErrorMessageSuccess)
+                    {
+                        lpBuffer = errorMessage;
+                        return (uint)errorMessage.Length;
+                    }
+
+                    lpBuffer = string.Empty;
+                    return 0u;
                 })
                 .Verifiable();
 
@@ -159,12 +171,18 @@ namespace past.ConsoleApp.Test
         }
 
         [Test]
-        public void TryEnableVirtualTerminalProcessing_GetConsoleModeFails_ReturnsFalseWithErrorMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TryEnableVirtualTerminalProcessing_GetConsoleModeFails_ReturnsFalseWithErrorMessage(bool formatSystemErrorMessageSuccess)
         {
             // Arrange
             uint errorCode = 42;
             var errorMessage = "Well that's not good.";
-            var expectedErrorMessage = $"Error {errorCode}: {errorMessage}";
+            var expectedErrorMessage = $"Error {errorCode}: ";
+            if (formatSystemErrorMessageSuccess)
+            {
+                expectedErrorMessage += errorMessage;
+            }
             var expectedHandle = new IntPtr(9001);
             uint expectedFormatFlags = NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER | NativeConstants.FORMAT_MESSAGE_FROM_SYSTEM | NativeConstants.FORMAT_MESSAGE_IGNORE_INSERTS;
 
@@ -201,8 +219,14 @@ namespace past.ConsoleApp.Test
                     It.Is<IntPtr>(arguments => arguments == IntPtr.Zero)))
                 .Returns((uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr arguments) =>
                 {
-                    lpBuffer = errorMessage;
-                    return (uint)errorMessage.Length;
+                    if (formatSystemErrorMessageSuccess)
+                    {
+                        lpBuffer = errorMessage;
+                        return (uint)errorMessage.Length;
+                    }
+
+                    lpBuffer = string.Empty;
+                    return 0u;
                 })
                 .Verifiable();
 
@@ -219,12 +243,18 @@ namespace past.ConsoleApp.Test
         }
 
         [Test]
-        public void TryEnableVirtualTerminalProcessing_SetConsoleModeFails_ReturnsFalseWithErrorMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TryEnableVirtualTerminalProcessing_SetConsoleModeFails_ReturnsFalseWithErrorMessage(bool formatSystemErrorMessageSuccess)
         {
             // Arrange
             uint errorCode = 42;
             var errorMessage = "Well that's not good.";
-            var expectedErrorMessage = $"Error {errorCode}: {errorMessage}";
+            var expectedErrorMessage = $"Error {errorCode}: ";
+            if (formatSystemErrorMessageSuccess)
+            {
+                expectedErrorMessage += errorMessage;
+            }
             var expectedHandle = new IntPtr(9001);
             var initialConsoleMode = NativeConstants.ENABLE_WRAP_AT_EOL_OUTPUT;
             var expectedConsoleMode = initialConsoleMode | NativeConstants.ENABLE_VIRTUAL_TERMINAL_PROCESSING | NativeConstants.DISABLE_NEWLINE_AUTO_RETURN;
@@ -270,8 +300,14 @@ namespace past.ConsoleApp.Test
                     It.Is<IntPtr>(arguments => arguments == IntPtr.Zero)))
                 .Returns((uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr arguments) =>
                 {
-                    lpBuffer = errorMessage;
-                    return (uint)errorMessage.Length;
+                    if (formatSystemErrorMessageSuccess)
+                    {
+                        lpBuffer = errorMessage;
+                        return (uint)errorMessage.Length;
+                    }
+
+                    lpBuffer = string.Empty;
+                    return 0u;
                 })
                 .Verifiable();
 
@@ -334,12 +370,18 @@ namespace past.ConsoleApp.Test
         }
 
         [Test]
-        public void TryEnableVirtualTerminalInput_GetHandleFails_ReturnsFalseWithErrorMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TryEnableVirtualTerminalInput_GetHandleFails_ReturnsFalseWithErrorMessage(bool formatSystemErrorMessageSuccess)
         {
             // Arrange
             uint errorCode = 42;
             var errorMessage = "Well that's not good.";
-            var expectedErrorMessage = $"Error {errorCode}: {errorMessage}";
+            var expectedErrorMessage = $"Error {errorCode}: ";
+            if (formatSystemErrorMessageSuccess)
+            {
+                expectedErrorMessage += errorMessage;
+            }
             uint expectedFormatFlags = NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER | NativeConstants.FORMAT_MESSAGE_FROM_SYSTEM | NativeConstants.FORMAT_MESSAGE_IGNORE_INSERTS;
 
             var mockNativeMethods = new Mock<INativeMethodsWrapper>(MockBehavior.Strict);
@@ -364,8 +406,14 @@ namespace past.ConsoleApp.Test
                     It.Is<IntPtr>(arguments => arguments == IntPtr.Zero)))
                 .Returns((uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr arguments) =>
                 {
-                    lpBuffer = errorMessage;
-                    return (uint)errorMessage.Length;
+                    if (formatSystemErrorMessageSuccess)
+                    {
+                        lpBuffer = errorMessage;
+                        return (uint)errorMessage.Length;
+                    }
+
+                    lpBuffer = string.Empty;
+                    return 0u;
                 })
                 .Verifiable();
 
@@ -382,12 +430,18 @@ namespace past.ConsoleApp.Test
         }
 
         [Test]
-        public void TryEnableVirtualTerminalInput_GetConsoleModeFails_ReturnsFalseWithErrorMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TryEnableVirtualTerminalInput_GetConsoleModeFails_ReturnsFalseWithErrorMessage(bool formatSystemErrorMessageSuccess)
         {
             // Arrange
             uint errorCode = 42;
             var errorMessage = "Well that's not good.";
-            var expectedErrorMessage = $"Error {errorCode}: {errorMessage}";
+            var expectedErrorMessage = $"Error {errorCode}: ";
+            if (formatSystemErrorMessageSuccess)
+            {
+                expectedErrorMessage += errorMessage;
+            }
             var expectedHandle = new IntPtr(9001);
             uint expectedFormatFlags = NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER | NativeConstants.FORMAT_MESSAGE_FROM_SYSTEM | NativeConstants.FORMAT_MESSAGE_IGNORE_INSERTS;
 
@@ -424,8 +478,14 @@ namespace past.ConsoleApp.Test
                     It.Is<IntPtr>(arguments => arguments == IntPtr.Zero)))
                 .Returns((uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr arguments) =>
                 {
-                    lpBuffer = errorMessage;
-                    return (uint)errorMessage.Length;
+                    if (formatSystemErrorMessageSuccess)
+                    {
+                        lpBuffer = errorMessage;
+                        return (uint)errorMessage.Length;
+                    }
+
+                    lpBuffer = string.Empty;
+                    return 0u;
                 })
                 .Verifiable();
 
@@ -442,12 +502,18 @@ namespace past.ConsoleApp.Test
         }
 
         [Test]
-        public void TryEnableVirtualTerminalInput_SetConsoleModeFails_ReturnsFalseWithErrorMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TryEnableVirtualTerminalInput_SetConsoleModeFails_ReturnsFalseWithErrorMessage(bool formatSystemErrorMessageSuccess)
         {
             // Arrange
             uint errorCode = 42;
             var errorMessage = "Well that's not good.";
-            var expectedErrorMessage = $"Error {errorCode}: {errorMessage}";
+            var expectedErrorMessage = $"Error {errorCode}: ";
+            if (formatSystemErrorMessageSuccess)
+            {
+                expectedErrorMessage += errorMessage;
+            }
             var expectedHandle = new IntPtr(9001);
             uint initialConsoleMode = 0;
             var expectedConsoleMode = initialConsoleMode | NativeConstants.ENABLE_VIRTUAL_TERMINAL_INPUT;
@@ -493,8 +559,14 @@ namespace past.ConsoleApp.Test
                     It.Is<IntPtr>(arguments => arguments == IntPtr.Zero)))
                 .Returns((uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr arguments) =>
                 {
-                    lpBuffer = errorMessage;
-                    return (uint)errorMessage.Length;
+                    if (formatSystemErrorMessageSuccess)
+                    {
+                        lpBuffer = errorMessage;
+                        return (uint)errorMessage.Length;
+                    }
+
+                    lpBuffer = string.Empty;
+                    return 0u;
                 })
                 .Verifiable();
 
@@ -593,12 +665,18 @@ namespace past.ConsoleApp.Test
         }
 
         [Test]
-        public void TryClearConsoleMode_GetHandleFails_ReturnsFalseWithErrorMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TryClearConsoleMode_GetHandleFails_ReturnsFalseWithErrorMessage(bool formatSystemErrorMessageSuccess)
         {
             // Arrange
             uint errorCode = 42;
             var errorMessage = "Well that's not good.";
-            var expectedErrorMessage = $"Error {errorCode}: {errorMessage}";
+            var expectedErrorMessage = $"Error {errorCode}: ";
+            if (formatSystemErrorMessageSuccess)
+            {
+                expectedErrorMessage += errorMessage;
+            }
             uint expectedFormatFlags = NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER | NativeConstants.FORMAT_MESSAGE_FROM_SYSTEM | NativeConstants.FORMAT_MESSAGE_IGNORE_INSERTS;
 
             var mockNativeMethods = new Mock<INativeMethodsWrapper>(MockBehavior.Strict);
@@ -623,8 +701,14 @@ namespace past.ConsoleApp.Test
                     It.Is<IntPtr>(arguments => arguments == IntPtr.Zero)))
                 .Returns((uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr arguments) =>
                 {
-                    lpBuffer = errorMessage;
-                    return (uint)errorMessage.Length;
+                    if (formatSystemErrorMessageSuccess)
+                    {
+                        lpBuffer = errorMessage;
+                        return (uint)errorMessage.Length;
+                    }
+
+                    lpBuffer = string.Empty;
+                    return 0u;
                 })
                 .Verifiable();
 
@@ -641,12 +725,18 @@ namespace past.ConsoleApp.Test
         }
 
         [Test]
-        public void TryClearConsoleMode_GetConsoleModeFails_ReturnsFalseWithErrorMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TryClearConsoleMode_GetConsoleModeFails_ReturnsFalseWithErrorMessage(bool formatSystemErrorMessageSuccess)
         {
             // Arrange
             uint errorCode = 42;
             var errorMessage = "Well that's not good.";
-            var expectedErrorMessage = $"Error {errorCode}: {errorMessage}";
+            var expectedErrorMessage = $"Error {errorCode}: ";
+            if (formatSystemErrorMessageSuccess)
+            {
+                expectedErrorMessage += errorMessage;
+            }
             var expectedHandle = new IntPtr(9001);
             uint expectedFormatFlags = NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER | NativeConstants.FORMAT_MESSAGE_FROM_SYSTEM | NativeConstants.FORMAT_MESSAGE_IGNORE_INSERTS;
 
@@ -683,8 +773,14 @@ namespace past.ConsoleApp.Test
                     It.Is<IntPtr>(arguments => arguments == IntPtr.Zero)))
                 .Returns((uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr arguments) =>
                 {
-                    lpBuffer = errorMessage;
-                    return (uint)errorMessage.Length;
+                    if (formatSystemErrorMessageSuccess)
+                    {
+                        lpBuffer = errorMessage;
+                        return (uint)errorMessage.Length;
+                    }
+
+                    lpBuffer = string.Empty;
+                    return 0u;
                 })
                 .Verifiable();
 
@@ -701,12 +797,18 @@ namespace past.ConsoleApp.Test
         }
 
         [Test]
-        public void TryClearConsoleMode_SetConsoleModeFails_ReturnsFalseWithErrorMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TryClearConsoleMode_SetConsoleModeFails_ReturnsFalseWithErrorMessage(bool formatSystemErrorMessageSuccess)
         {
             // Arrange
             uint errorCode = 42;
             var errorMessage = "Well that's not good.";
-            var expectedErrorMessage = $"Error {errorCode}: {errorMessage}";
+            var expectedErrorMessage = $"Error {errorCode}: ";
+            if (formatSystemErrorMessageSuccess)
+            {
+                expectedErrorMessage += errorMessage;
+            }
             var expectedHandle = new IntPtr(9001);
             var initialConsoleMode = NativeConstants.ENABLE_WRAP_AT_EOL_OUTPUT;
             var expectedConsoleMode = NativeConstants.CLEAR_CONSOLE_MODE;
@@ -752,8 +854,14 @@ namespace past.ConsoleApp.Test
                     It.Is<IntPtr>(arguments => arguments == IntPtr.Zero)))
                 .Returns((uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr arguments) =>
                 {
-                    lpBuffer = errorMessage;
-                    return (uint)errorMessage.Length;
+                    if (formatSystemErrorMessageSuccess)
+                    {
+                        lpBuffer = errorMessage;
+                        return (uint)errorMessage.Length;
+                    }
+
+                    lpBuffer = string.Empty;
+                    return 0u;
                 })
                 .Verifiable();
 
@@ -848,7 +956,9 @@ namespace past.ConsoleApp.Test
         }
 
         [Test]
-        public void TryResetConsoleMode_GetHandleFails_ReturnsFalseWithErrorMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TryResetConsoleMode_GetHandleFails_ReturnsFalseWithErrorMessage(bool formatSystemErrorMessageSuccess)
         {
             // Arrange
             bool setupsForEnableVtProcessing = true;
@@ -857,7 +967,11 @@ namespace past.ConsoleApp.Test
             var enableVtConsoleMode = initialConsoleMode | NativeConstants.ENABLE_VIRTUAL_TERMINAL_PROCESSING | NativeConstants.DISABLE_NEWLINE_AUTO_RETURN;
             uint errorCode = 42;
             var errorMessage = "Well that's not good.";
-            var expectedErrorMessage = $"Error {errorCode}: {errorMessage}";
+            var expectedErrorMessage = $"Error {errorCode}: ";
+            if (formatSystemErrorMessageSuccess)
+            {
+                expectedErrorMessage += errorMessage;
+            }
             uint expectedFormatFlags = NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER | NativeConstants.FORMAT_MESSAGE_FROM_SYSTEM | NativeConstants.FORMAT_MESSAGE_IGNORE_INSERTS;
 
             var mockNativeMethods = new Mock<INativeMethodsWrapper>(MockBehavior.Strict);
@@ -911,8 +1025,14 @@ namespace past.ConsoleApp.Test
                     It.Is<IntPtr>(arguments => arguments == IntPtr.Zero)))
                 .Returns((uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr arguments) =>
                 {
-                    lpBuffer = errorMessage;
-                    return (uint)errorMessage.Length;
+                    if (formatSystemErrorMessageSuccess)
+                    {
+                        lpBuffer = errorMessage;
+                        return (uint)errorMessage.Length;
+                    }
+
+                    lpBuffer = string.Empty;
+                    return 0u;
                 })
                 .Verifiable();
 
@@ -935,7 +1055,9 @@ namespace past.ConsoleApp.Test
         }
 
         [Test]
-        public void TryResetConsoleMode_SetConsoleModeFails_ReturnsFalseWithErrorMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TryResetConsoleMode_SetConsoleModeFails_ReturnsFalseWithErrorMessage(bool formatSystemErrorMessageSuccess)
         {
             // Arrange
             bool setupsForEnableVtProcessing = true;
@@ -944,7 +1066,11 @@ namespace past.ConsoleApp.Test
             var enableVtConsoleMode = initialConsoleMode | NativeConstants.ENABLE_VIRTUAL_TERMINAL_PROCESSING | NativeConstants.DISABLE_NEWLINE_AUTO_RETURN;
             uint errorCode = 42;
             var errorMessage = "Well that's not good.";
-            var expectedErrorMessage = $"Error {errorCode}: {errorMessage}";
+            var expectedErrorMessage = $"Error {errorCode}: ";
+            if (formatSystemErrorMessageSuccess)
+            {
+                expectedErrorMessage += errorMessage;
+            }
             uint expectedFormatFlags = NativeConstants.FORMAT_MESSAGE_ALLOCATE_BUFFER | NativeConstants.FORMAT_MESSAGE_FROM_SYSTEM | NativeConstants.FORMAT_MESSAGE_IGNORE_INSERTS;
 
             var mockNativeMethods = new Mock<INativeMethodsWrapper>(MockBehavior.Strict);
@@ -999,8 +1125,14 @@ namespace past.ConsoleApp.Test
                     It.Is<IntPtr>(arguments => arguments == IntPtr.Zero)))
                 .Returns((uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr arguments) =>
                 {
-                    lpBuffer = errorMessage;
-                    return (uint)errorMessage.Length;
+                    if (formatSystemErrorMessageSuccess)
+                    {
+                        lpBuffer = errorMessage;
+                        return (uint)errorMessage.Length;
+                    }
+
+                    lpBuffer = string.Empty;
+                    return 0u;
                 })
                 .Verifiable();
 

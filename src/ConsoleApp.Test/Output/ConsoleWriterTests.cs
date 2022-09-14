@@ -233,12 +233,13 @@ namespace past.ConsoleApp.Test.Output
         }
 
         [Test]
-        public async Task WriteItemAsync_UnsupportedValueWithAllContentType_WritesUnsupportedMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public async Task WriteItemAsync_UnsupportedValueWithAllContentType_WritesUnsupportedMessage(bool enableAnsiProcessing)
         {
             // Arrange
             var type = ContentType.All;
             var ansiResetType = AnsiResetType.On;
-            bool enableAnsiProcessing = false;
             var suppressErrorOutput = false;
             var emitLineEnding = false;
             var index = 0;
@@ -253,6 +254,10 @@ namespace past.ConsoleApp.Test.Output
             var dataPackageView = dataPackage.GetView();
 
             var expectedText = $"[Unsupported Format: {string.Join(',', dataPackageView.AvailableFormats)}]";
+            if (enableAnsiProcessing)
+            {
+                expectedText = $"{NativeConstants.ANSI_RED}{expectedText}";
+            }
 
             var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
             mockItem.SetupGet(mock => mock.Content).Returns(dataPackageView).Verifiable();
