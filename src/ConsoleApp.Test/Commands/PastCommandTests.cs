@@ -1,7 +1,12 @@
 using Moq;
+using Newtonsoft.Json;
+using NUnit.Framework;
 using past.ConsoleApp.Commands;
 using past.ConsoleApp.Test.TestHelpers;
+using past.Core;
 using System.CommandLine;
+using System.CommandLine.Parsing;
+using System.Reflection.Metadata;
 
 namespace past.ConsoleApp.Test.Commands
 {
@@ -15,7 +20,7 @@ namespace past.ConsoleApp.Test.Commands
         }
 
         [Test]
-        public void Consructor_NonNullConsoleClipboard_Success()
+        public void Constructor_NonNullConsoleClipboard_Success()
         {
             var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
             Assert.DoesNotThrow(() => new PastCommand(mockConsoleClipboard.Object));
@@ -278,5 +283,273 @@ namespace past.ConsoleApp.Test.Commands
                 "\n[Debug Builds Only] Halts execution on startup to allow attaching a debugger."));
         }
         #endregion Options
+
+        #region Options - Type Option
+        [Test]
+        public void Options_TypeOption_HasExpectedCompletions()
+        {
+            // Arrange
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            // Act + Assert
+            var typeOptionMatches = pastCommand.Options.Where(option =>
+                option.Name == "type");
+            Assert.That(typeOptionMatches, Has.Exactly(1).Items);
+
+            var typeOption = typeOptionMatches.First();
+            var actualCompletions = typeOption.GetCompletions();
+            var expectedCompletionValues = Enum.GetNames<ContentType>();
+            Assert.That(actualCompletions, Has.Exactly(expectedCompletionValues.Length).Items);
+            Assert.That(actualCompletions, Has.All.Property("InsertText").AnyOf(expectedCompletionValues));
+        }
+
+        [Test]
+        public void Options_TypeOption_OptionNotProvided_ParsesWithDefaultValue()
+        {
+            // Arrange
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+            var expectedDefaultType = ContentType.Text;
+
+            // Act + Assert
+            var typeOptionMatches = pastCommand.Options.Where(option =>
+                option.Name == "type");
+            Assert.That(typeOptionMatches, Has.Exactly(1).Items);
+
+            var typeOption = typeOptionMatches.First();
+            var parseResult = typeOption.Parse("");
+            Assert.That(parseResult.Errors, Is.Empty);
+            Assert.That(parseResult.UnmatchedTokens, Is.Empty);
+            Assert.That(parseResult.UnparsedTokens, Is.Empty);
+            Assert.That(parseResult.Tokens, Is.Empty);
+
+            var actualType = parseResult.GetValueForOption(typeOption);
+            Assert.That(actualType, Is.EqualTo(expectedDefaultType));
+        }
+
+        [Test]
+        public void Options_TypeOption_ValidCommandLine_ParsesSuccessfully([EnumValueSource] ContentType expectedType)
+        {
+            // Arrange
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+            var commandLineArgs = $"--type {expectedType}";
+            var expectedTokenValues = commandLineArgs.Split();
+
+            // Act + Assert
+            var typeOptionMatches = pastCommand.Options.Where(option =>
+                option.Name == "type");
+            Assert.That(typeOptionMatches, Has.Exactly(1).Items);
+
+            var typeOption = (Option<ContentType>)typeOptionMatches.First();
+            var parseResult = typeOption.Parse(commandLineArgs);
+            Assert.That(parseResult.Errors, Is.Empty);
+            Assert.That(parseResult.UnmatchedTokens, Is.Empty);
+            Assert.That(parseResult.UnparsedTokens, Is.Empty);
+            Assert.That(parseResult.Tokens, Has.Exactly(2).Items);
+            Assert.That(parseResult.Tokens, Has.All.Property("Value").AnyOf(expectedTokenValues));
+
+            var actualType = parseResult.GetValueForOption<ContentType>(typeOption);
+            Assert.That(actualType, Is.EqualTo(expectedType));
+        }
+
+        [Test]
+        public void Options_TypeOption_InvalidType_ParseError()
+        {
+            // Arrange
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+            var commandLineArgs = $"--type foobar";
+            var expectedTokenValues = commandLineArgs.Split();
+            var expectedErrorMessage = $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<ContentType>())}";
+            var expectedDefaultType = ContentType.Text;
+
+            // Act + Assert
+            var typeOptionMatches = pastCommand.Options.Where(option =>
+                option.Name == "type");
+            Assert.That(typeOptionMatches, Has.Exactly(1).Items);
+
+            var typeOption = typeOptionMatches.First();
+            var parseResult = typeOption.Parse(commandLineArgs);
+            Assert.That(parseResult.Errors, Has.Exactly(1).Items);
+
+            var parseError = parseResult.Errors.First();
+            Assert.That(parseError.Message, Is.EqualTo(expectedErrorMessage));
+
+            Assert.That(parseResult.UnmatchedTokens, Is.Empty);
+            Assert.That(parseResult.UnparsedTokens, Is.Empty);
+            Assert.That(parseResult.Tokens, Has.Exactly(2).Items);
+            Assert.That(parseResult.Tokens, Has.All.Property("Value").AnyOf(expectedTokenValues));
+
+            var actualType = parseResult.GetValueForOption(typeOption);
+            Assert.That(actualType, Is.EqualTo(expectedDefaultType));
+        }
+
+        [Test]
+        public void Options_TypeOption_MissingTypeArgument_ParseError()
+        {
+            // Arrange
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+            var commandLineArgs = $"--type";
+            var expectedTokenValues = commandLineArgs.Split();
+            var expectedErrorMessage = "Required argument missing for option: '--type'.";
+
+            // Act + Assert
+            var typeOptionMatches = pastCommand.Options.Where(option =>
+                option.Name == "type");
+            Assert.That(typeOptionMatches, Has.Exactly(1).Items);
+
+            var typeOption = typeOptionMatches.First();
+            var parseResult = typeOption.Parse(commandLineArgs);
+            Assert.That(parseResult.Errors, Has.Exactly(1).Items);
+
+            var parseError = parseResult.Errors.First();
+            Assert.That(parseError.Message, Is.EqualTo(expectedErrorMessage));
+
+            Assert.That(parseResult.UnmatchedTokens, Is.Empty);
+            Assert.That(parseResult.UnparsedTokens, Is.Empty);
+            Assert.That(parseResult.Tokens, Has.Exactly(1).Items);
+            Assert.That(parseResult.Tokens, Has.All.Property("Value").AnyOf(expectedTokenValues));
+
+            var actualException = Assert.Throws<InvalidOperationException>(() => parseResult.GetValueForOption(typeOption));
+            Assert.That(actualException.Message, Is.EqualTo(expectedErrorMessage));
+        }
+        #endregion Options - Type Option
+
+        #region Options - Ansi Reset Option
+        [Test]
+        public void Options_AnsiResetOption_HasExpectedCompletions()
+        {
+            // Arrange
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            // Act + Assert
+            var ansiResetOptionMatches = pastCommand.Options.Where(option =>
+                option.Name == "ansi-reset");
+            Assert.That(ansiResetOptionMatches, Has.Exactly(1).Items);
+
+            var ansiResetOption = ansiResetOptionMatches.First();
+            var actualCompletions = ansiResetOption.GetCompletions();
+            var expectedCompletionValues = Enum.GetNames<AnsiResetType>();
+            Assert.That(actualCompletions, Has.Exactly(expectedCompletionValues.Length).Items);
+            Assert.That(actualCompletions, Has.All.Property("InsertText").AnyOf(expectedCompletionValues));
+        }
+
+        [Test]
+        public void Options_AnsiResetOption_OptionNotProvided_ParsesWithDefaultValue()
+        {
+            // Arrange
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+            var expectedDefaultType = AnsiResetType.Auto;
+
+            // Act + Assert
+            var ansiResetOptionMatches = pastCommand.Options.Where(option =>
+                option.Name == "ansi-reset");
+            Assert.That(ansiResetOptionMatches, Has.Exactly(1).Items);
+
+            var ansiResetOption = ansiResetOptionMatches.First();
+            var parseResult = ansiResetOption.Parse("");
+            Assert.That(parseResult.Errors, Is.Empty);
+            Assert.That(parseResult.UnmatchedTokens, Is.Empty);
+            Assert.That(parseResult.UnparsedTokens, Is.Empty);
+            Assert.That(parseResult.Tokens, Is.Empty);
+
+            var actualType = parseResult.GetValueForOption(ansiResetOption);
+            Assert.That(actualType, Is.EqualTo(expectedDefaultType));
+        }
+
+        [Test]
+        public void Options_AnsiResetOption_ValidCommandLine_ParsesSuccessfully([EnumValueSource] AnsiResetType expectedType)
+        {
+            // Arrange
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+            var commandLineArgs = $"--ansi-reset {expectedType}";
+            var expectedTokenValues = commandLineArgs.Split();
+
+            // Act + Assert
+            var ansiResetOptionMatches = pastCommand.Options.Where(option =>
+                option.Name == "ansi-reset");
+            Assert.That(ansiResetOptionMatches, Has.Exactly(1).Items);
+
+            var ansiResetOption = (Option<AnsiResetType>)ansiResetOptionMatches.First();
+            var parseResult = ansiResetOption.Parse(commandLineArgs);
+            Assert.That(parseResult.Errors, Is.Empty);
+            Assert.That(parseResult.UnmatchedTokens, Is.Empty);
+            Assert.That(parseResult.UnparsedTokens, Is.Empty);
+            Assert.That(parseResult.Tokens, Has.Exactly(2).Items);
+            Assert.That(parseResult.Tokens, Has.All.Property("Value").AnyOf(expectedTokenValues));
+
+            var actualType = parseResult.GetValueForOption(ansiResetOption);
+            Assert.That(actualType, Is.EqualTo(expectedType));
+        }
+
+        [Test]
+        public void Options_AnsiResetOption_InvalidType_ParseError()
+        {
+            // Arrange
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+            var commandLineArgs = $"--ansi-reset foobar";
+            var expectedTokenValues = commandLineArgs.Split();
+            var expectedErrorMessage = $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<AnsiResetType>())}";
+            var expectedDefaultType = AnsiResetType.Auto;
+
+            // Act + Assert
+            var ansiResetOptionMatches = pastCommand.Options.Where(option =>
+                option.Name == "ansi-reset");
+            Assert.That(ansiResetOptionMatches, Has.Exactly(1).Items);
+
+            var ansiResetOption = ansiResetOptionMatches.First();
+            var parseResult = ansiResetOption.Parse(commandLineArgs);
+            Assert.That(parseResult.Errors, Has.Exactly(1).Items);
+
+            var parseError = parseResult.Errors.First();
+            Assert.That(parseError.Message, Is.EqualTo(expectedErrorMessage));
+
+            Assert.That(parseResult.UnmatchedTokens, Is.Empty);
+            Assert.That(parseResult.UnparsedTokens, Is.Empty);
+            Assert.That(parseResult.Tokens, Has.Exactly(2).Items);
+            Assert.That(parseResult.Tokens, Has.All.Property("Value").AnyOf(expectedTokenValues));
+
+            var actualType = parseResult.GetValueForOption(ansiResetOption);
+            Assert.That(actualType, Is.EqualTo(expectedDefaultType));
+        }
+
+        [Test]
+        public void Options_AnsiResetOption_MissingTypeArgument_ParseError()
+        {
+            // Arrange
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+            var commandLineArgs = $"--ansi-reset";
+            var expectedTokenValues = commandLineArgs.Split();
+            var expectedErrorMessage = "Required argument missing for option: '--ansi-reset'.";
+
+            // Act + Assert
+            var ansiResetOptionMatches = pastCommand.Options.Where(option =>
+                option.Name == "ansi-reset");
+            Assert.That(ansiResetOptionMatches, Has.Exactly(1).Items);
+
+            var ansiResetOption = ansiResetOptionMatches.First();
+            var parseResult = ansiResetOption.Parse(commandLineArgs);
+            Assert.That(parseResult.Errors, Has.Exactly(1).Items);
+
+            var parseError = parseResult.Errors.First();
+            Assert.That(parseError.Message, Is.EqualTo(expectedErrorMessage));
+
+            Assert.That(parseResult.UnmatchedTokens, Is.Empty);
+            Assert.That(parseResult.UnparsedTokens, Is.Empty);
+            Assert.That(parseResult.Tokens, Has.Exactly(1).Items);
+            Assert.That(parseResult.Tokens, Has.All.Property("Value").AnyOf(expectedTokenValues));
+
+            var actualException = Assert.Throws<InvalidOperationException>(() => parseResult.GetValueForOption(ansiResetOption));
+            Assert.That(actualException.Message, Is.EqualTo(expectedErrorMessage));
+        }
+        #endregion Options - Ansi Reset Option
     }
 }

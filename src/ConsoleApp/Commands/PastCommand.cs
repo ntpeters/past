@@ -146,7 +146,7 @@ namespace past.ConsoleApp.Commands
                     }
 
                     string? typeValue = null;
-                    if (result.Tokens?.Count > 0)
+                    if (result.Tokens.Count > 0)
                     {
                         typeValue = result.Tokens[0].Value;
                     }
@@ -167,7 +167,7 @@ namespace past.ConsoleApp.Commands
             ansiResetOption.AddValidator((result) =>
             {
                 string? typeValue = null;
-                if (result.Tokens?.Count > 0)
+                if (result.Tokens.Count > 0)
                 {
                     typeValue = result.Tokens[0].Value;
                 }
@@ -200,7 +200,7 @@ namespace past.ConsoleApp.Commands
                     }
 
                     string? typeValue = null;
-                    if (result.Tokens?.Count > 0)
+                    if (result.Tokens.Count > 0)
                     {
                         typeValue = result.Tokens[0].Value;
                     }
@@ -221,7 +221,7 @@ namespace past.ConsoleApp.Commands
             typeOption.AddValidator((result) =>
             {
                 string? typeValue = null;
-                if (result.Tokens?.Count > 0)
+                if (result.Tokens.Count > 0)
                 {
                     typeValue = result.Tokens[0].Value;
                 }
