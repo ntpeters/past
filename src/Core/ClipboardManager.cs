@@ -125,7 +125,7 @@ namespace past.Core
 
             if (items.Items.Count == 0)
             {
-                throw new PastException(ErrorCode.NotFound, "Clipboard history is empty");
+                return items.Items;
             }
 
             IEnumerable<IClipboardHistoryItemWrapper> clipboardItems;
@@ -139,7 +139,7 @@ namespace past.Core
                 clipboardItems = items.Items.Where(item => pinnedItemIds.Contains(item.Id));
                 if (clipboardItems.Count() == 0)
                 {
-                    throw new PastException(ErrorCode.NotFound, "No pinned items in clipboard history");
+                    return clipboardItems;
                 }
             }
             else
@@ -148,11 +148,6 @@ namespace past.Core
             }
 
             var filteredItems = clipboardItems.Where(item => type.Supports(item.Content.Contains));
-            if (filteredItems.Count() == 0)
-            {
-                throw new PastException(ErrorCode.IncompatibleContentType, "No supported items in clipboard history");
-            }
-
             return filteredItems;
         }
 
