@@ -50,7 +50,7 @@ namespace past.ConsoleApp.Test.Commands
             var pastCommand = new PastCommand(mockConsoleClipboard.Object);
 
             // Act + Assert
-            Assert.That(pastCommand.Description, Is.EqualTo("A CLI for interating with Windows Clipboard History."));
+            Assert.That(pastCommand.Description, Is.EqualTo("Gets the current contents of the clipboard, when no subcommand is specified."));
         }
 
         [Test]

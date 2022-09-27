@@ -27,12 +27,13 @@ namespace past.ConsoleApp.Commands
         /// </summary>
         /// <param name="consoleClipboard"><see cref="IConsoleClipboard"/> providing the handlers for most commands.</param>
         public PastCommand(IConsoleClipboard consoleClipboard)
-            : base("A CLI for interating with Windows Clipboard History.")
+            : base("Gets the current contents of the clipboard, when no subcommand is specified.")
         {
             _ = consoleClipboard ?? throw new ArgumentNullException(nameof(consoleClipboard));
 
             // Shared Arguments & Options
-            var identifierArgument = new Argument<string>("identifier", "The identifier of the item to get from clipboard history");
+            var identifierArgument = new Argument<string>("identifier", "The index or ID of the item to get from clipboard history");
+            identifierArgument.HelpName = "index|id";
             var typeOption = CreateTypeOption();
             var allOption = new Option<bool>("--all", "Alias for `--type all`. Overrides the `--type` option if present.");
             var ansiOption = new Option<bool>("--ansi", "Enable processing of ANSI control sequences");
