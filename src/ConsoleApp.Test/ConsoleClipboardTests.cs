@@ -34,14 +34,13 @@ namespace past.ConsoleApp.Test
 
         #region GetClipboardHistoryStatus
         [Test]
-        [TestCase(true, true)]
-        [TestCase(true, false)]
-        [TestCase(false, true)]
-        [TestCase(false, false)]
-        public void GetClipboardHistoryStatus_ValidParameters_WritesStatusAndSetsExitCode(bool expectedHistoryEnabled, bool expectedRoamingEnabled)
+        [TestCase(true, true, 3)]
+        [TestCase(true, false, 1)]
+        [TestCase(false, true, 2)]
+        [TestCase(false, false, 0)]
+        public void GetClipboardHistoryStatus_ValidParameters_WritesStatusAndSetsExitCode(bool expectedHistoryEnabled, bool expectedRoamingEnabled, int expectedExitCode)
         {
             // Arrange
-            int expectedExitCode = 0;
             var expectedHistoryMessage = $"Clipboard History Enabled: {expectedHistoryEnabled}";
             var expectedRoamingMessage = $"Clipboard Roaming Enabled: {expectedRoamingEnabled}";
 
@@ -721,11 +720,15 @@ namespace past.ConsoleApp.Test
         public async Task ListClipboardHistoryAsync_ValidParameters_GetsAndWritesItemReturnsSuccess(ContentType expectedType, bool expectedPinned)
         {
             // Arrange
-            var expectedReturnValue = 0;
             var expectedCancellationTokenSource = new CancellationTokenSource();
 
+            // Just ensure the count differs so that the exit code is verified to consistently match the count
+            int totalItems = expectedPinned ? 5 : 8;
+            totalItems -= expectedType == ContentType.Text ? 2 : 0;
+            totalItems -= expectedType == ContentType.Image ? 3 : 0;
+
             var expectedItems = new List<IClipboardHistoryItemWrapper>();
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < totalItems; i++)
             {
                 expectedItems.Add(new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict).Object);
             }
@@ -780,7 +783,7 @@ namespace past.ConsoleApp.Test
             var actualReturnValue = await consoleClipboard.ListClipboardHistoryAsync(mockConsoleWriter.Object, mockFormatter.Object, expectedType, expectedPinned, expectedCancellationTokenSource.Token);
 
             // Assert
-            Assert.That(actualReturnValue, Is.EqualTo(expectedReturnValue));
+            Assert.That(actualReturnValue, Is.EqualTo(actualItems.Count));
             Assert.That(actualItems, Is.EqualTo(expectedItems));
             Assert.That(initialEmitLineEnding, Is.True);
             Assert.That(finalEmitLineEnding, Is.False);

@@ -1,7 +1,9 @@
 using past.ConsoleApp.Output;
 using past.Core;
 using past.Core.Models;
+using past.Core.Wrappers;
 using System;
+using System.Collections.Generic;
 using System.CommandLine.Invocation;
 using System.Linq;
 using System.Threading;
@@ -46,10 +48,15 @@ namespace past.ConsoleApp
 
             try
             {
-                consoleWriter.WriteLine($"Clipboard History Enabled: {_clipboard.IsHistoryEnabled()}");
-                consoleWriter.WriteLine($"Clipboard Roaming Enabled: {_clipboard.IsRoamingEnabled()}");
+                bool historyEnabled = _clipboard.IsHistoryEnabled();
+                bool roamingEnabled = _clipboard.IsRoamingEnabled();
 
-               context.ExitCode = (int)ErrorCode.Success;
+                consoleWriter.WriteLine($"Clipboard History Enabled: {historyEnabled}");
+                consoleWriter.WriteLine($"Clipboard Roaming Enabled: {roamingEnabled}");
+
+                context.ExitCode = (int)ErrorCode.Success;
+                context.ExitCode |= historyEnabled ? 1 : 0;
+                context.ExitCode |= roamingEnabled ? 2 : 0;
             }
             catch (PastException e)
             {
@@ -74,7 +81,7 @@ namespace past.ConsoleApp
                 return (int)e.ErrorCode;
             }
 
-            return 0;
+            return (int)ErrorCode.Success;
         }
 
         public async Task<int> GetClipboardHistoryItemAsync(IConsoleWriter consoleWriter, IValueFormatter formatter, ClipboardItemIdentifier identifier, ContentType type, bool setCurrent, CancellationToken cancellationToken)
@@ -103,7 +110,7 @@ namespace past.ConsoleApp
                 return (int)e.ErrorCode;
             }
 
-            return 0;
+            return (int)ErrorCode.Success;
         }
 
         public async Task<int> ListClipboardHistoryAsync(IConsoleWriter consoleWriter, IValueFormatter formatter, ContentType type, bool pinned, CancellationToken cancellationToken)
@@ -111,9 +118,10 @@ namespace past.ConsoleApp
             _ = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
             _ = formatter ?? throw new ArgumentNullException(nameof(formatter));
 
+            IEnumerable<IClipboardHistoryItemWrapper> clipboardItems;
             try
             {
-                var clipboardItems = await _clipboard.GetClipboardHistoryAsync(type, pinned, cancellationToken);
+                clipboardItems = await _clipboard.GetClipboardHistoryAsync(type, pinned, cancellationToken);
 
                 int index = 0;
                 foreach (var item in clipboardItems)
@@ -128,7 +136,7 @@ namespace past.ConsoleApp
                 return (int)e.ErrorCode;
             }
 
-            return 0;
+            return clipboardItems.Count();
         }
         #endregion Public Methods
     }
