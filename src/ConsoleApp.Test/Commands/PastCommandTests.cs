@@ -76,7 +76,7 @@ namespace past.ConsoleApp.Test.Commands
             var pastCommand = new PastCommand(mockConsoleClipboard.Object);
 
             // Act + Assert
-            Assert.That(pastCommand.Subcommands, Has.Exactly(4).Items);
+            Assert.That(pastCommand.Subcommands, Has.Exactly(3).Items);
         }
 
         [Test]
@@ -134,21 +134,6 @@ namespace past.ConsoleApp.Test.Commands
 
             var statusCommandHandler = statusCommand.GetHandler();
             Assert.That(statusCommandHandler, Is.EqualTo(expectedStatusCommandHandler));
-        }
-
-        [Test]
-        public void Subcommands_HasHelpCommand()
-        {
-            // Arrange
-            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
-            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
-
-            // Act + Assert
-            var helpCommandMatches = pastCommand.Subcommands.Where(command => command.Name == "help");
-            Assert.That(helpCommandMatches, Has.Exactly(1).Items);
-
-            var helpCommand = helpCommandMatches.First();
-            Assert.That(helpCommand, Is.InstanceOf<HelpCommand>());
         }
         #endregion Subcommands
 

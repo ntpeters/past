@@ -78,22 +78,9 @@ namespace past.ConsoleApp.Commands
 
             var statusCommand = new StatusCommand(quietOption, consoleClipboard.GetClipboardHistoryStatus);
 
-            var helpCommand = new HelpCommand(async (command) =>
-            {
-                if (string.IsNullOrWhiteSpace(command))
-                {
-                    await Program.Main(new string[] { "--help" });
-                }
-                else
-                {
-                    await Program.Main(new string[] { "--help", command });
-                }
-            });
-
             this.AddCommand(listCommand);
             this.AddCommand(getCommand);
             this.AddCommand(statusCommand);
-            this.AddCommand(helpCommand);
 
             SetHandler(
                 consoleClipboard.GetCurrentClipboardValueAsync,

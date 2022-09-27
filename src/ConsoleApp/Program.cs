@@ -35,13 +35,11 @@ namespace past.ConsoleApp
             var commandLineBuilder = new CommandLineBuilder(rootCommand);
             commandLineBuilder.UseSuggestDirective();
             commandLineBuilder.RegisterWithDotnetSuggest();
-            commandLineBuilder.UseParseErrorReporting((int)ErrorCode.ParseError);
-
-            commandLineBuilder.UseHelp(CustomizeHelp);
-
-            commandLineBuilder.UseVersionOption("--version", "-V");
             commandLineBuilder.CancelOnProcessTermination();
+            commandLineBuilder.UseParseErrorReporting((int)ErrorCode.ParseError);
             commandLineBuilder.UseExceptionHandler(errorExitCode: (int)ErrorCode.UnexpectedError);
+            commandLineBuilder.UseVersionOption("--version", "-V");
+            commandLineBuilder.UseHelp(CustomizeHelp);
 
             if (args.Contains("--ansi"))
             {
