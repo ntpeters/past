@@ -1,6 +1,7 @@
 using past.ConsoleApp.Binders;
 using past.ConsoleApp.Output;
 using past.Core;
+using past.Core.Models;
 using System;
 using System.CommandLine;
 using System.Threading;
@@ -31,8 +32,11 @@ namespace past.ConsoleApp.Commands
         {
             _ = consoleClipboard ?? throw new ArgumentNullException(nameof(consoleClipboard));
 
+            // Ensure command name is stable for testing
+            Name = "past";
+
             // Shared Arguments & Options
-            var identifierArgument = new Argument<string>("identifier", "The index or ID of the item to get from clipboard history");
+            var identifierArgument = CreateIdentifierArgument();
             identifierArgument.HelpName = "index|id";
             var typeOption = CreateTypeOption();
             var allOption = new Option<bool>("--all", "Alias for `--type all`. Overrides the `--type` option if present.");
@@ -113,6 +117,31 @@ namespace past.ConsoleApp.Commands
                 consoleWriterBinder,
                 valueFormatterBinder,
                 contentTypeBinder);
+        }
+
+        /// <summary>
+        /// Creates the identifier argument.
+        /// </summary>
+        /// <returns>The created argument.</returns>
+        private Argument<string> CreateIdentifierArgument()
+        {
+            var identifierArgument = new Argument<string>("identifier", "The index or ID of the item to get from clipboard history");
+
+            identifierArgument.AddValidator(result =>
+            {
+                string? typeValue = null;
+                if (result.Tokens.Count > 0)
+                {
+                    typeValue = result.Tokens[0].Value;
+                }
+
+                if (!ClipboardItemIdentifier.TryParse(typeValue, out _))
+                {
+                    result.ErrorMessage = $"Invalid identifier specified. Identifier must be either a positive integer or a GUID.";
+                }
+            });
+
+            return identifierArgument;
         }
 
         /// <summary>
