@@ -20,7 +20,7 @@ namespace past.Core.Models
         /// <param name="value">Value to parse.</param>
         /// <param name="identifier">Identifier represented by the given value if parsing succeeds, null otherwise.</param>
         /// <returns>True if parsing succeeds, false otherwise.</returns>
-        public static bool TryParse(string value, [NotNullWhen(true)] out ClipboardItemIdentifier? identifier)
+        public static bool TryParse(string? value, [NotNullWhen(true)] out ClipboardItemIdentifier? identifier)
         {
             if (int.TryParse(value, out var index))
             {
@@ -91,6 +91,16 @@ namespace past.Core.Models
 
             id = null;
             return false;
+        }
+
+        public override string ToString()
+        {
+            if (_index.HasValue)
+            {
+                return _index.Value.ToString();
+            }
+
+            return _id.Value.ToString();
         }
         #endregion Public Methods
 

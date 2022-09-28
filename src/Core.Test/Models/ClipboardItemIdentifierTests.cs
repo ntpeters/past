@@ -139,6 +139,38 @@ namespace past.Core.Test.Models
         }
         #endregion TryGetAsGuid
 
+        #region ToString
+        [Test]
+        public void ToString_CreatedWithIndex_ReturnsIndexString()
+        {
+            // Arrange
+            int index = 0;
+            var expectedValue = index.ToString();
+            var identifier = new ClipboardItemIdentifier(index);
+
+            // Act
+            var actualValue = identifier.ToString();
+
+            // Assert
+            Assert.That(actualValue, Is.EqualTo(expectedValue));
+        }
+
+        [Test]
+        public void ToString_CreatedWithGuid_ReturnsIndexString()
+        {
+            // Arrange
+            var id = Guid.NewGuid();
+            var expectedValue = id.ToString();
+            var identifier = new ClipboardItemIdentifier(id);
+
+            // Act
+            var actualValue = identifier.ToString();
+
+            // Assert
+            Assert.That(actualValue, Is.EqualTo(expectedValue));
+        }
+        #endregion ToString
+
         #region Implicit Cast
         [Test]
         public void ImplicitCase_FromInt_Success()
