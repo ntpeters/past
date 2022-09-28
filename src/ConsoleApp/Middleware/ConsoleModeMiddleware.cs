@@ -5,10 +5,8 @@ using System.CommandLine.Invocation;
 
 namespace past.ConsoleApp.Middleware
 {
-    /// <summary>
-    /// Supports configuring the console mode as part of the command invocation pipeline.
-    /// </summary>
-    public class ConsoleModeMiddleware
+    /// <inheritdoc cref="IConsoleModeMiddleware"/>
+    public class ConsoleModeMiddleware : IConsoleModeMiddleware
     {
         #region Private Fields
         private readonly IConsoleUtilities _consoleUtilities;
@@ -38,14 +36,6 @@ namespace past.ConsoleApp.Middleware
         #endregion Constructors
 
         #region Public Methods
-        /// <summary>
-        /// Enables virtual terminal processing in the current console, and ensures
-        /// the original console mode is restored on process exit.
-        /// </summary>
-        /// <remarks>
-        /// If output is redirected, calling this method has no effect.
-        /// </remarks>
-        /// <param name="context">The context for the current invocation.</param>
         public void ConfigureConsoleMode(InvocationContext context)
         {
             if (context.Console.IsOutputRedirected)
