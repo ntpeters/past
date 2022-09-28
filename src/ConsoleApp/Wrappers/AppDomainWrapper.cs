@@ -14,7 +14,7 @@ namespace past.ConsoleApp.Wrappers
             {
                 // Lazily subscribe to the underlaying event once someone subscribes to this event.
                 // This way we don't have to worry about doing anything special to cleanup our own event subscriptions here to prevent leaks.
-                if (ProcessExitInternal?.GetInvocationList().Length == 0)
+                if (ProcessExitInternal == null || ProcessExitInternal?.GetInvocationList().Length == 0)
                 {
                     AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
                 }
@@ -26,7 +26,7 @@ namespace past.ConsoleApp.Wrappers
                 // Lazily unsubscribe from the underlaying event once the last subscriber unsubscribes from this event.
                 // This way we don't have to worry about doing anything special to cleanup our own event subscriptions here to prevent leaks.
                 ProcessExitInternal -= value;
-                if (ProcessExitInternal?.GetInvocationList().Length == 0)
+                if (ProcessExitInternal == null || ProcessExitInternal?.GetInvocationList().Length == 0)
                 {
                     AppDomain.CurrentDomain.ProcessExit -= OnProcessExit;
                 }
