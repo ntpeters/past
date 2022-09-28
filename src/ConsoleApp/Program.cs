@@ -8,6 +8,7 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Help;
 using System.CommandLine.Parsing;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -16,7 +17,8 @@ namespace past.ConsoleApp
 {
     public class Program
     {
-        public static async Task<int> Main(string[] args)
+        [ExcludeFromCodeCoverage]
+        public static Task<int> Main(string[] args)
         {
 #if DEBUG
             // In debug builds halt execution until a key is pressed if the debug flag was provided to allow attaching a debugger.
@@ -31,7 +33,12 @@ namespace past.ConsoleApp
             }
 #endif // DEBUG
 
-            var rootCommand = new PastCommand();
+            return MainInternal(args);
+        }
+
+        protected internal static async Task<int> MainInternal(string[] args, PastCommand? rootCommand = null, IConsoleModeMiddleware? consoleModeMiddleware = null, IConsole? console = null)
+        {
+            rootCommand ??= new PastCommand();
             var commandLineBuilder = new CommandLineBuilder(rootCommand);
             commandLineBuilder.UseSuggestDirective();
             commandLineBuilder.RegisterWithDotnetSuggest();
@@ -43,12 +50,12 @@ namespace past.ConsoleApp
 
             if (args.Contains("--ansi"))
             {
-                var consoleModeMiddleware = new ConsoleModeMiddleware();
+                consoleModeMiddleware ??= new ConsoleModeMiddleware();
                 commandLineBuilder.AddMiddleware(consoleModeMiddleware.ConfigureConsoleMode);
             }
 
             var commandLineParser = commandLineBuilder.Build();
-            return await commandLineParser.InvokeAsync(args);
+            return await commandLineParser.InvokeAsync(args, console);
         }
 
         /// <summary>
@@ -156,14 +163,7 @@ namespace past.ConsoleApp
             var assembly = Assembly.GetExecutingAssembly();
             var assemblyVersionAttribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
 
-            if (assemblyVersionAttribute is null)
-            {
-                return assembly.GetName().Version?.ToString() ?? "";
-            }
-            else
-            {
-                return assemblyVersionAttribute.InformationalVersion;
-            }
+            return assemblyVersionAttribute.InformationalVersion;
         }
     }
 }
