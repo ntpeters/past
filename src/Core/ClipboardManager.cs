@@ -75,7 +75,15 @@ namespace past.Core
                         value = $"[Unsupported Format: {string.Join(',', data.GetFormats())}]";
                     }
 
-                    tsc.SetResult(value);
+                    if (value != null)
+                    {
+                        tsc.SetResult(value);
+                    }
+                    else
+                    {
+                        tsc.SetException(new PastException(ErrorCode.IncompatibleContentType, "Item does not support the specified content type"));
+                    }
+
                 }
                 catch (Exception e)
                 {

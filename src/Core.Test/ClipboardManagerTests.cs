@@ -121,9 +121,12 @@ namespace past.Core.Test
         }
 
         [Test]
-        public async Task GetCurrentClipboardValueAsync_RequestImageForNonImageContent_ReturnsNull()
+        public void GetCurrentClipboardValueAsync_RequestImageForNonImageContent_ThrowsException ()
         {
             // Arrange
+            var expectedExceptionErrorCode = ErrorCode.IncompatibleContentType;
+            var expectedExceptionMessage = $"Item does not support the specified content type";
+
             ContentType type = ContentType.Image;
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             mockWin32Clipboard
@@ -140,11 +143,12 @@ namespace past.Core.Test
             var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
-            // Act
-            var actualValue = await clipboardManager.GetCurrentClipboardValueAsync(type, null);
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.GetCurrentClipboardValueAsync(type, null));
 
-            // Assert
-            Assert.That(actualValue, Is.Null);
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+
             mockWin32Clipboard.Verify(mock => mock.ContainsText(It.Is<TextDataFormat>(
                 format => format == TextDataFormat.Text)), Times.AtMostOnce);
             mockWin32Clipboard.Verify(mock => mock.ContainsText(It.Is<TextDataFormat>(
@@ -196,20 +200,24 @@ namespace past.Core.Test
         }
 
         [Test]
-        public async Task GetCurrentClipboardValueAsync_ForUnsupportedContentType_ReturnsNull()
+        public void GetCurrentClipboardValueAsync_ForUnsupportedContentType_ThrowsException()
         {
             // Arrange
+            var expectedExceptionErrorCode = ErrorCode.IncompatibleContentType;
+            var expectedExceptionMessage = $"Item does not support the specified content type";
+
             ContentType type = 0;
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
             var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
             var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
 
-            // Act
-            var actualValue = await clipboardManager.GetCurrentClipboardValueAsync(type, null);
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.GetCurrentClipboardValueAsync(type, null));
 
-            // Assert
-            Assert.That(actualValue, Is.Null);
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+
             mockWin32Clipboard.Verify();
             mockWinRtClipboard.Verify();
         }
