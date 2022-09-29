@@ -166,7 +166,7 @@ namespace past.ConsoleApp.Test.Commands
             Assert.That(typeOption.HasAlias("--type"), Is.True);
             Assert.That(typeOption.HasAlias("-t"), Is.True);
             Assert.That(typeOption.Description,
-                Is.EqualTo("The type of content to read from the clipboard. (default: Text)"));
+                Is.EqualTo("The type of content to read from the clipboard."));
         }
 
         [Test]

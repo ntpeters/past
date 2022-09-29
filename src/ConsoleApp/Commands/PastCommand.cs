@@ -206,7 +206,7 @@ namespace past.ConsoleApp.Commands
         {
             var typeOption = new Option<ContentType>(
                 aliases: new string[] { "--type", "-t" },
-                description: "The type of content to read from the clipboard. (default: Text)",
+                description: "The type of content to read from the clipboard.",
                 isDefault: true,
                 parseArgument: (result) =>
                 {

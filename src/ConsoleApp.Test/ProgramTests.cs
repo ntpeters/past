@@ -26,7 +26,7 @@ Usage:
   past [command] [options]
 
 Options:
-  -t, --type <All|Image|Text>  The type of content to read from the clipboard. (default: Text) [default: Text]
+  -t, --type <All|Image|Text>  The type of content to read from the clipboard. [default: Text]
   --all                        Alias for `--type all`. Overrides the `--type` option if present.
   --ansi                       Enable processing of ANSI control sequences
   --ansi-reset <Auto|Off|On>   Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item. [default: Auto]
@@ -54,7 +54,7 @@ Usage:
   past [command] [options]
 
 Options:
-  -t, --type <All|Image|Text>  The type of content to read from the clipboard. (default: Text) [default: Text]
+  -t, --type <All|Image|Text>  The type of content to read from the clipboard. [default: Text]
   --all                        Alias for `--type all`. Overrides the `--type` option if present.
   --ansi                       Enable processing of ANSI control sequences
   --ansi-reset <Auto|Off|On>   Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item. [default: Auto]
@@ -88,7 +88,7 @@ Arguments:
   <index|id>  The index or ID of the item to get from clipboard history
 
 Options:
-  -t, --type <All|Image|Text>  The type of content to read from the clipboard. (default: Text) [default: Text]
+  -t, --type <All|Image|Text>  The type of content to read from the clipboard. [default: Text]
   --all                        Alias for `--type all`. Overrides the `--type` option if present.
   --ansi                       Enable processing of ANSI control sequences
   --ansi-reset <Auto|Off|On>   Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item. [default: Auto]
@@ -114,7 +114,7 @@ Arguments:
   <index|id>  The index or ID of the item to get from clipboard history
 
 Options:
-  -t, --type <All|Image|Text>  The type of content to read from the clipboard. (default: Text) [default: Text]
+  -t, --type <All|Image|Text>  The type of content to read from the clipboard. [default: Text]
   --all                        Alias for `--type all`. Overrides the `--type` option if present.
   --ansi                       Enable processing of ANSI control sequences
   --ansi-reset <Auto|Off|On>   Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item. [default: Auto]
@@ -145,7 +145,7 @@ Usage:
   past list [options]
 
 Options:
-  -t, --type <All|Image|Text>  The type of content to read from the clipboard. (default: Text) [default: Text]
+  -t, --type <All|Image|Text>  The type of content to read from the clipboard. [default: Text]
   --all                        Alias for `--type all`. Overrides the `--type` option if present.
   --ansi                       Enable processing of ANSI control sequences
   --ansi-reset <Auto|Off|On>   Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item. [default: Auto]
@@ -171,7 +171,7 @@ Usage:
   past list [options]
 
 Options:
-  -t, --type <All|Image|Text>  The type of content to read from the clipboard. (default: Text) [default: Text]
+  -t, --type <All|Image|Text>  The type of content to read from the clipboard. [default: Text]
   --all                        Alias for `--type all`. Overrides the `--type` option if present.
   --ansi                       Enable processing of ANSI control sequences
   --ansi-reset <Auto|Off|On>   Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item. [default: Auto]
