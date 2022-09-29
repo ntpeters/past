@@ -182,6 +182,112 @@ namespace past.ConsoleApp.Test.Output
         }
 
         [Test]
+        [TestCase(ContentType.Image, true)]
+        [TestCase(ContentType.Image, false)]
+        [TestCase(ContentType.All, true)]
+        [TestCase(ContentType.All, false)]
+        public async Task WriteItemAsync_ImageValueWithCompatibleContentType_WritesValue(ContentType compatibleType, bool enableAnsiProcessing)
+        {
+            // Arrange
+            var ansiResetType = AnsiResetType.On; // This won't do anything unless a formatter is provided
+            var suppressErrorOutput = false;
+            var emitLineEnding = false;
+
+            var expectedText = "[Unsupported Format: Image support coming soon]";
+            if (enableAnsiProcessing)
+            {
+                expectedText = $"{NativeConstants.ANSI_RED}{expectedText}";
+            }
+
+            var mockFile = new Mock<IStorageFile>();
+            var imageStream = RandomAccessStreamReference.CreateFromFile(mockFile.Object);
+            var dataPackage = new DataPackage();
+            dataPackage.SetBitmap(imageStream);
+            var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+            mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
+
+            var mockStreamWriter = new Mock<IStandardStreamWriter>(MockBehavior.Strict);
+
+            string? actualWrittenValue = null;
+            mockStreamWriter
+                .Setup(mock => mock.Write(It.IsAny<string?>()))
+                .Callback<string?>(value => actualWrittenValue = value)
+                .Verifiable();
+
+            var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
+            mockConsole
+                .SetupGet(mock => mock.Out)
+                .Returns(mockStreamWriter.Object)
+                .Verifiable();
+
+            var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
+
+            var consoleWriter = new ConsoleWriter(
+                mockConsole.Object,
+                mockEnvironment.Object,
+                suppressErrorOutput,
+                enableAnsiProcessing,
+                ansiResetType);
+
+            // Act
+            await consoleWriter.WriteItemAsync(
+                mockItem.Object,
+                compatibleType,
+                null,
+                emitLineEnding);
+
+            // Assert
+            Assert.That(actualWrittenValue, Is.EqualTo(expectedText));
+
+            mockItem.Verify();
+            mockStreamWriter.Verify();
+            mockConsole.Verify();
+            mockEnvironment.Verify();
+        }
+
+        [Test]
+        public async Task WriteItemAsync_ImageValueWithIncompatibleContentType_NoOutput()
+        {
+            // Arrange
+            var incompatibleType = ContentType.Text;
+            var ansiResetType = AnsiResetType.On;
+            bool enableAnsiProcessing = false;
+            var suppressErrorOutput = false;
+            var emitLineEnding = false;
+
+            var mockFile = new Mock<IStorageFile>();
+            var imageStream = RandomAccessStreamReference.CreateFromFile(mockFile.Object);
+            var dataPackage = new DataPackage();
+            dataPackage.SetBitmap(imageStream);
+            var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+            mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
+
+            var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
+            var mockEnvironment = new Mock<IEnvironmentWrapper>(MockBehavior.Strict);
+
+            var consoleWriter = new ConsoleWriter(
+                mockConsole.Object,
+                mockEnvironment.Object,
+                suppressErrorOutput,
+                enableAnsiProcessing,
+                ansiResetType);
+
+            // Act
+            await consoleWriter.WriteItemAsync(
+                mockItem.Object,
+                incompatibleType,
+                null,
+                emitLineEnding);
+
+            // NOTE: No asserts needed for this test, as it will fail if something is written to the console since
+            // no setup was provided for the output stream and the console mock is created with MockBehavior.Strict
+
+            mockItem.Verify();
+            mockConsole.Verify();
+            mockEnvironment.Verify();
+        }
+
+        [Test]
         [TestCase(ContentType.Text)]
         [TestCase(ContentType.Image)]
         public async Task WriteItemAsync_UnsupportedValueWithSpecificContentType_NoOutput(ContentType type)

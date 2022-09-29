@@ -91,7 +91,7 @@ namespace past.Core.Test
         public async Task GetCurrentClipboardValueAsync_ForImageContent_Success(ContentType type)
         {
             // Arrange
-            var expectedValue = "[Unsupported Format: Image]";
+            var expectedValue = "[Unsupported Format: Image support coming soon]";
             var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
             mockWin32Clipboard
                 .Setup(

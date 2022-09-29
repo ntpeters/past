@@ -67,7 +67,7 @@ namespace past.Core
                     }
                     else if (type.HasFlag(ContentType.Image) && _win32Clipboard.ContainsImage())
                     {
-                        value = "[Unsupported Format: Image]";
+                        value = "[Unsupported Format: Image support coming soon]";
                     }
                     else if (type == ContentType.All)
                     {

@@ -99,6 +99,17 @@ namespace past.ConsoleApp.Output
             {
                 return await content.GetTextAsync();
             }
+            else if (type.HasFlag(ContentType.Image) && content.Contains(StandardDataFormats.Bitmap))
+            {
+                var message = new StringBuilder();
+                if (EnableAnsiProcessing)
+                {
+                    message.Append(NativeConstants.ANSI_RED);
+                }
+
+                message.Append("[Unsupported Format: Image support coming soon]");
+                return message.ToString();
+            }
             else if (type == ContentType.All)
             {
                 var message = new StringBuilder();
