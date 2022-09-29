@@ -126,7 +126,7 @@ namespace past.ConsoleApp
                 int index = 0;
                 foreach (var item in clipboardItems)
                 {
-                    await consoleWriter.WriteItemAsync(item, type, index, formatter, emitLineEnding: index < clipboardItems.Count() - 1);
+                    await consoleWriter.WriteItemAsync(item, type, formatter, emitLineEnding: index < clipboardItems.Count() - 1);
                     index++;
                 }
             }

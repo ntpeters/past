@@ -46,7 +46,7 @@ namespace past.ConsoleApp.Output
         #endregion Constructors
 
         #region Public Methods
-        public async Task WriteItemAsync(IClipboardHistoryItemWrapper item, ContentType type, int? index = null, IValueFormatter? formatter = null, bool emitLineEnding = false)
+        public async Task WriteItemAsync(IClipboardHistoryItemWrapper item, ContentType type, IValueFormatter? formatter = null, bool emitLineEnding = false)
         {
             _ = item ?? throw new ArgumentNullException(nameof(item));
 
@@ -59,7 +59,7 @@ namespace past.ConsoleApp.Output
             if (formatter != null)
             {
                 var emitAnsiReset = ShouldEmitAnsiReset(value);
-                value = formatter.Format(value, index, item.Id, item.Timestamp, emitAnsiReset, emitLineEnding);
+                value = formatter.Format(value, item.Index, item.Id, item.Timestamp, emitAnsiReset, emitLineEnding);
             }
 
             _console.Write(value);

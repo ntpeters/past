@@ -460,7 +460,6 @@ namespace past.ConsoleApp.Test
                 .Setup(mock => mock.WriteItemAsync(
                     It.Is<IClipboardHistoryItemWrapper>(actualItem => actualItem == mockItem.Object),
                     It.Is<ContentType>(actualType => actualType == expectedType),
-                    It.Is<int?>(actualIndex => actualIndex == null),
                     It.Is<IValueFormatter>(actualFormatter => actualFormatter == mockFormatter.Object),
                     It.Is<bool>(actualEmitLineEnding => !actualEmitLineEnding)))
                 .Returns(Task.CompletedTask)
@@ -513,7 +512,6 @@ namespace past.ConsoleApp.Test
                 .Setup(mock => mock.WriteItemAsync(
                     It.Is<IClipboardHistoryItemWrapper>(actualItem => actualItem == mockItem.Object),
                     It.Is<ContentType>(actualType => actualType == expectedType),
-                    It.Is<int?>(actualIndex => actualIndex == null),
                     It.Is<IValueFormatter>(actualFormatter => actualFormatter == mockFormatter.Object),
                     It.Is<bool>(actualEmitLineEnding => !actualEmitLineEnding)))
                 .Returns(Task.CompletedTask)
@@ -639,7 +637,6 @@ namespace past.ConsoleApp.Test
                 .Setup(mock => mock.WriteItemAsync(
                     It.Is<IClipboardHistoryItemWrapper>(actualItem => actualItem == mockItem.Object),
                     It.Is<ContentType>(actualType => actualType == expectedType),
-                    It.Is<int?>(actualIndex => actualIndex == null),
                     It.Is<IValueFormatter>(actualFormatter => actualFormatter == mockFormatter.Object),
                     It.Is<bool>(actualEmitLineEnding => !actualEmitLineEnding)))
                 .ThrowsAsync(expectedException)
@@ -752,11 +749,10 @@ namespace past.ConsoleApp.Test
                 .Setup(mock => mock.WriteItemAsync(
                     It.Is<IClipboardHistoryItemWrapper>(actualItem => expectedItems.Contains(actualItem)),
                     It.Is<ContentType>(actualType => actualType == expectedType),
-                    It.Is<int?>(actualIndex => actualIndex < expectedItems.Count),
                     It.Is<IValueFormatter>(actualFormatter => actualFormatter == mockFormatter.Object),
                     It.IsAny<bool>()))
                 .Returns(Task.CompletedTask)
-                .Callback<IClipboardHistoryItemWrapper, ContentType, int?, IValueFormatter?, bool>((actualItem, type, index, formatter, actualEmitLineEnding) =>
+                .Callback<IClipboardHistoryItemWrapper, ContentType, IValueFormatter?, bool>((actualItem, type, formatter, actualEmitLineEnding) =>
                 {
                     actualItems.Add(actualItem);
                     if (initialEmitLineEnding == null)
@@ -890,7 +886,6 @@ namespace past.ConsoleApp.Test
                 .Setup(mock => mock.WriteItemAsync(
                     It.Is<IClipboardHistoryItemWrapper>(actualItem => actualItem == mockItem.Object),
                     It.Is<ContentType>(actualType => actualType == expectedType),
-                    It.Is<int?>(actualIndex => actualIndex == 0),
                     It.Is<IValueFormatter>(actualFormatter => actualFormatter == mockFormatter.Object),
                     It.IsAny<bool>()))
                 .ThrowsAsync(expectedException)

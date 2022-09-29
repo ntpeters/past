@@ -27,7 +27,18 @@ namespace past.Core.Wrappers
             // Wrap the list items lazily and preserve the wrapped instances for future calls
             _wrappedClipboardHistoryItemsLazy = new Lazy<IReadOnlyList<IClipboardHistoryItemWrapper>>(() =>
             {
-                return _clipboardHistoryItemsResult.Items.Select(item => new ClipboardHistoryItemWrapper(item)).ToList();
+                var wrappedItems = new List<IClipboardHistoryItemWrapper>();
+                int index = 0;
+                foreach (var item in _clipboardHistoryItemsResult.Items)
+                {
+                    wrappedItems.Add(new ClipboardHistoryItemWrapper(item)
+                    {
+                        // We need to preserve the original index so that it can still be referenced after filtering the items if needed
+                        Index = index
+                    });
+                    index++;
+                }
+                return wrappedItems;
             });
         }
     }

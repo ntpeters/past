@@ -16,5 +16,10 @@ namespace past.Core.Wrappers
 
         /// <inheritdoc cref="ClipboardHistoryItem.Timestamp"/>
         DateTimeOffset Timestamp { get; }
+
+        /// <summary>
+        /// The original index of the item in the clipboard history.
+        /// </summary>
+        int Index { get; }
     }
 }

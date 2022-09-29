@@ -19,6 +19,8 @@ namespace past.Core.Wrappers
         public string Id => _clipboardHistoryItem.Id;
 
         public DateTimeOffset Timestamp => _clipboardHistoryItem.Timestamp;
+
+        public int Index { get; init; }
         #endregion Public Properties
 
         public ClipboardHistoryItemWrapper(ClipboardHistoryItem clipboardHistoryItem)

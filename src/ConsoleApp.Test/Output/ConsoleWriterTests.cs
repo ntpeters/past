@@ -7,6 +7,7 @@ using System.CommandLine;
 using System.CommandLine.IO;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
+using Windows.Storage.Streams;
 
 namespace past.ConsoleApp.Test.Output
 {
@@ -62,7 +63,6 @@ namespace past.ConsoleApp.Test.Output
             var suppressErrorOutput = false;
             var expectedEmitLineEnding = false;
             var expectedType = ContentType.Text;
-            var expectedIndex = 0;
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
             var mockConsole = new Mock<IConsole>(MockBehavior.Strict);
@@ -80,7 +80,6 @@ namespace past.ConsoleApp.Test.Output
                 () => consoleWriter.WriteItemAsync(
                     null!,
                     expectedType,
-                    expectedIndex,
                     mockFormatter.Object,
                     expectedEmitLineEnding));
         }
@@ -130,7 +129,6 @@ namespace past.ConsoleApp.Test.Output
                 mockItem.Object,
                 compatibleType,
                 null,
-                null,
                 emitLineEnding);
 
             // Assert
@@ -141,7 +139,6 @@ namespace past.ConsoleApp.Test.Output
             mockConsole.Verify();
             mockEnvironment.Verify();
         }
-
 
         [Test]
         public async Task WriteItemAsync_TextValueWithIncompatibleContentType_NoOutput()
@@ -174,11 +171,10 @@ namespace past.ConsoleApp.Test.Output
                 mockItem.Object,
                 incompatibleType,
                 null,
-                null,
                 emitLineEnding);
 
             // NOTE: No asserts needed for this test, as it will fail if something is written to the console since
-            // no setup was proved for the output stream and the console mock is created with MockBehavior.Strict
+            // no setup was provided for the output stream and the console mock is created with MockBehavior.Strict
 
             mockItem.Verify();
             mockConsole.Verify();
@@ -221,11 +217,10 @@ namespace past.ConsoleApp.Test.Output
                 mockItem.Object,
                 type,
                 null,
-                null,
                 emitLineEnding);
 
             // NOTE: No asserts needed for this test, as it will fail if something is written to the console since
-            // no setup was proved for the output stream and the console mock is created with MockBehavior.Strict
+            // no setup was provided for the output stream and the console mock is created with MockBehavior.Strict
 
             mockItem.Verify();
             mockConsole.Verify();
@@ -242,7 +237,6 @@ namespace past.ConsoleApp.Test.Output
             var ansiResetType = AnsiResetType.On;
             var suppressErrorOutput = false;
             var emitLineEnding = false;
-            var index = 0;
 
             var mockStorageItems = new List<IStorageItem>
             {
@@ -289,7 +283,6 @@ namespace past.ConsoleApp.Test.Output
             await consoleWriter.WriteItemAsync(
                 mockItem.Object,
                 type,
-                index,
                 null,
                 emitLineEnding);
 
@@ -304,9 +297,9 @@ namespace past.ConsoleApp.Test.Output
 
         [Test]
         [TestCase(int.MaxValue)]
+        [TestCase(0)]
         [TestCase(int.MinValue)]
-        [TestCase(null)]
-        public async Task WriteItemAsync_NonNullFormatter_WritesFormattedValue(int? expectedIndex)
+        public async Task WriteItemAsync_NonNullFormatter_WritesFormattedValue(int expectedIndex)
         {
             // Arrange
             var type = ContentType.Text;
@@ -325,6 +318,7 @@ namespace past.ConsoleApp.Test.Output
             mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
             mockItem.SetupGet(mock => mock.Id).Returns(expectedId.ToString()).Verifiable();
             mockItem.SetupGet(mock => mock.Timestamp).Returns(expectedTimestamp).Verifiable();
+            mockItem.SetupGet(mock => mock.Index).Returns(expectedIndex).Verifiable();
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
             mockFormatter
@@ -365,7 +359,6 @@ namespace past.ConsoleApp.Test.Output
             await consoleWriter.WriteItemAsync(
                 mockItem.Object,
                 type,
-                expectedIndex,
                 mockFormatter.Object,
                 emitLineEnding);
 
@@ -403,6 +396,7 @@ namespace past.ConsoleApp.Test.Output
             mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
             mockItem.SetupGet(mock => mock.Id).Returns(expectedId.ToString()).Verifiable();
             mockItem.SetupGet(mock => mock.Timestamp).Returns(expectedTimestamp).Verifiable();
+            mockItem.SetupGet(mock => mock.Index).Returns(expectedIndex).Verifiable();
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
             mockFormatter
@@ -443,7 +437,6 @@ namespace past.ConsoleApp.Test.Output
             await consoleWriter.WriteItemAsync(
                 mockItem.Object,
                 type,
-                expectedIndex,
                 mockFormatter.Object,
                 emitLineEnding);
 
@@ -481,6 +474,7 @@ namespace past.ConsoleApp.Test.Output
             mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
             mockItem.SetupGet(mock => mock.Id).Returns(expectedId.ToString()).Verifiable();
             mockItem.SetupGet(mock => mock.Timestamp).Returns(expectedTimestamp).Verifiable();
+            mockItem.SetupGet(mock => mock.Index).Returns(expectedIndex).Verifiable();
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
             mockFormatter
@@ -521,7 +515,6 @@ namespace past.ConsoleApp.Test.Output
             await consoleWriter.WriteItemAsync(
                 mockItem.Object,
                 type,
-                expectedIndex,
                 mockFormatter.Object,
                 emitLineEnding);
 
@@ -566,6 +559,7 @@ namespace past.ConsoleApp.Test.Output
             mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
             mockItem.SetupGet(mock => mock.Id).Returns(expectedId.ToString()).Verifiable();
             mockItem.SetupGet(mock => mock.Timestamp).Returns(expectedTimestamp).Verifiable();
+            mockItem.SetupGet(mock => mock.Index).Returns(expectedIndex).Verifiable();
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
             mockFormatter
@@ -606,7 +600,6 @@ namespace past.ConsoleApp.Test.Output
             await consoleWriter.WriteItemAsync(
                 mockItem.Object,
                 type,
-                expectedIndex,
                 mockFormatter.Object,
                 emitLineEnding);
 
@@ -644,6 +637,7 @@ namespace past.ConsoleApp.Test.Output
             mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
             mockItem.SetupGet(mock => mock.Id).Returns(expectedId.ToString()).Verifiable();
             mockItem.SetupGet(mock => mock.Timestamp).Returns(expectedTimestamp).Verifiable();
+            mockItem.SetupGet(mock => mock.Index).Returns(expectedIndex).Verifiable();
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
             mockFormatter
@@ -689,7 +683,6 @@ namespace past.ConsoleApp.Test.Output
             await consoleWriter.WriteItemAsync(
                 mockItem.Object,
                 type,
-                expectedIndex,
                 mockFormatter.Object,
                 emitLineEnding);
 
@@ -730,6 +723,7 @@ namespace past.ConsoleApp.Test.Output
             mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
             mockItem.SetupGet(mock => mock.Id).Returns(expectedId.ToString()).Verifiable();
             mockItem.SetupGet(mock => mock.Timestamp).Returns(expectedTimestamp).Verifiable();
+            mockItem.SetupGet(mock => mock.Index).Returns(expectedIndex).Verifiable();
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
             mockFormatter
@@ -779,7 +773,6 @@ namespace past.ConsoleApp.Test.Output
             await consoleWriter.WriteItemAsync(
                 mockItem.Object,
                 type,
-                expectedIndex,
                 mockFormatter.Object,
                 emitLineEnding);
 
@@ -819,6 +812,7 @@ namespace past.ConsoleApp.Test.Output
             mockItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView()).Verifiable();
             mockItem.SetupGet(mock => mock.Id).Returns(expectedId.ToString()).Verifiable();
             mockItem.SetupGet(mock => mock.Timestamp).Returns(expectedTimestamp).Verifiable();
+            mockItem.SetupGet(mock => mock.Index).Returns(expectedIndex).Verifiable();
 
             var mockFormatter = new Mock<IValueFormatter>(MockBehavior.Strict);
             mockFormatter
@@ -868,7 +862,6 @@ namespace past.ConsoleApp.Test.Output
             await consoleWriter.WriteItemAsync(
                 mockItem.Object,
                 type,
-                expectedIndex,
                 mockFormatter.Object,
                 emitLineEnding);
 
@@ -908,7 +901,7 @@ namespace past.ConsoleApp.Test.Output
             consoleWriter.WriteValue(null!, mockFormatter.Object);
 
             // NOTE: No asserts needed for this test, as it will fail if something is written to the console since
-            // no setup was proved for the output stream and the console mock is created with MockBehavior.Strict
+            // no setup was provided for the output stream and the console mock is created with MockBehavior.Strict
 
             mockConsole.Verify();
             mockEnvironment.Verify();
@@ -1466,7 +1459,7 @@ namespace past.ConsoleApp.Test.Output
             consoleWriter.WriteErrorLine(valueToWrite);
 
             // NOTE: No asserts needed for this test, as it will fail if something is written to the console since
-            // no setup was proved for the error stream and the console mock is created with MockBehavior.Strict
+            // no setup was provided for the error stream and the console mock is created with MockBehavior.Strict
 
             mockConsole.Verify();
             mockEnvironment.Verify();
