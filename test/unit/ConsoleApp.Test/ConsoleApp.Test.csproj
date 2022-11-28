@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <!--
-    Must use the same target framework moniker Core.csproj, since project references must use compatible target frameworks.
+    Must use the same target framework moniker as Console.csproj, since project references must use compatible target frameworks.
     See comments in Core.csproj for more info.
     -->
-    <TargetFramework>net6.0-windows10.0.17763.0</TargetFramework>
+    <Targetframework>net6.0-windows10.0.17763.0</Targetframework>
 
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\..\..\src\ConsoleApp\ConsoleApp.csproj" />
   </ItemGroup>
 
 </Project>
