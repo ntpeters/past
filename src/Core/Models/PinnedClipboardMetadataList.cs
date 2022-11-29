@@ -12,6 +12,6 @@ namespace past.Core.Models
         /// of the associated clipboard history item.
         /// </summary>
         [JsonProperty("items")]
-        public IDictionary<string, PinnedClipboardMetadataListItem> Items { get; set; }
+        public IDictionary<string, PinnedClipboardMetadataListItem> Items { get; set; } = new Dictionary<string, PinnedClipboardMetadataListItem>();
     }
 }

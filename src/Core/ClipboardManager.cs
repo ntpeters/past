@@ -47,8 +47,9 @@ namespace past.Core
         public async Task<string?> GetCurrentClipboardValueAsync(ContentType type, CancellationToken? cancellationToken = null)
         {
             // Using the Win32 clipboard API rather than the WinRt clipboard API as that
-            // one frequently throws "RPC_E_DISCONNECTED" when trying to access the current
-            // clipboard contents.
+            // one requires access from a UI thread.
+            // Trying to access the current clipboard contents from a non-UI thread with
+            // the WinRt clipboard API will throw "RPC_E_DISCONNECTED".
 
             // Accessing the current clipboard must be done on an STA thread
             var tsc = new TaskCompletionSource<string?>();

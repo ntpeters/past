@@ -99,6 +99,7 @@ namespace past.Core.Test.Providers
             // Arrange
             var expectedErrorMessage = "No pinned items in clipboard history";
             var pinnedMetadataList = new PinnedClipboardMetadataList();
+            pinnedMetadataList.Items = null!;
             CreateTestPinnedItemMetadataFile(pinnedMetadataList);
 
             var pinnedItemProvider = new PinnedClipboardItemProvider(GetTestPinnedItemBaseDirectory());

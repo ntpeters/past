@@ -73,7 +73,8 @@ namespace past.ConsoleApp
 
             context.HelpBuilder.CustomizeLayout(_ =>
             {
-                return HelpBuilder.Default.GetLayout().Prepend(_ =>
+                return HelpBuilder.Default.GetLayout()
+                .Prepend(_ =>
                 {
                     // Include a header at the top of help for all commands
                     _.Output.Write("past ");
@@ -163,7 +164,7 @@ namespace past.ConsoleApp
             var assembly = Assembly.GetExecutingAssembly();
             var assemblyVersionAttribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
 
-            return assemblyVersionAttribute.InformationalVersion;
+            return assemblyVersionAttribute!.InformationalVersion;
         }
     }
 }

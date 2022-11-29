@@ -25,6 +25,6 @@ namespace past.Core.Models
         /// This value has only been observed as being 'Local'.
         /// </remarks>
         [JsonProperty("source")]
-        public string Source { get; set; }
+        public string Source { get; set; } = string.Empty;
     }
 }

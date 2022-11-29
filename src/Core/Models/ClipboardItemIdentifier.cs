@@ -100,7 +100,12 @@ namespace past.Core.Models
                 return _index.Value.ToString();
             }
 
+            // Disable nullability warnings for this line since `_id` and `_index` are mutually exclusive.
+            // Warnings are disabled here instead of adding a null check with either a default return value
+            // or an exception since it would be impossible to test and cause code coverage checks to fail.
+#nullable disable
             return _id.Value.ToString();
+#nullable restore
         }
         #endregion Public Methods
 

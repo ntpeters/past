@@ -10,6 +10,7 @@
     <Targetframework>net6.0-windows10.0.17763.0</Targetframework>
 
     <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
     <AssemblyName>past</AssemblyName>
     <RootNamespace>$(AssemblyName).$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>

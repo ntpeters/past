@@ -19,6 +19,7 @@
 
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
     <AssemblyName>past.$(MSBuildProjectName.Replace(" ", "_"))</AssemblyName>
     <RootNamespace>$(AssemblyName)</RootNamespace>
