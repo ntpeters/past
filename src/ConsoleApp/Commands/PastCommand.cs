@@ -4,6 +4,7 @@ using past.Core;
 using past.Core.Models;
 using System;
 using System.CommandLine;
+using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -154,46 +155,10 @@ namespace past.ConsoleApp.Commands
                 "--ansi-reset",
                 description: "Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item.",
                 isDefault: true,
-                parseArgument: (result) =>
-                {
-                    if (result.Tokens.Count == 0)
-                    {
-                        // Default value
-                        return AnsiResetType.Auto;
-                    }
-
-                    string? typeValue = null;
-                    if (result.Tokens.Count > 0)
-                    {
-                        typeValue = result.Tokens[0].Value;
-                    }
-
-                    if (!Enum.TryParse<AnsiResetType>(typeValue, ignoreCase: true, out var type))
-                    {
-                        // For some reason this version of System.CommandLine still executes the parse argument delegate
-                        // even when argument validation fails, so we'll just return the default type here since it won't
-                        // be used anyway...
-                        return AnsiResetType.Auto;
-                    }
-
-                    return type;
-                });
+                parseArgument: (result) => EnumArgumentParser(result, AnsiResetType.Auto));
 
             ansiResetOption.AddCompletions(Enum.GetNames<AnsiResetType>());
-
-            ansiResetOption.AddValidator((result) =>
-            {
-                string? typeValue = null;
-                if (result.Tokens.Count > 0)
-                {
-                    typeValue = result.Tokens[0].Value;
-                }
-
-                if (!string.IsNullOrWhiteSpace(result.Token.Value) && !Enum.TryParse<AnsiResetType>(typeValue, ignoreCase: true, out var type))
-                {
-                    result.ErrorMessage = $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<AnsiResetType>())}";
-                }
-            });
+            ansiResetOption.AddValidator(EnumOptionValidator<AnsiResetType>);
 
             return ansiResetOption;
         }
@@ -208,48 +173,65 @@ namespace past.ConsoleApp.Commands
                 aliases: new string[] { "--type", "-t" },
                 description: "The type of content to read from the clipboard.",
                 isDefault: true,
-                parseArgument: (result) =>
-                {
-                    if (result.Tokens.Count == 0)
-                    {
-                        // Default value
-                        return ContentType.Text;
-                    }
-
-                    string? typeValue = null;
-                    if (result.Tokens.Count > 0)
-                    {
-                        typeValue = result.Tokens[0].Value;
-                    }
-
-                    if (!Enum.TryParse<ContentType>(typeValue, ignoreCase: true, out var type))
-                    {
-                        // For some reason this version of System.CommandLine still executes the parse argument delegate
-                        // even when argument validation fails, so we'll just return the default type here since it won't
-                        // be used anyway...
-                        return ContentType.Text;
-                    }
-
-                    return type;
-                });
+                parseArgument: (result) => EnumArgumentParser(result, ContentType.Text));
 
             typeOption.AddCompletions(Enum.GetNames<ContentType>());
-
-            typeOption.AddValidator((result) =>
-            {
-                string? typeValue = null;
-                if (result.Tokens.Count > 0)
-                {
-                    typeValue = result.Tokens[0].Value;
-                }
-
-                if (!string.IsNullOrWhiteSpace(result.Token.Value) && !Enum.TryParse<ContentType>(typeValue, ignoreCase: true, out var type))
-                {
-                    result.ErrorMessage = $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<ContentType>())}";
-                }
-            });
+            typeOption.AddValidator(EnumOptionValidator<ContentType>);
 
             return typeOption;
+        }
+
+        /// <summary>
+        /// Parses the value from a <paramref name="result"/> as a <typeparamref name="TEnum"/>.
+        /// </summary>
+        /// <typeparam name="TEnum">Type of the enum value to parse.</typeparam>
+        /// <param name="result">Result to parse the enum value from.</param>
+        /// <param name="defaultValue">Default value to use when the argument was not provided.</param>
+        /// <returns>The parsed value.</returns>
+        private static TEnum EnumArgumentParser<TEnum>(ArgumentResult result, TEnum defaultValue)
+            where TEnum : struct, Enum
+        {
+            if (result.Tokens.Count == 0)
+            {
+                // Default value
+                return defaultValue;
+            }
+
+            string? typeValue = null;
+            if (result.Tokens.Count > 0)
+            {
+                typeValue = result.Tokens[0].Value;
+            }
+
+            if (!Enum.TryParse<TEnum>(typeValue, ignoreCase: true, out var type))
+            {
+                // For some reason this version of System.CommandLine still executes the parse argument delegate
+                // even when argument validation fails, so we'll just return the default type here since it won't
+                // be used anyway...
+                return defaultValue;
+            }
+
+            return type;
+        }
+
+        /// <summary>
+        /// Validates the value of a <paramref name="result"/> is a valid <typeparamref name="TEnum"/> value.
+        /// </summary>
+        /// <typeparam name="TEnum">Type of the enum to validate the value for.</typeparam>
+        /// <param name="result">Result to validate the value from.</param>
+        private static void EnumOptionValidator<TEnum>(OptionResult result)
+            where TEnum : struct, Enum
+        {
+            string? typeValue = null;
+            if (result.Tokens.Count > 0)
+            {
+                typeValue = result.Tokens[0].Value;
+            }
+
+            if (!string.IsNullOrWhiteSpace(result.Token.Value) && !Enum.TryParse<TEnum>(typeValue, ignoreCase: true, out var type))
+            {
+                result.ErrorMessage = $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<TEnum>())}";
+            }
         }
     }
 }
