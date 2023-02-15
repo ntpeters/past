@@ -83,9 +83,21 @@ namespace past.ConsoleApp.Commands
 
             var statusCommand = new StatusCommand(quietOption, consoleClipboard.GetClipboardHistoryStatus);
 
+            var pinCommand = new PinCommand(
+                identifierArgument,
+                quietOption,
+                consoleClipboard.PinClipboardItemAsync);
+
+            var unpinCommand = new UnpinCommand(
+                identifierArgument,
+                quietOption,
+                consoleClipboard.UnpinClipboardItemAsync);
+
             this.AddCommand(listCommand);
             this.AddCommand(getCommand);
             this.AddCommand(statusCommand);
+            this.AddCommand(pinCommand);
+            this.AddCommand(unpinCommand);
 
             SetHandler(
                 consoleClipboard.GetCurrentClipboardValueAsync,

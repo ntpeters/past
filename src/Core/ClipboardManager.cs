@@ -160,6 +160,28 @@ namespace past.Core
             return filteredItems;
         }
 
+        public async Task PinClipboardItemAsync(ClipboardItemIdentifier identifier, CancellationToken? cancellationToken = null)
+        {
+            _ = identifier ?? throw new ArgumentNullException(nameof(identifier));
+
+            var item = await GetClipboardHistoryItemAsync(identifier, ContentType.All, cancellationToken);
+            if (!_pinnedClipboardItemProvider.TryAddPinnedClipboardHistoryItem(item, out var errorMessage))
+            {
+                throw new PastException(ErrorCode.NotFound, errorMessage);
+            }
+        }
+
+        public async Task UnpinClipboardItemAsync(ClipboardItemIdentifier identifier, CancellationToken? cancellationToken = null)
+        {
+            _ = identifier ?? throw new ArgumentNullException(nameof(identifier));
+
+            var item = await GetClipboardHistoryItemAsync(identifier, ContentType.All, cancellationToken);
+            if (!_pinnedClipboardItemProvider.TryRemovePinnedClipboardHistoryItem(item, out var errorMessage))
+            {
+                throw new PastException(ErrorCode.NotFound, errorMessage);
+            }
+        }
+
         public SetHistoryItemAsContentStatus SetHistoryItemAsContent(IClipboardHistoryItemWrapper item) => _winRtClipboard.SetHistoryItemAsContent(item);
 
         public bool IsHistoryEnabled() => _winRtClipboard.IsHistoryEnabled();

@@ -934,5 +934,273 @@ namespace past.ConsoleApp.Test
             Assert.ThrowsAsync<ArgumentNullException>(() => consoleClipboard.ListClipboardHistoryAsync(mockConsoleWriter.Object, null!, expectedType, expectedPinned, expectedCancellationTokenSource.Token));
         }
         #endregion ListClipboardHistoryAsync
+
+        #region PinClipboardItemAsync
+        [Test]
+        public async Task PinClipboardItemAsync_ValidParameters_ReturnsSuccess()
+        {
+            // Arrange
+            var expectedReturnValue = 0;
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+            var expectedIdentifier = new ClipboardItemIdentifier(0);
+
+            var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            mockClipboardManager
+                .Setup(mock => mock.PinClipboardItemAsync(
+                    It.Is<ClipboardItemIdentifier>(actualIdentifier => actualIdentifier == expectedIdentifier),
+                    It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            var mockConsoleWriter = new Mock<IConsoleWriter>(MockBehavior.Strict);
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act
+            var actualReturnValue = await consoleClipboard.PinClipboardItemAsync(mockConsoleWriter.Object, expectedIdentifier, expectedCancellationTokenSource.Token);
+
+            // Assert
+            Assert.That(actualReturnValue, Is.EqualTo(expectedReturnValue));
+            mockClipboardManager.Verify();
+            mockConsoleWriter.Verify();
+        }
+
+        [Test]
+        public async Task PinClipboardItemAsync_PinItemThrowsPastException_WritesErrorAndReturnsErrorCode()
+        {
+            // Arrange
+            var expectedErrorCode = ErrorCode.AccessDenied;
+            var expectedReturnValue = (int)expectedErrorCode;
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+            var expectedIdentifier = new ClipboardItemIdentifier(0);
+            var expectedException = new PastException(expectedErrorCode, "Uh-oh spaghettio!");
+            var expectedErrorMessage = $"Failed to pin clipboard history item. Error: {expectedException.Message}";
+
+            var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            mockClipboardManager
+                .Setup(mock => mock.PinClipboardItemAsync(
+                    It.Is<ClipboardItemIdentifier>(actualIdentifier => actualIdentifier == expectedIdentifier),
+                    It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
+                .ThrowsAsync(expectedException)
+                .Verifiable();
+
+            var mockConsoleWriter = new Mock<IConsoleWriter>(MockBehavior.Strict);
+            mockConsoleWriter
+                .Setup(mock => mock.WriteErrorLine(It.Is<string>(actualErrorMessage => actualErrorMessage == expectedErrorMessage)))
+                .Verifiable();
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act
+            var actualReturnValue = await consoleClipboard.PinClipboardItemAsync(mockConsoleWriter.Object, expectedIdentifier, expectedCancellationTokenSource.Token);
+
+            // Assert
+            Assert.That(actualReturnValue, Is.EqualTo(expectedReturnValue));
+            mockClipboardManager.Verify();
+            mockConsoleWriter.Verify();
+        }
+
+        [Test]
+        public void PinClipboardItemAsync_PinItemThrowsUnexpectedException_ExceptionUnhandled()
+        {
+            // Arrange
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+            var expectedIdentifier = new ClipboardItemIdentifier(0);
+            var expectedException = new Exception("Uh-oh spaghettio!");
+            var expectedErrorMessage = $"Failed to pin clipboard history item. Error: {expectedException.Message}";
+
+            var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            mockClipboardManager
+                .Setup(mock => mock.PinClipboardItemAsync(
+                    It.Is<ClipboardItemIdentifier>(actualIdentifier => actualIdentifier == expectedIdentifier),
+                    It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
+                .ThrowsAsync(expectedException)
+                .Verifiable();
+
+            var mockConsoleWriter = new Mock<IConsoleWriter>(MockBehavior.Strict);
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act
+            var actualException = Assert.ThrowsAsync<Exception>(() => consoleClipboard.PinClipboardItemAsync(mockConsoleWriter.Object, expectedIdentifier, expectedCancellationTokenSource.Token));
+
+            // Assert
+            Assert.That(actualException, Is.EqualTo(expectedException));
+            mockClipboardManager.Verify();
+            mockConsoleWriter.Verify();
+        }
+
+        [Test]
+        public void PinClipboardItemAsync_NullConsoleWriter_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+            var expectedIdentifier = new ClipboardItemIdentifier(0);
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act + Assert
+            var actualException= Assert.ThrowsAsync<ArgumentNullException>(() => consoleClipboard.PinClipboardItemAsync(null!, expectedIdentifier, expectedCancellationTokenSource.Token));
+            Assert.That(actualException.ParamName, Is.EqualTo("consoleWriter"));
+        }
+
+        [Test]
+        public void PinClipboardItemAsync_NullIdentifier_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            var mockConsoleWriter = new Mock<IConsoleWriter>(MockBehavior.Strict);
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<ArgumentNullException>(() => consoleClipboard.PinClipboardItemAsync(mockConsoleWriter.Object, null!, expectedCancellationTokenSource.Token));
+            Assert.That(actualException.ParamName, Is.EqualTo("identifier"));
+        }
+        #endregion PinClipboardItemAsync
+
+        #region UnpinClipboardItemAsync
+        [Test]
+        public async Task UnpinClipboardItemAsync_ValidParameters_ReturnsSuccess()
+        {
+            // Arrange
+            var expectedReturnValue = 0;
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+            var expectedIdentifier = new ClipboardItemIdentifier(0);
+
+            var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            mockClipboardManager
+                .Setup(mock => mock.UnpinClipboardItemAsync(
+                    It.Is<ClipboardItemIdentifier>(actualIdentifier => actualIdentifier == expectedIdentifier),
+                    It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            var mockConsoleWriter = new Mock<IConsoleWriter>(MockBehavior.Strict);
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act
+            var actualReturnValue = await consoleClipboard.UnpinClipboardItemAsync(mockConsoleWriter.Object, expectedIdentifier, expectedCancellationTokenSource.Token);
+
+            // Assert
+            Assert.That(actualReturnValue, Is.EqualTo(expectedReturnValue));
+            mockClipboardManager.Verify();
+            mockConsoleWriter.Verify();
+        }
+
+        [Test]
+        public async Task UnpinClipboardItemAsync_PinItemThrowsPastException_WritesErrorAndReturnsErrorCode()
+        {
+            // Arrange
+            var expectedErrorCode = ErrorCode.AccessDenied;
+            var expectedReturnValue = (int)expectedErrorCode;
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+            var expectedIdentifier = new ClipboardItemIdentifier(0);
+            var expectedException = new PastException(expectedErrorCode, "Uh-oh spaghettio!");
+            var expectedErrorMessage = $"Failed to unpin clipboard history item. Error: {expectedException.Message}";
+
+            var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            mockClipboardManager
+                .Setup(mock => mock.UnpinClipboardItemAsync(
+                    It.Is<ClipboardItemIdentifier>(actualIdentifier => actualIdentifier == expectedIdentifier),
+                    It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
+                .ThrowsAsync(expectedException)
+                .Verifiable();
+
+            var mockConsoleWriter = new Mock<IConsoleWriter>(MockBehavior.Strict);
+            mockConsoleWriter
+                .Setup(mock => mock.WriteErrorLine(It.Is<string>(actualErrorMessage => actualErrorMessage == expectedErrorMessage)))
+                .Verifiable();
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act
+            var actualReturnValue = await consoleClipboard.UnpinClipboardItemAsync(mockConsoleWriter.Object, expectedIdentifier, expectedCancellationTokenSource.Token);
+
+            // Assert
+            Assert.That(actualReturnValue, Is.EqualTo(expectedReturnValue));
+            mockClipboardManager.Verify();
+            mockConsoleWriter.Verify();
+        }
+
+        [Test]
+        public void UnpinClipboardItemAsync_PinItemThrowsUnexpectedException_ExceptionUnhandled()
+        {
+            // Arrange
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+            var expectedIdentifier = new ClipboardItemIdentifier(0);
+            var expectedException = new Exception("Uh-oh spaghettio!");
+            var expectedErrorMessage = $"Failed to pin clipboard history item. Error: {expectedException.Message}";
+
+            var mockItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            mockClipboardManager
+                .Setup(mock => mock.UnpinClipboardItemAsync(
+                    It.Is<ClipboardItemIdentifier>(actualIdentifier => actualIdentifier == expectedIdentifier),
+                    It.Is<CancellationToken>(actualCancellationToken => actualCancellationToken == expectedCancellationTokenSource.Token)))
+                .ThrowsAsync(expectedException)
+                .Verifiable();
+
+            var mockConsoleWriter = new Mock<IConsoleWriter>(MockBehavior.Strict);
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act
+            var actualException = Assert.ThrowsAsync<Exception>(() => consoleClipboard.UnpinClipboardItemAsync(mockConsoleWriter.Object, expectedIdentifier, expectedCancellationTokenSource.Token));
+
+            // Assert
+            Assert.That(actualException, Is.EqualTo(expectedException));
+            mockClipboardManager.Verify();
+            mockConsoleWriter.Verify();
+        }
+
+        [Test]
+        public void UnpinClipboardItemAsync_NullConsoleWriter_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+            var expectedIdentifier = new ClipboardItemIdentifier(0);
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<ArgumentNullException>(() => consoleClipboard.UnpinClipboardItemAsync(null!, expectedIdentifier, expectedCancellationTokenSource.Token));
+            Assert.That(actualException.ParamName, Is.EqualTo("consoleWriter"));
+        }
+
+        [Test]
+        public void UnpinClipboardItemAsync_NullIdentifier_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var expectedCancellationTokenSource = new CancellationTokenSource();
+
+            var mockClipboardManager = new Mock<IClipboardManager>(MockBehavior.Strict);
+            var mockConsoleWriter = new Mock<IConsoleWriter>(MockBehavior.Strict);
+
+            var consoleClipboard = new ConsoleClipboard(mockClipboardManager.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<ArgumentNullException>(() => consoleClipboard.UnpinClipboardItemAsync(mockConsoleWriter.Object, null!, expectedCancellationTokenSource.Token));
+            Assert.That(actualException.ParamName, Is.EqualTo("identifier"));
+        }
+        #endregion UnpinClipboardItemAsync
     }
 }

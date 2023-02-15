@@ -138,6 +138,42 @@ namespace past.ConsoleApp
 
             return clipboardItems.Count();
         }
+
+        public async Task<int> PinClipboardItemAsync(IConsoleWriter consoleWriter, ClipboardItemIdentifier identifier, CancellationToken cancellationToken)
+        {
+            _ = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
+            _ = identifier ?? throw new ArgumentNullException(nameof(identifier));
+
+            try
+            {
+                await _clipboard.PinClipboardItemAsync(identifier, cancellationToken);
+            }
+            catch (PastException e)
+            {
+                consoleWriter.WriteErrorLine($"Failed to pin clipboard history item. Error: {e.Message}");
+                return (int)e.ErrorCode;
+            }
+
+            return (int)ErrorCode.Success;
+        }
+
+        public async Task<int> UnpinClipboardItemAsync(IConsoleWriter consoleWriter, ClipboardItemIdentifier identifier, CancellationToken cancellationToken)
+        {
+            _ = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
+            _ = identifier ?? throw new ArgumentNullException(nameof(identifier));
+
+            try
+            {
+                await _clipboard.UnpinClipboardItemAsync(identifier, cancellationToken);
+            }
+            catch (PastException e)
+            {
+                consoleWriter.WriteErrorLine($"Failed to unpin clipboard history item. Error: {e.Message}");
+                return (int)e.ErrorCode;
+            }
+
+            return (int)ErrorCode.Success;
+        }
         #endregion Public Methods
     }
 }

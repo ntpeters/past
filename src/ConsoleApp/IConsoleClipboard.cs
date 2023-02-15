@@ -60,5 +60,29 @@ namespace past.ConsoleApp
         /// <returns>Zero on success, a negative value otherwise.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="consoleWriter"/> or <paramref name="formatter"/> is null.</exception>
         Task<int> ListClipboardHistoryAsync(IConsoleWriter consoleWriter, IValueFormatter formatter, ContentType type, bool pinned, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Pins the specified item in clipboard history.
+        /// </summary>
+        /// <param name="consoleWriter">Writer to write to the console with.</param>
+        /// <param name="identifier">Identifier describing an item in the clipboard history.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> representing request cancellation.</param>
+        /// <returns>Zero on success, a negative value otherwise.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="consoleWriter"/> or <paramref name="identifier"/> is null.
+        /// </exception>
+        Task<int> PinClipboardItemAsync(IConsoleWriter consoleWriter, ClipboardItemIdentifier identifier, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Unpins the specified pinned item in clipboard history.
+        /// </summary>
+        /// <param name="consoleWriter">Writer to write to the console with.</param>
+        /// <param name="identifier">Identifier describing an item in the clipboard history.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> representing request cancellation.</param>
+        /// <returns>Zero on success, a negative value otherwise.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="consoleWriter"/> or <paramref name="identifier"/> is null.
+        /// </exception>
+        Task<int> UnpinClipboardItemAsync(IConsoleWriter consoleWriter, ClipboardItemIdentifier identifier, CancellationToken cancellationToken);
     }
 }

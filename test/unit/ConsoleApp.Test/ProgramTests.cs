@@ -37,9 +37,11 @@ Options:
   -?, -h, --help               Show help and usage information. Use with a subcommand to show help specific to that command.
 
 Commands:
-  list            Lists the clipboard history
-  get <index|id>  Gets the item at the specified index from clipboard history
-  status          Gets the status of the clipboard history settings on this device
+  list              Lists the clipboard history
+  get <index|id>    Gets the item at the specified index from clipboard history
+  status            Gets the status of the clipboard history settings on this device
+  pin <index|id>    [Experimental] Pins the specified item from clipboard history (see command help for experimental warnings).
+  unpin <index|id>  [Experimental] Unpins the specified pinned item from clipboard history
 
 Note: Use `--help` to show the full help including exit codes.
 
@@ -65,9 +67,11 @@ Options:
   -?, -h, --help               Show help and usage information. Use with a subcommand to show help specific to that command.
 
 Commands:
-  list            Lists the clipboard history
-  get <index|id>  Gets the item at the specified index from clipboard history
-  status          Gets the status of the clipboard history settings on this device
+  list              Lists the clipboard history
+  get <index|id>    Gets the item at the specified index from clipboard history
+  status            Gets the status of the clipboard history settings on this device
+  pin <index|id>    [Experimental] Pins the specified item from clipboard history (see command help for experimental warnings).
+  unpin <index|id>  [Experimental] Unpins the specified pinned item from clipboard history
 
 Exit Codes:
   Success          0
@@ -82,7 +86,7 @@ Description:
   Gets the item at the specified index from clipboard history
 
 Usage:
-  past get <identifier> [options]
+  past get [<identifier>] [options]
 
 Arguments:
   <index|id>  The index or ID of the item to get from clipboard history
@@ -108,7 +112,7 @@ Description:
   Gets the item at the specified index from clipboard history
 
 Usage:
-  past get <identifier> [options]
+  past get [<identifier>] [options]
 
 Arguments:
   <index|id>  The index or ID of the item to get from clipboard history
@@ -233,6 +237,106 @@ Exit Codes:
   History Disabled, Roaming Disabled  0
   ParseError                          -1
   UnexpectedError                     -99
+
+";
+
+        private const string PinCommandShortHelp = @"past pin
+
+Description:
+  [Experimental] Pins the specified item from clipboard history. 
+  WARNING:
+    - Items pinned this way will not show as pinned in the clipboard history UI until the clipboard service is restarted (which will clear non-pinned items from clipboard history).
+    - This does NOT encrypt the content of the item when storing it to disk, unlike pinning via the clipboard history UI.
+    - This may be lossy for clipboard items containing multiple data formats when the item is restored from disk after a reboot (ie. text with formatting would retain only the text).
+
+Usage:
+  past pin [<identifier>] [options]
+
+Arguments:
+  <index|id>  The index or ID of the item to get from clipboard history
+
+Options:
+  -q, --quiet     Suppresses error output
+  --debug         Prints additional diagnostic output.
+                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+  -?, -h, --help  Show help and usage information
+
+
+Note: Use `--help` to show the full help including exit codes.
+
+";
+        private const string PinCommandLongHelp = @"past pin
+
+Description:
+  [Experimental] Pins the specified item from clipboard history. 
+  WARNING:
+    - Items pinned this way will not show as pinned in the clipboard history UI until the clipboard service is restarted (which will clear non-pinned items from clipboard history).
+    - This does NOT encrypt the content of the item when storing it to disk, unlike pinning via the clipboard history UI.
+    - This may be lossy for clipboard items containing multiple data formats when the item is restored from disk after a reboot (ie. text with formatting would retain only the text).
+
+Usage:
+  past pin [<identifier>] [options]
+
+Arguments:
+  <index|id>  The index or ID of the item to get from clipboard history
+
+Options:
+  -q, --quiet     Suppresses error output
+  --debug         Prints additional diagnostic output.
+                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+  -?, -h, --help  Show help and usage information
+
+
+Exit Codes:
+  Success          0
+  ParseError       -1
+  UnexpectedError  -99
+
+";
+
+        private const string UnpinCommandShortHelp = @"past unpin
+
+Description:
+  [Experimental] Unpins the specified pinned item from clipboard history
+
+Usage:
+  past unpin [<identifier>] [options]
+
+Arguments:
+  <index|id>  The index or ID of the item to get from clipboard history
+
+Options:
+  -q, --quiet     Suppresses error output
+  --debug         Prints additional diagnostic output.
+                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+  -?, -h, --help  Show help and usage information
+
+
+Note: Use `--help` to show the full help including exit codes.
+
+";
+        private const string UnpinCommandLongHelp = @"past unpin
+
+Description:
+  [Experimental] Unpins the specified pinned item from clipboard history
+
+Usage:
+  past unpin [<identifier>] [options]
+
+Arguments:
+  <index|id>  The index or ID of the item to get from clipboard history
+
+Options:
+  -q, --quiet     Suppresses error output
+  --debug         Prints additional diagnostic output.
+                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+  -?, -h, --help  Show help and usage information
+
+
+Exit Codes:
+  Success          0
+  ParseError       -1
+  UnexpectedError  -99
 
 ";
         #endregion Constants
@@ -2451,6 +2555,442 @@ Exit Codes:
             Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
         }
         #endregion Status Command
+
+        #region Pin Command
+        [Test]
+        [TestCase("5")]
+        [TestCase("bc65714b-1c69-448b-967f-7925c6970db5")]
+        public async Task MainInternal_PinCommand_ValidArgument_ParsesWithDefaultValues(string rawIdentifier)
+        {
+            // Arrange
+            var args = new string[] { "pin", rawIdentifier };
+            var expectedExitCode = (int)ErrorCode.Success;
+
+            Assert.That(ClipboardItemIdentifier.TryParse(rawIdentifier, out var expectedIdentifier), Is.True);
+
+            var mockConsoleModeMiddleware = new Mock<IConsoleModeMiddleware>();
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+
+            IConsoleWriter? actualConsoleWriter = null;
+            ClipboardItemIdentifier? actualIdentifier = null;
+            mockConsoleClipboard
+                .Setup(mock => mock.PinClipboardItemAsync(
+                    It.IsAny<IConsoleWriter>(),
+                    It.IsAny<ClipboardItemIdentifier>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IConsoleWriter consoleWriter, ClipboardItemIdentifier identifier, CancellationToken _) =>
+                {
+                    actualConsoleWriter = consoleWriter;
+                    actualIdentifier = identifier;
+                    return expectedExitCode;
+                });
+
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+
+            // Act
+            var actualExitCode = await Program.MainInternal(args, pastCommand, mockConsoleModeMiddleware.Object, mockConsole.Object);
+
+            // Assert
+            Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
+
+            Assert.That(actualConsoleWriter, Is.Not.Null);
+            Assert.That(actualConsoleWriter.SuppressErrorOutput, Is.False);
+            Assert.That(actualConsoleWriter.EnableAnsiProcessing, Is.False);
+            Assert.That(actualConsoleWriter.AnsiResetType, Is.EqualTo(AnsiResetType.Off));
+
+            Assert.That(actualIdentifier, Is.EqualTo(expectedIdentifier));
+
+            Assert.That(standardOut.ToString(), Is.Empty);
+            Assert.That(standardError.ToString(), Is.Empty);
+
+            mockConsoleModeMiddleware.Verify(
+                mock => mock.ConfigureConsoleMode(It.IsAny<InvocationContext>()),
+                Times.Never);
+        }
+
+        [Test]
+        public async Task MainInternal_PinCommand_InvalidArgument_ReturnsParseError()
+        {
+            // Arrange
+            var args = new string[] { "pin", "foobar" };
+            var expectedExitCode = (int)ErrorCode.ParseError;
+            var expectedErrorOutput = $"Invalid identifier specified. Identifier must be either a positive integer or a GUID.{Environment.NewLine}{Environment.NewLine}";
+
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+
+            // Act
+            var actualExitCode = await Program.MainInternal(args, pastCommand, null, mockConsole.Object);
+
+            // Assert
+            Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
+
+            Assert.That(standardOut.ToString(), Is.EqualTo(PinCommandShortHelp));
+            Assert.That(standardError.ToString(), Is.EqualTo(expectedErrorOutput));
+        }
+
+        [Test]
+        [TestCase("--quiet")]
+        [TestCase("-q")]
+        public async Task MainInternal_PinCommand_QuietFlag_SuppressErrorOutputTrue(string quietFlag)
+        {
+            // Arrange
+            ClipboardItemIdentifier expectedIdentifier = 0;
+            var args = new string[] { "pin", expectedIdentifier.ToString(), quietFlag };
+            var expectedExitCode = (int)ErrorCode.Success;
+
+            var mockConsoleModeMiddleware = new Mock<IConsoleModeMiddleware>();
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+
+            IConsoleWriter? actualConsoleWriter = null;
+            ClipboardItemIdentifier? actualIdentifier = null;
+            mockConsoleClipboard
+                .Setup(mock => mock.PinClipboardItemAsync(
+                    It.IsAny<IConsoleWriter>(),
+                    It.IsAny<ClipboardItemIdentifier>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IConsoleWriter consoleWriter, ClipboardItemIdentifier identifier, CancellationToken _) =>
+                {
+                    actualConsoleWriter = consoleWriter;
+                    actualIdentifier = identifier;
+                    return expectedExitCode;
+                });
+
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+
+            // Act
+            var actualExitCode = await Program.MainInternal(args, pastCommand, mockConsoleModeMiddleware.Object, mockConsole.Object);
+
+            // Assert
+            Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
+
+            Assert.That(actualConsoleWriter, Is.Not.Null);
+            Assert.That(actualConsoleWriter.SuppressErrorOutput, Is.True);
+            Assert.That(actualConsoleWriter.EnableAnsiProcessing, Is.False);
+            Assert.That(actualConsoleWriter.AnsiResetType, Is.EqualTo(AnsiResetType.Off));
+
+            Assert.That(actualIdentifier, Is.EqualTo(expectedIdentifier));
+
+            Assert.That(standardOut.ToString(), Is.Empty);
+            Assert.That(standardError.ToString(), Is.Empty);
+
+            mockConsoleModeMiddleware.Verify(
+                mock => mock.ConfigureConsoleMode(It.IsAny<InvocationContext>()),
+                Times.Never);
+        }
+
+        [Test]
+        [TestCase("-h")]
+        [TestCase("-?")]
+        public async Task MainInternal_PinCommand_HelpShortFlag_OutputsExpectedHelp(string helpFlag)
+        {
+            // Arrange
+            var args = new string[] { "pin", helpFlag };
+            var expectedExitCode = (int)ErrorCode.Success;
+
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+
+            // Act
+            var actualExitCode = await Program.MainInternal(args, pastCommand, null, mockConsole.Object);
+
+            // Assert
+            Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
+
+            Assert.That(standardOut.ToString(), Is.EqualTo(PinCommandShortHelp));
+            Assert.That(standardError.ToString(), Is.Empty);
+        }
+
+        [Test]
+        public async Task MainInternal_PinCommand_HelpLongFlag_OutputsExpectedHelp()
+        {
+            // Arrange
+            var args = new string[] { "pin", "--help" };
+            var expectedExitCode = (int)ErrorCode.Success;
+
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+
+            // Act
+            var actualExitCode = await Program.MainInternal(args, pastCommand, null, mockConsole.Object);
+
+            // Assert
+            Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
+
+            Assert.That(standardOut.ToString(), Is.EqualTo(PinCommandLongHelp));
+            Assert.That(standardError.ToString(), Is.Empty);
+        }
+
+        [Test]
+        public async Task MainInternal_PinCommand_ThrowsException_ReturnsUnexpectedError()
+        {
+            // Arrange
+            var args = new string[] { "pin", "0" };
+            var expectedExitCode = (int)ErrorCode.UnexpectedError;
+            var expectedException = new Exception("Uh-oh! :O");
+
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            mockConsoleClipboard
+                .Setup(mock => mock.PinClipboardItemAsync(
+                    It.IsAny<IConsoleWriter>(),
+                    It.IsAny<ClipboardItemIdentifier>(),
+                    It.IsAny<CancellationToken>()))
+                .Throws(expectedException);
+
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+
+            // Act
+            var actualExitCode = await Program.MainInternal(args, pastCommand, null, mockConsole.Object);
+
+            // Assert
+            Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
+
+            Assert.That(standardOut.ToString(), Is.Empty);
+            Assert.That(standardError.ToString(), Is.EqualTo($"Unhandled exception: {expectedException}{Environment.NewLine}"));
+        }
+        #endregion Pin Command
+
+        #region Unpin Command
+        [Test]
+        [TestCase("5")]
+        [TestCase("bc65714b-1c69-448b-967f-7925c6970db5")]
+        public async Task MainInternal_UnpinCommand_ValidArgument_ParsesWithDefaultValues(string rawIdentifier)
+        {
+            // Arrange
+            var args = new string[] { "unpin", rawIdentifier };
+            var expectedExitCode = (int)ErrorCode.Success;
+
+            Assert.That(ClipboardItemIdentifier.TryParse(rawIdentifier, out var expectedIdentifier), Is.True);
+
+            var mockConsoleModeMiddleware = new Mock<IConsoleModeMiddleware>();
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+
+            IConsoleWriter? actualConsoleWriter = null;
+            ClipboardItemIdentifier? actualIdentifier = null;
+            mockConsoleClipboard
+                .Setup(mock => mock.UnpinClipboardItemAsync(
+                    It.IsAny<IConsoleWriter>(),
+                    It.IsAny<ClipboardItemIdentifier>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IConsoleWriter consoleWriter, ClipboardItemIdentifier identifier, CancellationToken _) =>
+                {
+                    actualConsoleWriter = consoleWriter;
+                    actualIdentifier = identifier;
+                    return expectedExitCode;
+                });
+
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+
+            // Act
+            var actualExitCode = await Program.MainInternal(args, pastCommand, mockConsoleModeMiddleware.Object, mockConsole.Object);
+
+            // Assert
+            Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
+
+            Assert.That(actualConsoleWriter, Is.Not.Null);
+            Assert.That(actualConsoleWriter.SuppressErrorOutput, Is.False);
+            Assert.That(actualConsoleWriter.EnableAnsiProcessing, Is.False);
+            Assert.That(actualConsoleWriter.AnsiResetType, Is.EqualTo(AnsiResetType.Off));
+
+            Assert.That(actualIdentifier, Is.EqualTo(expectedIdentifier));
+
+            Assert.That(standardOut.ToString(), Is.Empty);
+            Assert.That(standardError.ToString(), Is.Empty);
+
+            mockConsoleModeMiddleware.Verify(
+                mock => mock.ConfigureConsoleMode(It.IsAny<InvocationContext>()),
+                Times.Never);
+        }
+
+        [Test]
+        public async Task MainInternal_UnpinCommand_InvalidArgument_ReturnsParseError()
+        {
+            // Arrange
+            var args = new string[] { "unpin", "foobar" };
+            var expectedExitCode = (int)ErrorCode.ParseError;
+            var expectedErrorOutput = $"Invalid identifier specified. Identifier must be either a positive integer or a GUID.{Environment.NewLine}{Environment.NewLine}";
+
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+
+            // Act
+            var actualExitCode = await Program.MainInternal(args, pastCommand, null, mockConsole.Object);
+
+            // Assert
+            Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
+
+            Assert.That(standardOut.ToString(), Is.EqualTo(UnpinCommandShortHelp));
+            Assert.That(standardError.ToString(), Is.EqualTo(expectedErrorOutput));
+        }
+
+        [Test]
+        [TestCase("--quiet")]
+        [TestCase("-q")]
+        public async Task MainInternal_UnpinCommand_QuietFlag_SuppressErrorOutputTrue(string quietFlag)
+        {
+            // Arrange
+            ClipboardItemIdentifier expectedIdentifier = 0;
+            var args = new string[] { "unpin", expectedIdentifier.ToString(), quietFlag };
+            var expectedExitCode = (int)ErrorCode.Success;
+
+            var mockConsoleModeMiddleware = new Mock<IConsoleModeMiddleware>();
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+
+            IConsoleWriter? actualConsoleWriter = null;
+            ClipboardItemIdentifier? actualIdentifier = null;
+            mockConsoleClipboard
+                .Setup(mock => mock.UnpinClipboardItemAsync(
+                    It.IsAny<IConsoleWriter>(),
+                    It.IsAny<ClipboardItemIdentifier>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IConsoleWriter consoleWriter, ClipboardItemIdentifier identifier, CancellationToken _) =>
+                {
+                    actualConsoleWriter = consoleWriter;
+                    actualIdentifier = identifier;
+                    return expectedExitCode;
+                });
+
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+
+            // Act
+            var actualExitCode = await Program.MainInternal(args, pastCommand, mockConsoleModeMiddleware.Object, mockConsole.Object);
+
+            // Assert
+            Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
+
+            Assert.That(actualConsoleWriter, Is.Not.Null);
+            Assert.That(actualConsoleWriter.SuppressErrorOutput, Is.True);
+            Assert.That(actualConsoleWriter.EnableAnsiProcessing, Is.False);
+            Assert.That(actualConsoleWriter.AnsiResetType, Is.EqualTo(AnsiResetType.Off));
+
+            Assert.That(actualIdentifier, Is.EqualTo(expectedIdentifier));
+
+            Assert.That(standardOut.ToString(), Is.Empty);
+            Assert.That(standardError.ToString(), Is.Empty);
+
+            mockConsoleModeMiddleware.Verify(
+                mock => mock.ConfigureConsoleMode(It.IsAny<InvocationContext>()),
+                Times.Never);
+        }
+
+        [Test]
+        [TestCase("-h")]
+        [TestCase("-?")]
+        public async Task MainInternal_UnpinCommand_HelpShortFlag_OutputsExpectedHelp(string helpFlag)
+        {
+            // Arrange
+            var args = new string[] { "unpin", helpFlag };
+            var expectedExitCode = (int)ErrorCode.Success;
+
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+
+            // Act
+            var actualExitCode = await Program.MainInternal(args, pastCommand, null, mockConsole.Object);
+
+            // Assert
+            Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
+
+            Assert.That(standardOut.ToString(), Is.EqualTo(UnpinCommandShortHelp));
+            Assert.That(standardError.ToString(), Is.Empty);
+        }
+
+        [Test]
+        public async Task MainInternal_UnpinCommand_HelpLongFlag_OutputsExpectedHelp()
+        {
+            // Arrange
+            var args = new string[] { "unpin", "--help" };
+            var expectedExitCode = (int)ErrorCode.Success;
+
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+
+            // Act
+            var actualExitCode = await Program.MainInternal(args, pastCommand, null, mockConsole.Object);
+
+            // Assert
+            Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
+
+            Assert.That(standardOut.ToString(), Is.EqualTo(UnpinCommandLongHelp));
+            Assert.That(standardError.ToString(), Is.Empty);
+        }
+
+        [Test]
+        public async Task MainInternal_UnpinCommand_ThrowsException_ReturnsUnexpectedError()
+        {
+            // Arrange
+            var args = new string[] { "unpin", "0" };
+            var expectedExitCode = (int)ErrorCode.UnexpectedError;
+            var expectedException = new Exception("Uh-oh! :O");
+
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            mockConsoleClipboard
+                .Setup(mock => mock.UnpinClipboardItemAsync(
+                    It.IsAny<IConsoleWriter>(),
+                    It.IsAny<ClipboardItemIdentifier>(),
+                    It.IsAny<CancellationToken>()))
+                .Throws(expectedException);
+
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+
+            // Act
+            var actualExitCode = await Program.MainInternal(args, pastCommand, null, mockConsole.Object);
+
+            // Assert
+            Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
+
+            Assert.That(standardOut.ToString(), Is.Empty);
+            Assert.That(standardError.ToString(), Is.EqualTo($"Unhandled exception: {expectedException}{Environment.NewLine}"));
+        }
+        #endregion Unpin Command
 
         #region Helpers
         /// <summary>

@@ -76,7 +76,7 @@ namespace past.ConsoleApp.Test.Commands
             var pastCommand = new PastCommand(mockConsoleClipboard.Object);
 
             // Act + Assert
-            Assert.That(pastCommand.Subcommands, Has.Exactly(3).Items);
+            Assert.That(pastCommand.Subcommands, Has.Exactly(5).Items);
         }
 
         [Test]
@@ -134,6 +134,44 @@ namespace past.ConsoleApp.Test.Commands
 
             var statusCommandHandler = statusCommand.GetHandler();
             Assert.That(statusCommandHandler, Is.EqualTo(expectedStatusCommandHandler));
+        }
+
+        [Test]
+        public void Subcommands_HasPinCommand()
+        {
+            // Arrange
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var expectedPinCommandHandler = mockConsoleClipboard.Object.PinClipboardItemAsync;
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            // Act + Assert
+            var pinCommandMatches = pastCommand.Subcommands.Where(command => command.Name == "pin");
+            Assert.That(pinCommandMatches, Has.Exactly(1).Items);
+
+            var pinCommand = pinCommandMatches.First();
+            Assert.That(pinCommand, Is.InstanceOf<PinCommand>());
+
+            var pinCommandHandler = pinCommand.GetHandler();
+            Assert.That(pinCommandHandler, Is.EqualTo(expectedPinCommandHandler));
+        }
+
+        [Test]
+        public void Subcommands_HasUnpinCommand()
+        {
+            // Arrange
+            var mockConsoleClipboard = new Mock<IConsoleClipboard>(MockBehavior.Strict);
+            var expectedUnpinCommandHandler = mockConsoleClipboard.Object.UnpinClipboardItemAsync;
+            var pastCommand = new PastCommand(mockConsoleClipboard.Object);
+
+            // Act + Assert
+            var unpinCommandMatches = pastCommand.Subcommands.Where(command => command.Name == "unpin");
+            Assert.That(unpinCommandMatches, Has.Exactly(1).Items);
+
+            var unpinCommand = unpinCommandMatches.First();
+            Assert.That(unpinCommand, Is.InstanceOf<UnpinCommand>());
+
+            var unpinCommandHandler = unpinCommand.GetHandler();
+            Assert.That(unpinCommandHandler, Is.EqualTo(expectedUnpinCommandHandler));
         }
         #endregion Subcommands
 

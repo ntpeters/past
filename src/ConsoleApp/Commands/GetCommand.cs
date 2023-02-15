@@ -15,7 +15,7 @@ namespace past.ConsoleApp.Commands
     public class GetCommand : Command
     {
         /// <summary>
-        /// Creates a new <see cref="GetCommand"/> with the given arugment, options, and handler.
+        /// Creates a new <see cref="PinCommand"/> with the given arugment, options, and handler.
         /// </summary>
         /// <remarks>
         /// The <paramref name="quietOption"/> is not added to the command's options by this constructor,

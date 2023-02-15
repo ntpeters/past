@@ -42,6 +42,30 @@ namespace past.Core
         /// <exception cref="PastException">Failure to retrieve the clipboard history, failure getting pinned items, or no items  match the specified content type.</exception>
         Task<IEnumerable<IClipboardHistoryItemWrapper>> GetClipboardHistoryAsync(ContentType type, bool pinned, CancellationToken? cancellationToken = null);
 
+        /// <summary>
+        /// Pins the specified item in the clipboard history.
+        /// </summary>
+        /// <param name="identifier">Identifier describing an item in the clipboard history.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> representing request cancellation.</param>
+        /// <returns>A task representing the operation.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="identifier"/> is null.</exception>
+        /// <exception cref="PastException">
+        /// Failure to retrieve the clipboard history, specified item isn't found, the item is already pinned, or there's an error accessing the files on disk.
+        /// </exception>
+        Task PinClipboardItemAsync(ClipboardItemIdentifier identifier, CancellationToken? cancellationToken = null);
+
+        /// <summary>
+        /// Unpins the specified pinned item in the clipboard history.
+        /// </summary>
+        /// <param name="identifier">Identifier describing an item in the clipboard history.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> representing request cancellation.</param>
+        /// <returns>A task representing the operation.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="identifier"/> is null.</exception>
+        /// <exception cref="PastException">
+        /// Failure to retrieve the clipboard history, specified item isn't found, the item is not pinned, or there's an error accessing the files on disk.
+        /// </exception>
+        Task UnpinClipboardItemAsync(ClipboardItemIdentifier identifier, CancellationToken? cancellationToken = null);
+
         /// <inheritdoc cref="WinRtClipboardWrapper.SetHistoryItemAsContent(IClipboardHistoryItemWrapper)"/>
         SetHistoryItemAsContentStatus SetHistoryItemAsContent(IClipboardHistoryItemWrapper item);
 

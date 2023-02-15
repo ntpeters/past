@@ -64,11 +64,24 @@ namespace past.ConsoleApp
         /// <param name="context">The help context.</param>
         private static void CustomizeHelp(HelpContext context)
         {
-            // Add a note to help option description on the root command about using help for subcommands
             if (context.Command.Name == "past")
             {
+                // Add a note to help option description on the root command about using help for subcommands
                 var helpOption = context.Command.Options.First(option => option.Name == "help");
                 helpOption.Description += ". Use with a subcommand to show help specific to that command.";
+
+                // Add a note to the pin command description on the root command to see command help for warnings
+                var pinCommand = context.Command.Subcommands.First(subcommand => subcommand.Name == "pin");
+                pinCommand.Description += " (see command help for experimental warnings).";
+            }
+
+            // Expand description for command help to include warnings
+            if (context.Command.Name == "pin")
+            {
+                context.Command.Description += ". \nWARNING:" +
+                    "\n  - Items pinned this way will not show as pinned in the clipboard history UI until the clipboard service is restarted (which will clear non-pinned items from clipboard history)." +
+                    "\n  - This does NOT encrypt the content of the item when storing it to disk, unlike pinning via the clipboard history UI." +
+                    "\n  - This may be lossy for clipboard items containing multiple data formats when the item is restored from disk after a reboot (ie. text with formatting would retain only the text).";
             }
 
             context.HelpBuilder.CustomizeLayout(_ =>

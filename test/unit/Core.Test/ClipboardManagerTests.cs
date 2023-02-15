@@ -2,6 +2,7 @@ using Moq;
 using past.Core.Extensions;
 using past.Core.Providers;
 using past.Core.Wrappers;
+using System;
 using System.Windows;
 using Windows.ApplicationModel.DataTransfer;
 
@@ -264,7 +265,7 @@ namespace past.Core.Test
         [Test]
         [TestCase(ClipboardHistoryItemsResultStatus.AccessDenied)]
         [TestCase(ClipboardHistoryItemsResultStatus.ClipboardHistoryDisabled)]
-        public void GetCurrentClipboardValueAsync_FailToGetClipboardHistory_ThrowsException(ClipboardHistoryItemsResultStatus clipboardHistoryItemsResultStatus)
+        public void GetClipboardHistoryItemAsync_FailToGetClipboardHistory_ThrowsException(ClipboardHistoryItemsResultStatus clipboardHistoryItemsResultStatus)
         {
             // Arrange
             var expectedExceptionErrorCode = clipboardHistoryItemsResultStatus.ToErrorCode();
@@ -463,6 +464,35 @@ namespace past.Core.Test
             var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.GetClipboardHistoryItemAsync(0, ContentType.Image));
             Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
             Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+        }
+
+        [Test]
+        public void GetClipboardHistoryItemAsync_NullIdentifier_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var expectedExceptionMessage = "Value cannot be null. (Parameter 'identifier')";
+            var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+            mockClipboardItem.SetupGet(mock => mock.Id).Returns(Guid.NewGuid().ToString());
+            var dataPackage = new DataPackage();
+            dataPackage.SetText("Item 0");
+            mockClipboardItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView());
+            var mockClipboardItems = new List<IClipboardHistoryItemWrapper> { mockClipboardItem.Object };
+
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(mockClipboardItems);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<ArgumentNullException>(() => clipboardManager.GetClipboardHistoryItemAsync(null!, ContentType.Text));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ParamName, Is.EqualTo("identifier"));
         }
         #endregion GetClipboardHistoryItemAsync
 
@@ -777,6 +807,506 @@ namespace past.Core.Test
             Assert.That(actualItems, Is.Empty);
         }
         #endregion GetClipboardHistoryAsync
+
+        #region PinClipboardItemAsync
+        [Test]
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        public async Task PinClipboardItemAsync_ValidIndex_Success(int index)
+        {
+            // Arrange
+            var expectedItems = new List<IClipboardHistoryItemWrapper>();
+            for (int i = 0; i < 3; i++)
+            {
+                var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+                var dataPackage = new DataPackage();
+                dataPackage.SetText($"Item {i}");
+                mockClipboardItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView());
+                expectedItems.Add(mockClipboardItem.Object);
+            }
+
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(expectedItems);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            mockPinnedClipboardItemProvider
+                .Setup(mock => mock.TryAddPinnedClipboardHistoryItem(
+                    It.Is<IClipboardHistoryItemWrapper>(item => item == expectedItems[index]),
+                    out It.Ref<string?>.IsAny))
+                .Callback((IClipboardHistoryItemWrapper _, out string ? errorMessage) =>
+                {
+                    errorMessage = null;
+                })
+                .Returns(true);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act
+            await clipboardManager.PinClipboardItemAsync(index);
+        }
+
+        [Test]
+        [TestCase(-1)]
+        [TestCase(1)]
+        public void PinClipboardItemAsync_InvalidIndex_ThrowsException(int index)
+        {
+            // Arrange
+            var expectedExceptionErrorCode = ErrorCode.NotFound;
+            var expectedExceptionMessage = "Failed to get specified clipboard history item";
+            var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+            var expectedItems = new List<IClipboardHistoryItemWrapper> { mockClipboardItem.Object };
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(expectedItems);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.PinClipboardItemAsync(index));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+        }
+
+        [Test]
+        public void PinClipboardItemAsync_EmptyClipboardHistory_ThrowsArgumentOutOfBoundsException()
+        {
+            // Arrange
+            var expectedExceptionErrorCode = ErrorCode.NotFound;
+            var expectedExceptionMessage = "Failed to get specified clipboard history item";
+            var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+            var items = new List<IClipboardHistoryItemWrapper>();
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(items);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.PinClipboardItemAsync(0));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+        }
+
+        [Test]
+        public async Task PinClipboardItemAsync_ValidId_Success()
+        {
+            // Arrange
+            var mockClipboardItems = new List<IClipboardHistoryItemWrapper>();
+            for (int i = 0; i < 3; i++)
+            {
+                var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+                mockClipboardItem.SetupGet(mock => mock.Id).Returns(Guid.NewGuid().ToString());
+                var dataPackage = new DataPackage();
+                dataPackage.SetText($"Item {i}");
+                mockClipboardItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView());
+                mockClipboardItems.Add(mockClipboardItem.Object);
+            }
+            var expectedItem = mockClipboardItems[1];
+
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(mockClipboardItems);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            mockPinnedClipboardItemProvider
+                .Setup(mock => mock.TryAddPinnedClipboardHistoryItem(
+                    It.Is<IClipboardHistoryItemWrapper>(item => item == expectedItem),
+                    out It.Ref<string?>.IsAny))
+                .Callback((IClipboardHistoryItemWrapper _, out string? errorMessage) =>
+                {
+                    errorMessage = null;
+                })
+                .Returns(true);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act
+            await clipboardManager.PinClipboardItemAsync(Guid.Parse(expectedItem.Id));
+        }
+
+        [Test]
+        public void PinClipboardItemAsync_InvalidId_ThrowsException()
+        {
+            // Arrange
+            var expectedExceptionErrorCode = ErrorCode.NotFound;
+            var expectedExceptionMessage = "Failed to get specified clipboard history item";
+            var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+            mockClipboardItem.SetupGet(mock => mock.Id).Returns(Guid.NewGuid().ToString());
+            var dataPackage = new DataPackage();
+            dataPackage.SetText("Item 0");
+            mockClipboardItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView());
+            var mockClipboardItems = new List<IClipboardHistoryItemWrapper> { mockClipboardItem.Object };
+
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(mockClipboardItems);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.PinClipboardItemAsync(Guid.NewGuid()));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+        }
+
+        [Test]
+        [TestCase(ClipboardHistoryItemsResultStatus.AccessDenied)]
+        [TestCase(ClipboardHistoryItemsResultStatus.ClipboardHistoryDisabled)]
+        public void PinClipboardItemAsync_FailToGetClipboardHistory_ThrowsException(ClipboardHistoryItemsResultStatus clipboardHistoryItemsResultStatus)
+        {
+            // Arrange
+            var expectedExceptionErrorCode = clipboardHistoryItemsResultStatus.ToErrorCode();
+            var expectedExceptionMessage = $"Failed to get clipboard history. Result: {clipboardHistoryItemsResultStatus}";
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(clipboardHistoryItemsResultStatus);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.PinClipboardItemAsync(0));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+        }
+
+        [Test]
+        public void PinClipboardItemAsync_PinningFailed_ThrowsException()
+        {
+            // Arrange
+            var expectedExceptionErrorCode = ErrorCode.NotFound;
+            var expectedExceptionMessage = "Uh-oh spaghettio!";
+            var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+            mockClipboardItem.SetupGet(mock => mock.Id).Returns(Guid.NewGuid().ToString());
+            var dataPackage = new DataPackage();
+            dataPackage.SetText("Item 0");
+            mockClipboardItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView());
+            var mockClipboardItems = new List<IClipboardHistoryItemWrapper> { mockClipboardItem.Object };
+
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(mockClipboardItems);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            mockPinnedClipboardItemProvider
+                .Setup(mock => mock.TryAddPinnedClipboardHistoryItem(
+                    It.Is<IClipboardHistoryItemWrapper>(item => item == mockClipboardItem.Object),
+                    out It.Ref<string?>.IsAny))
+                .Callback((IClipboardHistoryItemWrapper _, out string? errorMessage) =>
+                {
+                    errorMessage = expectedExceptionMessage;
+                })
+                .Returns(false);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.PinClipboardItemAsync(Guid.Parse(mockClipboardItem.Object.Id)));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+        }
+
+        [Test]
+        public void PinClipboardItemAsync_NullIdentifier_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var expectedExceptionMessage = "Value cannot be null. (Parameter 'identifier')";
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<ArgumentNullException>(() => clipboardManager.PinClipboardItemAsync(null!));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ParamName, Is.EqualTo("identifier"));
+        }
+        #endregion PinClipboardItemAsync
+
+        #region UnpinClipboardItemAsync
+        [Test]
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        public async Task UnpinClipboardItemAsync_ValidIndex_Success(int index)
+        {
+            // Arrange
+            var expectedItems = new List<IClipboardHistoryItemWrapper>();
+            for (int i = 0; i < 3; i++)
+            {
+                var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+                var dataPackage = new DataPackage();
+                dataPackage.SetText($"Item {i}");
+                mockClipboardItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView());
+                expectedItems.Add(mockClipboardItem.Object);
+            }
+
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(expectedItems);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            mockPinnedClipboardItemProvider
+                .Setup(mock => mock.TryRemovePinnedClipboardHistoryItem(
+                    It.Is<IClipboardHistoryItemWrapper>(item => item == expectedItems[index]),
+                    out It.Ref<string?>.IsAny))
+                .Callback((IClipboardHistoryItemWrapper _, out string? errorMessage) =>
+                {
+                    errorMessage = null;
+                })
+                .Returns(true);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act
+            await clipboardManager.UnpinClipboardItemAsync(index);
+        }
+
+        [Test]
+        [TestCase(-1)]
+        [TestCase(1)]
+        public void UnpinClipboardItemAsync_InvalidIndex_ThrowsException(int index)
+        {
+            // Arrange
+            var expectedExceptionErrorCode = ErrorCode.NotFound;
+            var expectedExceptionMessage = "Failed to get specified clipboard history item";
+            var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+            var expectedItems = new List<IClipboardHistoryItemWrapper> { mockClipboardItem.Object };
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(expectedItems);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.UnpinClipboardItemAsync(index));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+        }
+
+        [Test]
+        public void UnpinClipboardItemAsync_EmptyClipboardHistory_ThrowsArgumentOutOfBoundsException()
+        {
+            // Arrange
+            var expectedExceptionErrorCode = ErrorCode.NotFound;
+            var expectedExceptionMessage = "Failed to get specified clipboard history item";
+            var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+            var items = new List<IClipboardHistoryItemWrapper>();
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(items);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.UnpinClipboardItemAsync(0));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+        }
+
+        [Test]
+        public async Task UnpinClipboardItemAsync_ValidId_Success()
+        {
+            // Arrange
+            var mockClipboardItems = new List<IClipboardHistoryItemWrapper>();
+            for (int i = 0; i < 3; i++)
+            {
+                var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+                mockClipboardItem.SetupGet(mock => mock.Id).Returns(Guid.NewGuid().ToString());
+                var dataPackage = new DataPackage();
+                dataPackage.SetText($"Item {i}");
+                mockClipboardItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView());
+                mockClipboardItems.Add(mockClipboardItem.Object);
+            }
+            var expectedItem = mockClipboardItems[1];
+
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(mockClipboardItems);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            mockPinnedClipboardItemProvider
+                .Setup(mock => mock.TryRemovePinnedClipboardHistoryItem(
+                    It.Is<IClipboardHistoryItemWrapper>(item => item == expectedItem),
+                    out It.Ref<string?>.IsAny))
+                .Callback((IClipboardHistoryItemWrapper _, out string? errorMessage) =>
+                {
+                    errorMessage = null;
+                })
+                .Returns(true);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act
+            await clipboardManager.UnpinClipboardItemAsync(Guid.Parse(expectedItem.Id));
+        }
+
+        [Test]
+        public void UnpinClipboardItemAsync_InvalidId_ThrowsException()
+        {
+            // Arrange
+            var expectedExceptionErrorCode = ErrorCode.NotFound;
+            var expectedExceptionMessage = "Failed to get specified clipboard history item";
+            var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+            mockClipboardItem.SetupGet(mock => mock.Id).Returns(Guid.NewGuid().ToString());
+            var dataPackage = new DataPackage();
+            dataPackage.SetText("Item 0");
+            mockClipboardItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView());
+            var mockClipboardItems = new List<IClipboardHistoryItemWrapper> { mockClipboardItem.Object };
+
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(mockClipboardItems);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.UnpinClipboardItemAsync(Guid.NewGuid()));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+        }
+
+        [Test]
+        [TestCase(ClipboardHistoryItemsResultStatus.AccessDenied)]
+        [TestCase(ClipboardHistoryItemsResultStatus.ClipboardHistoryDisabled)]
+        public void UnpinClipboardItemAsync_FailToGetClipboardHistory_ThrowsException(ClipboardHistoryItemsResultStatus clipboardHistoryItemsResultStatus)
+        {
+            // Arrange
+            var expectedExceptionErrorCode = clipboardHistoryItemsResultStatus.ToErrorCode();
+            var expectedExceptionMessage = $"Failed to get clipboard history. Result: {clipboardHistoryItemsResultStatus}";
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(clipboardHistoryItemsResultStatus);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+            var mockPinnedClipboardProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.UnpinClipboardItemAsync(0));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+        }
+
+        [Test]
+        public void UnpinClipboardItemAsync_PinningFailed_ThrowsException()
+        {
+            // Arrange
+            var expectedExceptionErrorCode = ErrorCode.NotFound;
+            var expectedExceptionMessage = "Uh-oh spaghettio!";
+            var mockClipboardItem = new Mock<IClipboardHistoryItemWrapper>(MockBehavior.Strict);
+            mockClipboardItem.SetupGet(mock => mock.Id).Returns(Guid.NewGuid().ToString());
+            var dataPackage = new DataPackage();
+            dataPackage.SetText("Item 0");
+            mockClipboardItem.SetupGet(mock => mock.Content).Returns(dataPackage.GetView());
+            var mockClipboardItems = new List<IClipboardHistoryItemWrapper> { mockClipboardItem.Object };
+
+            var mockClipboardItemsResult = new Mock<IClipboardHistoryItemsResultWrapper>(MockBehavior.Strict);
+            mockClipboardItemsResult.SetupGet(mock => mock.Status).Returns(ClipboardHistoryItemsResultStatus.Success);
+            mockClipboardItemsResult.SetupGet(mock => mock.Items).Returns(mockClipboardItems);
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            mockWinRtClipboard.Setup(mock => mock.GetHistoryItemsAsync()).ReturnsAsync(mockClipboardItemsResult.Object);
+
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+            mockPinnedClipboardItemProvider
+                .Setup(mock => mock.TryRemovePinnedClipboardHistoryItem(
+                    It.Is<IClipboardHistoryItemWrapper>(item => item == mockClipboardItem.Object),
+                    out It.Ref<string?>.IsAny))
+                .Callback((IClipboardHistoryItemWrapper _, out string? errorMessage) =>
+                {
+                    errorMessage = expectedExceptionMessage;
+                })
+                .Returns(false);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<PastException>(() => clipboardManager.UnpinClipboardItemAsync(Guid.Parse(mockClipboardItem.Object.Id)));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ErrorCode, Is.EqualTo(expectedExceptionErrorCode));
+        }
+
+        [Test]
+        public void UnpinClipboardItemAsync_NullIdentifier_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var expectedExceptionMessage = "Value cannot be null. (Parameter 'identifier')";
+
+            var mockWin32Clipboard = new Mock<IWin32ClipboardWrapper>(MockBehavior.Strict);
+            var mockWinRtClipboard = new Mock<IWinRtClipboardWrapper>(MockBehavior.Strict);
+            var mockPinnedClipboardItemProvider = new Mock<IPinnedClipboardItemProvider>(MockBehavior.Strict);
+
+            var clipboardManager = new ClipboardManager(mockWinRtClipboard.Object, mockWin32Clipboard.Object, mockPinnedClipboardItemProvider.Object);
+
+            // Act + Assert
+            var actualException = Assert.ThrowsAsync<ArgumentNullException>(() => clipboardManager.UnpinClipboardItemAsync(null!));
+            Assert.That(actualException.Message, Is.EqualTo(expectedExceptionMessage));
+            Assert.That(actualException.ParamName, Is.EqualTo("identifier"));
+        }
+        #endregion UnpinClipboardItemAsync
 
         #region SetHistoryItemAsContent
         [Test]
