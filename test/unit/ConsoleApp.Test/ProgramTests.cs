@@ -30,9 +30,13 @@ Options:
   --all                        Alias for `--type all`. Overrides the `--type` option if present.
   --ansi                       Enable processing of ANSI control sequences
   --ansi-reset <Auto|Off|On>   Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item. [default: Auto]
-  -q, --quiet                  Suppresses error output
+  -q, --quiet                  Suppresses error output"
+#if DEBUG
++ @"
   --debug                      Prints additional diagnostic output.
-                               [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+                               [Debug Builds Only] Halts execution on startup to allow attaching a debugger."
+#endif // DEBUG
++ @"
   -V, --version                Show version information
   -?, -h, --help               Show help and usage information. Use with a subcommand to show help specific to that command.
 
@@ -60,9 +64,13 @@ Options:
   --all                        Alias for `--type all`. Overrides the `--type` option if present.
   --ansi                       Enable processing of ANSI control sequences
   --ansi-reset <Auto|Off|On>   Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item. [default: Auto]
-  -q, --quiet                  Suppresses error output
+  -q, --quiet                  Suppresses error output"
+#if DEBUG
++ @"
   --debug                      Prints additional diagnostic output.
-                               [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+                               [Debug Builds Only] Halts execution on startup to allow attaching a debugger."
+#endif // DEBUG
++ @"
   -V, --version                Show version information
   -?, -h, --help               Show help and usage information. Use with a subcommand to show help specific to that command.
 
@@ -97,9 +105,13 @@ Options:
   --ansi                       Enable processing of ANSI control sequences
   --ansi-reset <Auto|Off|On>   Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item. [default: Auto]
   --set-current                Sets the current clipboard contents to the returned history item
-  -q, --quiet                  Suppresses error output
+  -q, --quiet                  Suppresses error output"
+#if DEBUG
++ @"
   --debug                      Prints additional diagnostic output.
-                               [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+                               [Debug Builds Only] Halts execution on startup to allow attaching a debugger."
+#endif // DEBUG
++ @"
   -?, -h, --help               Show help and usage information
 
 
@@ -123,9 +135,13 @@ Options:
   --ansi                       Enable processing of ANSI control sequences
   --ansi-reset <Auto|Off|On>   Controls whether to emit the ANSI reset escape code after printing an item. Auto will only emit ANSI reset when another ANSI escape sequence is detected in that item. [default: Auto]
   --set-current                Sets the current clipboard contents to the returned history item
-  -q, --quiet                  Suppresses error output
+  -q, --quiet                  Suppresses error output"
+#if DEBUG
++ @"
   --debug                      Prints additional diagnostic output.
-                               [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+                               [Debug Builds Only] Halts execution on startup to allow attaching a debugger."
+#endif // DEBUG
++ @"
   -?, -h, --help               Show help and usage information
 
 
@@ -158,9 +174,13 @@ Options:
   --id                         Print the ID (GUID) with each item
   --time                       Print the date and time that each item was copied
   --pinned                     Print only pinned items
-  -q, --quiet                  Suppresses error output
+  -q, --quiet                  Suppresses error output"
+#if DEBUG
++ @"
   --debug                      Prints additional diagnostic output.
-                               [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+                               [Debug Builds Only] Halts execution on startup to allow attaching a debugger."
+#endif // DEBUG
++ @"
   -?, -h, --help               Show help and usage information
 
 Note: Use `--help` to show the full help including exit codes.
@@ -184,9 +204,13 @@ Options:
   --id                         Print the ID (GUID) with each item
   --time                       Print the date and time that each item was copied
   --pinned                     Print only pinned items
-  -q, --quiet                  Suppresses error output
+  -q, --quiet                  Suppresses error output"
+#if DEBUG
++ @"
   --debug                      Prints additional diagnostic output.
-                               [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+                               [Debug Builds Only] Halts execution on startup to allow attaching a debugger."
+#endif // DEBUG
++ @"
   -?, -h, --help               Show help and usage information
 
 Exit Codes:
@@ -208,9 +232,13 @@ Usage:
   past status [options]
 
 Options:
-  -q, --quiet     Suppresses error output
+  -q, --quiet     Suppresses error output"
+#if DEBUG
++ @"
   --debug         Prints additional diagnostic output.
-                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger."
+#endif // DEBUG
++ @"
   -?, -h, --help  Show help and usage information
 
 Note: Use `--help` to show the full help including exit codes.
@@ -225,9 +253,13 @@ Usage:
   past status [options]
 
 Options:
-  -q, --quiet     Suppresses error output
+  -q, --quiet     Suppresses error output"
+#if DEBUG
++ @"
   --debug         Prints additional diagnostic output.
-                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger."
+#endif // DEBUG
++ @"
   -?, -h, --help  Show help and usage information
 
 Exit Codes:
@@ -256,9 +288,13 @@ Arguments:
   <index|id>  The index or ID of the item to get from clipboard history
 
 Options:
-  -q, --quiet     Suppresses error output
+  -q, --quiet     Suppresses error output"
+#if DEBUG
++ @"
   --debug         Prints additional diagnostic output.
-                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger."
+#endif // DEBUG
++ @"
   -?, -h, --help  Show help and usage information
 
 
@@ -281,9 +317,13 @@ Arguments:
   <index|id>  The index or ID of the item to get from clipboard history
 
 Options:
-  -q, --quiet     Suppresses error output
+  -q, --quiet     Suppresses error output"
+#if DEBUG
++ @"
   --debug         Prints additional diagnostic output.
-                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger."
+#endif // DEBUG
++ @"
   -?, -h, --help  Show help and usage information
 
 
@@ -306,9 +346,13 @@ Arguments:
   <index|id>  The index or ID of the item to get from clipboard history
 
 Options:
-  -q, --quiet     Suppresses error output
+  -q, --quiet     Suppresses error output"
+#if DEBUG
++ @"
   --debug         Prints additional diagnostic output.
-                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger."
+#endif // DEBUG
++ @"
   -?, -h, --help  Show help and usage information
 
 
@@ -327,9 +371,13 @@ Arguments:
   <index|id>  The index or ID of the item to get from clipboard history
 
 Options:
-  -q, --quiet     Suppresses error output
+  -q, --quiet     Suppresses error output"
+#if DEBUG
++ @"
   --debug         Prints additional diagnostic output.
-                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger.
+                  [Debug Builds Only] Halts execution on startup to allow attaching a debugger."
+#endif // DEBUG
++ @"
   -?, -h, --help  Show help and usage information
 
 
@@ -339,9 +387,9 @@ Exit Codes:
   UnexpectedError  -99
 
 ";
-        #endregion Constants
+#endregion Constants
 
-        #region Root Command
+#region Root Command
         [Test]
         public async Task MainInternal_RootCommand_NoOptions_ParsesWithDefaultValues()
         {
@@ -862,9 +910,9 @@ Exit Codes:
             Assert.That(standardOut.ToString(), Is.Empty);
             Assert.That(standardError.ToString(), Is.EqualTo($"Unhandled exception: {expectedException}{Environment.NewLine}"));
         }
-        #endregion Root Command
+#endregion Root Command
 
-        #region Get Command
+#region Get Command
         [Test]
         [TestCase("5")]
         [TestCase("bc65714b-1c69-448b-967f-7925c6970db5")]
@@ -1515,9 +1563,9 @@ Exit Codes:
             Assert.That(standardOut.ToString(), Is.Empty);
             Assert.That(standardError.ToString(), Is.EqualTo($"Unhandled exception: {expectedException}{Environment.NewLine}"));
         }
-        #endregion Get Command
+#endregion Get Command
 
-        #region List Command
+#region List Command
         [Test]
         public async Task MainInternal_ListCommand_NoOptions_ParsesWithDefaultValues()
         {
@@ -2358,9 +2406,9 @@ Exit Codes:
             Assert.That(standardOut.ToString(), Is.Empty);
             Assert.That(standardError.ToString(), Is.EqualTo($"Unhandled exception: {expectedException}{Environment.NewLine}"));
         }
-        #endregion List Command
+#endregion List Command
 
-        #region Status Command
+#region Status Command
         [Test]
         public async Task MainInternal_StatusCommand_NoOptions_ParsesWithDefaultValues()
         {
@@ -2554,9 +2602,9 @@ Exit Codes:
             // Assert
             Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
         }
-        #endregion Status Command
+#endregion Status Command
 
-        #region Pin Command
+#region Pin Command
         [Test]
         [TestCase("5")]
         [TestCase("bc65714b-1c69-448b-967f-7925c6970db5")]
@@ -2772,9 +2820,9 @@ Exit Codes:
             Assert.That(standardOut.ToString(), Is.Empty);
             Assert.That(standardError.ToString(), Is.EqualTo($"Unhandled exception: {expectedException}{Environment.NewLine}"));
         }
-        #endregion Pin Command
+#endregion Pin Command
 
-        #region Unpin Command
+#region Unpin Command
         [Test]
         [TestCase("5")]
         [TestCase("bc65714b-1c69-448b-967f-7925c6970db5")]
@@ -2990,9 +3038,9 @@ Exit Codes:
             Assert.That(standardOut.ToString(), Is.Empty);
             Assert.That(standardError.ToString(), Is.EqualTo($"Unhandled exception: {expectedException}{Environment.NewLine}"));
         }
-        #endregion Unpin Command
+#endregion Unpin Command
 
-        #region Helpers
+#region Helpers
         /// <summary>
         /// Creates a mock <see cref="IConsole"/> with the provided <see cref="StringBuilder"/> instances
         /// to capture standard out and standard error.
@@ -3044,6 +3092,6 @@ Exit Codes:
                 return assemblyVersionAttribute.InformationalVersion;
             }
         }
-        #endregion Helpers
+#endregion Helpers
     }
 }
