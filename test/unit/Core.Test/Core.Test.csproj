@@ -16,6 +16,11 @@
     <IsPackable>false</IsPackable>
 
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <NoWarn>
+      <!-- Exception type is not sufficiently specific - Using System.Exception in mocks -->
+      CA2201
+    </NoWarn>
   </PropertyGroup>
 
   <!-- Exclude this project from code coverage since it's a test project. -->

@@ -21,11 +21,6 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
-    <NoWarn>
-      <!-- Exception type is not sufficiently specific - Using System.Exception in mocks -->
-      CA2201
-    </NoWarn>
-
     <AssemblyName>past.$(MSBuildProjectName.Replace(" ", "_"))</AssemblyName>
     <RootNamespace>$(AssemblyName)</RootNamespace>
   </PropertyGroup>
