@@ -154,8 +154,8 @@ namespace past.Core.Models
         public static bool operator ==(ClipboardItemIdentifier? object1, ClipboardItemIdentifier? object2) => Equals(object1, object2);
         public static bool operator !=(ClipboardItemIdentifier? object1, ClipboardItemIdentifier? object2) => !(object1 == object2);
 
-        public static implicit operator ClipboardItemIdentifier(int index) => new ClipboardItemIdentifier(index);
-        public static implicit operator ClipboardItemIdentifier(Guid id) => new ClipboardItemIdentifier(id);
+        public static implicit operator ClipboardItemIdentifier(int index) => new(index);
+        public static implicit operator ClipboardItemIdentifier(Guid id) => new(id);
         #endregion Operators
     }
 }

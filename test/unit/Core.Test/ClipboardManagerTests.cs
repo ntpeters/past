@@ -2,7 +2,6 @@ using Moq;
 using past.Core.Extensions;
 using past.Core.Providers;
 using past.Core.Wrappers;
-using System;
 using System.Windows;
 using Windows.ApplicationModel.DataTransfer;
 

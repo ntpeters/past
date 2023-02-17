@@ -14,6 +14,8 @@
     <RootNamespace>$(AssemblyName)</RootNamespace>
 
     <IsPackable>false</IsPackable>
+
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <!-- Exclude this project from code coverage since it's a test project. -->

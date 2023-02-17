@@ -446,7 +446,7 @@ namespace past.ConsoleApp.Test.Output
         #endregion Format - With index, ID, timestamp, ANSI Reset, and Line Ending
 
         #region Helpers
-        public static IEnumerable<TestCaseData> ConstructorTestCases()
+        private static IEnumerable<TestCaseData> ConstructorTestCases()
         {
             yield return new TestCaseData(true, true, true, true);
             yield return new TestCaseData(true, false, true, true);

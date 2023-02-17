@@ -136,7 +136,7 @@ namespace past.ConsoleApp.Commands
         /// Creates the identifier argument.
         /// </summary>
         /// <returns>The created argument.</returns>
-        private Argument<string> CreateIdentifierArgument()
+        private static Argument<string> CreateIdentifierArgument()
         {
             var identifierArgument = new Argument<string>("identifier", "The index or ID of the item to get from clipboard history");
 
@@ -161,7 +161,7 @@ namespace past.ConsoleApp.Commands
         /// Creates the ANSI reset option.
         /// </summary>
         /// <returns>The created option.</returns>
-        private Option<AnsiResetType> CreateAnsiResetOption()
+        private static Option<AnsiResetType> CreateAnsiResetOption()
         {
             var ansiResetOption = new Option<AnsiResetType>(
                 "--ansi-reset",
@@ -179,7 +179,7 @@ namespace past.ConsoleApp.Commands
         /// Creates the type option.
         /// </summary>
         /// <returns>The created option.</returns>
-        private Option<ContentType> CreateTypeOption()
+        private static Option<ContentType> CreateTypeOption()
         {
             var typeOption = new Option<ContentType>(
                 aliases: new string[] { "--type", "-t" },
@@ -240,7 +240,7 @@ namespace past.ConsoleApp.Commands
                 typeValue = result.Tokens[0].Value;
             }
 
-            if (!string.IsNullOrWhiteSpace(result.Token.Value) && !Enum.TryParse<TEnum>(typeValue, ignoreCase: true, out var type))
+            if (!string.IsNullOrWhiteSpace(result.Token.Value) && !Enum.TryParse<TEnum>(typeValue, ignoreCase: true, out _))
             {
                 result.ErrorMessage = $"Invalid type specified. Valid values are: {string.Join(',', Enum.GetNames<TEnum>())}";
             }

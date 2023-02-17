@@ -1,9 +1,9 @@
+using past.ConsoleApp.Output;
 using System;
 using System.CommandLine;
 using System.CommandLine.Binding;
 using System.CommandLine.Parsing;
 using System.Diagnostics.CodeAnalysis;
-using past.ConsoleApp.Output;
 
 namespace past.ConsoleApp.Binders
 {

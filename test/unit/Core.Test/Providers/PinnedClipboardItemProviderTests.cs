@@ -5,8 +5,8 @@ using past.Core.Providers;
 using past.Core.Wrappers;
 using System.Text;
 using Windows.ApplicationModel.DataTransfer;
-using Windows.Storage.Streams;
 using Windows.Storage;
+using Windows.Storage.Streams;
 
 namespace past.Core.Test.Providers
 {

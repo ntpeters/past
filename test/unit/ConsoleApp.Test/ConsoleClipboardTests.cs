@@ -72,7 +72,7 @@ namespace past.ConsoleApp.Test
             consoleClipboard.GetClipboardHistoryStatus(mockConsoleWriter.Object, testContext);
 
             // Assert
-            Assert.That(actualMessages.Count, Is.EqualTo(2));
+            Assert.That(actualMessages, Has.Count.EqualTo(2));
             Assert.That(actualMessages[0], Is.EqualTo(expectedHistoryMessage));
             Assert.That(actualMessages[1], Is.EqualTo(expectedRoamingMessage));
             Assert.That(testContext.ExitCode, Is.EqualTo(expectedExitCode));

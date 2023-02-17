@@ -147,7 +147,7 @@ namespace past.ConsoleApp.Wrappers
         /// <br/>
         /// If the function fails, the return value is zero. To get extended error information, call <see cref="GetLastError"/>.
         /// </returns>
-        [DllImport("Kernel32.dll", SetLastError = true)]
+        [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern uint FormatMessage(uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize, IntPtr arguments);
     }
 }

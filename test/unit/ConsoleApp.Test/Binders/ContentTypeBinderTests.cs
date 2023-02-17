@@ -77,7 +77,7 @@ namespace past.ConsoleApp.Test.Binders
             testCommand.AddOption(allOption);
 
             var testCommandParser = new Parser(testCommand);
-            var parseResult = testCommandParser.Parse($"--all --type {type.ToString()}");
+            var parseResult = testCommandParser.Parse($"--all --type {type}");
 
             var binder = new ContentTypeBinder(typeOption, allOption);
 
@@ -103,7 +103,7 @@ namespace past.ConsoleApp.Test.Binders
             testCommand.AddOption(allOption);
 
             var testCommandParser = new Parser(testCommand);
-            var parseResult = testCommandParser.Parse($"--type {expectedContentType.ToString()}");
+            var parseResult = testCommandParser.Parse($"--type {expectedContentType}");
 
             var binder = new ContentTypeBinder(typeOption, allOption);
 

@@ -394,7 +394,7 @@ Exit Codes:
         public async Task MainInternal_RootCommand_NoOptions_ParsesWithDefaultValues()
         {
             // Arrange
-            var args = new string[] { };
+            var args = Array.Empty<string>();
             var expectedExitCode = (int)ErrorCode.Success;
 
             var mockConsoleModeMiddleware = new Mock<IConsoleModeMiddleware>();
@@ -882,7 +882,7 @@ Exit Codes:
         public async Task MainInternal_RootCommand_ThrowsException_ReturnsUnexpectedError()
         {
             // Arrange
-            var args = new string[] { };
+            var args = Array.Empty<string>();
             var expectedExitCode = (int)ErrorCode.UnexpectedError;
             var expectedException = new Exception("Uh-oh! :O");
 

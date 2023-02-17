@@ -1573,7 +1573,7 @@ namespace past.ConsoleApp.Test.Output
         #endregion WriteErrorLine
 
         #region Helpers
-        public static IEnumerable<TestCaseData> ContructorTestCases()
+        private static IEnumerable<TestCaseData> ContructorTestCases()
         {
             foreach (var ansiResetType in Enum.GetValues<AnsiResetType>())
             {

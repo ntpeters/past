@@ -146,7 +146,7 @@ namespace past.Core
                 }
 
                 clipboardItems = items.Items.Where(item => pinnedItemIds.Contains(item.Id));
-                if (clipboardItems.Count() == 0)
+                if (clipboardItems.Any())
                 {
                     return clipboardItems;
                 }

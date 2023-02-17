@@ -481,7 +481,9 @@ namespace past.Core.Test.Models
             var identifier = new ClipboardItemIdentifier(0);
 
             // Act + Assert
+#pragma warning disable CS1718 // Comparison made to same variable - Intentionl to test == operator
             Assert.That(identifier == identifier, Is.True);
+#pragma warning restore CS1718 // Comparison made to same variable
         }
 
         [Test]
@@ -560,7 +562,9 @@ namespace past.Core.Test.Models
             var identifier = new ClipboardItemIdentifier(0);
 
             // Act + Assert
+#pragma warning disable CS1718 // Comparison made to same variable - Intentionl to test != operator
             Assert.That(identifier != identifier, Is.False);
+#pragma warning restore CS1718 // Comparison made to same variable
         }
 
         [Test]

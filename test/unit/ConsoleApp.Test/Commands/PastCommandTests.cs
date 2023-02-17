@@ -1,12 +1,9 @@
 using Moq;
-using Newtonsoft.Json;
-using NUnit.Framework;
 using past.ConsoleApp.Commands;
 using past.ConsoleApp.Test.TestHelpers;
 using past.Core;
 using System.CommandLine;
 using System.CommandLine.Parsing;
-using System.Reflection.Metadata;
 
 namespace past.ConsoleApp.Test.Commands
 {
@@ -397,7 +394,7 @@ namespace past.ConsoleApp.Test.Commands
             var parseResult = typeOption.Parse(commandLineArgs);
             Assert.That(parseResult.Errors, Has.Exactly(1).Items);
 
-            var parseError = parseResult.Errors.First();
+            var parseError = parseResult.Errors[0];
             Assert.That(parseError.Message, Is.EqualTo(expectedErrorMessage));
 
             Assert.That(parseResult.UnmatchedTokens, Is.Empty);
@@ -428,7 +425,7 @@ namespace past.ConsoleApp.Test.Commands
             var parseResult = typeOption.Parse(commandLineArgs);
             Assert.That(parseResult.Errors, Has.Exactly(1).Items);
 
-            var parseError = parseResult.Errors.First();
+            var parseError = parseResult.Errors[0];
             Assert.That(parseError.Message, Is.EqualTo(expectedErrorMessage));
 
             Assert.That(parseResult.UnmatchedTokens, Is.Empty);
@@ -531,7 +528,7 @@ namespace past.ConsoleApp.Test.Commands
             var parseResult = ansiResetOption.Parse(commandLineArgs);
             Assert.That(parseResult.Errors, Has.Exactly(1).Items);
 
-            var parseError = parseResult.Errors.First();
+            var parseError = parseResult.Errors[0];
             Assert.That(parseError.Message, Is.EqualTo(expectedErrorMessage));
 
             Assert.That(parseResult.UnmatchedTokens, Is.Empty);
@@ -562,7 +559,7 @@ namespace past.ConsoleApp.Test.Commands
             var parseResult = ansiResetOption.Parse(commandLineArgs);
             Assert.That(parseResult.Errors, Has.Exactly(1).Items);
 
-            var parseError = parseResult.Errors.First();
+            var parseError = parseResult.Errors[0];
             Assert.That(parseError.Message, Is.EqualTo(expectedErrorMessage));
 
             Assert.That(parseResult.UnmatchedTokens, Is.Empty);
