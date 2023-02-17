@@ -218,7 +218,7 @@ namespace past.Core.Test.Providers
                 .SetupGet(mock => mock.Content)
                 .Returns(dataPackage.GetView());
 
-            var expectedItemMetadata = "{\"formatMetadata\":{\"Text\":{\"isEncrypted\":false,\"dataType\":\"String\",\"collectionType\":\"None\"}},\"sourceAppId\":\"\",\"property\":{}}";
+            var expectedItemMetadata = "{\"formatMetadata\":{\"Text\":{\"dataType\":\"String\",\"collectionType\":\"None\",\"isEncrypted\":false}},\"sourceAppId\":\"\",\"property\":{}}";
 
             // Act
             var result = pinnedItemProvider.TryAddPinnedClipboardHistoryItem(mockClipboardItem.Object, out var errorMessage);
@@ -659,23 +659,23 @@ namespace past.Core.Test.Providers
         #endregion TryRemovePinnedClipboardHistoryItem
 
         #region Helpers
-        private string GetNewFormattedGuidString() => $"{{{Guid.NewGuid().ToString().ToUpper()}}}";
+        private static string GetNewFormattedGuidString() => $"{{{Guid.NewGuid().ToString().ToUpper()}}}";
 
-        private string GetTestPinnedItemBaseDirectory()
+        private static string GetTestPinnedItemBaseDirectory()
         {
             var testDir = TestContext.CurrentContext.TestDirectory;
             Assert.That(Directory.Exists(testDir), Is.True);
             return Path.Combine(testDir, "Pinned");
         }
 
-        private string GetNewTestPinnedGuidDirectory()
+        private static string GetNewTestPinnedGuidDirectory()
         {
             var basePinDir = GetTestPinnedItemBaseDirectory();
             var pinDirId = GetNewFormattedGuidString();
             return Path.Combine(basePinDir, pinDirId);
         }
 
-        private string GetNewTestPinnedMetadataFilePath(string? basePath = null)
+        private static string GetNewTestPinnedMetadataFilePath(string? basePath = null)
         {
             basePath ??= GetNewTestPinnedGuidDirectory();
             return Path.Combine(basePath, "metadata.json");

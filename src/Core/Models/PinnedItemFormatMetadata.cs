@@ -24,6 +24,6 @@ namespace past.Core.Models
         /// Whether the pinned item content is encrypted on disk.
         /// </summary>
         [JsonProperty("isEncrypted")]
-        public bool IsEncrypted = false;
+        public bool IsEncrypted { get; [ExcludeFromCodeCoverage] set; } = false;
     }
 }
