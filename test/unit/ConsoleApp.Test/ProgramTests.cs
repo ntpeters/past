@@ -15,7 +15,7 @@ namespace past.ConsoleApp.Test
 {
     public class ProgramTests
     {
-        #region Constants
+#region Constants
         private const string PastCommandShortHelp = @"past 1.0.0
 A CLI for interacting with Windows Clipboard History.
 
@@ -2596,8 +2596,13 @@ Exit Codes:
             var args = new string[] { "status", "--ansi" };
             var expectedExitCode = (int)ErrorCode.ParseError;
 
+            var standardOut = new StringBuilder();
+            var standardError = new StringBuilder();
+            var mockConsole = CreateMockConsole(standardOut, standardError);
+            mockConsole.SetupGet(mock => mock.IsOutputRedirected).Returns(false);
+
             // Act
-            var actualExitCode = await Program.MainInternal(args, null, null, null);
+            var actualExitCode = await Program.MainInternal(args, null, null, mockConsole.Object);
 
             // Assert
             Assert.That(actualExitCode, Is.EqualTo(expectedExitCode));
