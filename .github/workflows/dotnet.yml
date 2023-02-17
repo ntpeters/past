@@ -16,13 +16,50 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
+
     - name: Restore dependencies
       run: dotnet restore
+
     - name: Build
       run: dotnet build --configuration Release --no-restore
+
     - name: Test
-      run: dotnet test --configuration Release --no-build --verbosity normal
+      run: dotnet test --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory coverage
+
+    - name: ReportGenerator
+      uses: danielpalme/ReportGenerator-GitHub-Action@5.1.4
+      with:
+        reports: 'coverage/*/coverage.cobertura.xml' # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
+        targetdir: 'coveragereport' # REQUIRED # The directory where the generated report should be saved.
+        reporttypes: 'HtmlInline;Cobertura' # The output formats and scope (separated by semicolon)
+
+    - name: Upload Test Report Artifact
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: coverage-report
+        path: coveragereport/Cobertura.xml
+
+  test:
+    name: Test Summary
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Download Test Report Artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: coverage-report
+
+    - name: Generate Test Report
+      uses: irongut/CodeCoverageSummary@v1.0.5
+      with:
+        filename: Cobertura.xml
+        badge: true
+        format: 'markdown'
+        output: 'both'
