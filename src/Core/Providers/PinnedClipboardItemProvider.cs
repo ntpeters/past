@@ -106,7 +106,7 @@ namespace past.Core.Providers
             // Create content files for item (each file name is the base64 encoded name of item data type)
             if (item.Content.Contains(StandardDataFormats.Text))
             {
-                var value = item.Content.GetTextAsync().GetResults();
+                var value = item.Content.GetTextAsync().GetAwaiter().GetResult();
                 string encodedFormatId = Convert.ToBase64String(Encoding.ASCII.GetBytes(StandardDataFormats.Text));
                 string itemContentPath = Path.Combine(pinnedItemPath, encodedFormatId);
                 File.WriteAllText(itemContentPath, value, Encoding.Unicode);
