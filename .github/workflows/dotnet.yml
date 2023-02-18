@@ -80,10 +80,11 @@ jobs:
     - name: Get Coverage For Badge
       run: |
           # Extract the code coverage summary percentage
-          COVERAGE="$(grep Summary code-coverage-results.md | cut -d '|' -f 2 | cut -d ' ' -f 2 | cut -d '%' -f 1)"
+          COVERAGE="$(grep Summary code-coverage-results.md | cut -d '|' -f 2 | cut -d ' ' -f 2 | cut -d '%' -f 1 | tr -d '*')"
 
           # Add the coverage to an environment variable
           echo "COVERAGE=$(echo ${COVERAGE})" >> $GITHUB_ENV
+          echo "COVERAGE=${COVERAGE}"
 
           REF=${{ github.ref }}
           echo "github.ref: $REF"
