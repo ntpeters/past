@@ -100,8 +100,9 @@ jobs:
         auth: ${{ secrets.GIST_SECRET }}
         gistID: bb279656e71f063d8ce524d12ac2389a
         filename: past__${{ env.BRANCH }}.json
-        label: Test Coverage
+        label: Code Coverage
         message: ${{ env.COVERAGE }}%
+        namedlogo: dotnet
         valColorRange: ${{ env.COVERAGE }}
         minColorRange: 75
         maxColorRange: 95
