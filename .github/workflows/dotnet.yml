@@ -76,3 +76,31 @@ jobs:
 
     - name: Write to Job Summary
       run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+    - name: Get Coverage For Badge
+      run: |
+          # Extract the code coverage summary percentage
+          COVERAGE = grep Summary code-coverage-results.md | cut -d '|' -f 2 | cut -d ' ' -f 2
+
+          # Add the coverage to an environment variable
+          echo "COVERAGE=$(echo ${COVERAGE})" >> $GITHUB_ENV
+
+          REF=${{ github.ref }}
+          echo "github.ref: $REF"
+
+          IFS='/' read -ra PATHS <<< "$REF"
+          BRANCH_NAME="${PATHS[1]}_${PATHS[2]}"
+          echo $BRANCH_NAME
+          echo "BRANCH=$(echo ${BRANCH_NAME})" >> $GITHUB_ENV
+
+    - name: Create Badge
+      uses: schneegans/dynamic-badges-action@v1.6.0
+      with:
+        auth: ${{ secrets.GIST_SECRET }}
+        gistID: bb279656e71f063d8ce524d12ac2389a
+        filename: past__${{ env.BRANCH }}.json
+        label: Test Coverage
+        message: ${{ env.COVERAGE }}
+        valColorRange: ${{ env.COVERAGE }}
+        minColorRange: 75
+        maxColorRange: 95
