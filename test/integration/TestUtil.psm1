@@ -33,6 +33,8 @@ function Invoke-NativeCommand {
     }
     $outputPath = "$outputPath.output"
 
+    Write-Debug "Invoking native command: '$Command'; Arguments: '$Arguments'; Temp Output Path: '$outputPath'"
+
     & $Command @Arguments > $outputPath
 
     $content = Get-Content -Raw $outputPath

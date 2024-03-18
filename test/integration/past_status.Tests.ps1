@@ -6,12 +6,9 @@ param(
     $Configuration = 'Debug'
 )
 
+. "$PSScriptRoot\TestBase.ps1"
+
 BeforeDiscovery {
-    Import-Module "$PSScriptRoot/TestUtil.psm1" -Force
-
-    $Script:past = Get-PastPath -Configuration $Configuration -Published:$Published
-    Write-Debug "Using Past Path: $past"
-
     $testCases = @(
         @{ HistoryEnabled = $true }
         @{ HistoryEnabled = $false }
